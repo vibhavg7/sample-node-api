@@ -2,6 +2,9 @@ var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
 
+var productRoutes = require("./routes/products.routes");
+var indexRoutes = require("./routes/index.routes");
+
 
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
@@ -15,11 +18,13 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
+// app.use('/', indexRoutes);
+app.use('/productsapi', productRoutes);
 
-// default route
-app.get('/', function (req, res) {
-    return res.send({ error: true, message: 'hello',keys:process.env });
-});
+// // default route
+// app.get('/', function (req, res) {
+//     return res.send({ error: true, message: 'hello',keys:process.env });
+// });
 
  // set port
  app.listen(3000, function () {

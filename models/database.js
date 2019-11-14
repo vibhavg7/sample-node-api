@@ -9,10 +9,10 @@ var grostepawsdb_config = {
 };
 
 
-export async function connect_aws_grostep() {
+exports.connect_aws_grostep = function() {
 
     var pool = mysql.createPool(grostepawsdb_config);
-    await pool.getConnection((err, connection) => {
+    pool.getConnection((err, connection) => {
         if (err) {
             if (err.code === 'PROTOCOL_CONNECTION_LOST') {
                 console.error('Database connection was closed.')
