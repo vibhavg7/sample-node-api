@@ -7,11 +7,13 @@ var indexRoutes = require("./routes/index.routes");
 var productRoutes = require("./routes/products.routes");
 var categoryRoutes = require("./routes/category.routes");
 var storesRoutes = require("./routes/stores.routes");
+var customerRoutes = require("./routes/customer.routes");
+var orderRoutes = require("./routes/order.routes");
+var imageuploadRoutes = require("./routes/image.upload.routes");
 
-// var customerRoutes = require("./routes/customer.routes");
 // var employeeRoutes = require("./routes/employee.routes");
-// var orderRoutes = require("./routes/order.routes");
-// var imageuploadRoutes = require("./routes/image.upload.routes");
+
+
 
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
@@ -29,11 +31,12 @@ app.use('/', indexRoutes);
 app.use('/productsapi', productRoutes);
 app.use('/categoryapi', categoryRoutes);
 app.use('/storesapi', storesRoutes);
-
-// app.use('/customerapi', customerRoutes);
+app.use('/customerapi', customerRoutes);
+app.use('/orderapi', orderRoutes);
+app.use('/imageuploadapi', imageuploadRoutes);
 // app.use('/employeeapi', employeeRoutes);
-// app.use('/orderapi', orderRoutes);
-// app.use('/imageuploadapi', imageuploadRoutes);
+
+
 
 // // default route
 // app.get('/', function (req, res) {
