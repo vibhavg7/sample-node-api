@@ -18,7 +18,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-// app.use('/', indexRoutes);
+app.use('/', indexRoutes);
 app.use('/productsapi', productRoutes);
 
 // // default route
