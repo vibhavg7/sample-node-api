@@ -21,7 +21,7 @@ router.route('/storecategories')
     .put(categoryController.updateStoreCategory);
 
 router.route('/storecategories/:category_id')
-    .get(categoryController.getStoreCategories);
+    .post(categoryController.getStoreCategories);
 
 router.route('/')
     .get(categoryController.getCategoryInfo);
