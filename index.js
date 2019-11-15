@@ -11,7 +11,7 @@ var customerRoutes = require("./routes/customer.routes");
 var orderRoutes = require("./routes/order.routes");
 var imageuploadRoutes = require("./routes/image.upload.routes");
 
-// var employeeRoutes = require("./routes/employee.routes");
+var employeeRoutes = require("./routes/employee.routes");
 
 
 
@@ -35,7 +35,7 @@ app.use('/storesapi', storesRoutes);
 app.use('/customerapi', customerRoutes);
 app.use('/orderapi', orderRoutes);
 app.use('/imageuploadapi', imageuploadRoutes);
-// app.use('/employeeapi', employeeRoutes);
+app.use('/employeeapi', employeeRoutes);
 
 
 
