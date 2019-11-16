@@ -1,4 +1,5 @@
 var mysql = require('mysql');
+var _ = require('lodash');
 var dbConn = mysql.createConnection({
     host: 'vibhavg91.cce5kiug4ajr.us-east-2.rds.amazonaws.com',
     user: 'root',
