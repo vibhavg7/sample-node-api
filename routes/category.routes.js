@@ -13,7 +13,7 @@ router.route('/storesubcategories')
     .put(categoryController.updateStoreSubCategory);
 
 router.route('/storesubcategories/:store_category_id')
-    .get(categoryController.getStoreSubCategories);
+    .post(categoryController.getStoreSubCategories);
 
 router.route('/storecategories')
     .post(categoryController.postStoreCategories)

@@ -204,7 +204,8 @@ exports.getStoreSubCategories = function (req, res) {
         }
         else {
             res.json({
-                "message": "all sub categories of tore category list",
+                "message": "all sub categories of store category list",
+                "store_category_id":store_category_id,
                 "store_sub_categories": subcategories[0]
             });
 
