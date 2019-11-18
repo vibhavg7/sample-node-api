@@ -31,7 +31,9 @@ exports.getEmployees =function(req, res) {
 
 exports.validateEmployee = function(req, res) {
     let sql = `CALL validateEmployee(?,?)`;
+    console.log(req.body.user_name + " " +req.body.password);
     dbConn.query(sql, [req.body.user_name, req.body.password], function (err, employeeData) {
+        // res.json(employeeData);
         if (err) {
             res.json({
                 "status": 401,

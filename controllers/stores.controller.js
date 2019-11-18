@@ -26,6 +26,27 @@ exports.fetchAllStores = function(req, res) {
     });
 }
 
+exports.fetchStoreProductInfoById = function(req,res) {
+    let sql = `CALL GET_STORE_PRODUCTINFO(?)`;
+    dbConn.query(sql,[+req.params.id], function (err, productInfo) {
+        if (err) {
+            console.log("error: ", err);
+            res.json({
+                status:400,
+                "message":"Store products Information not found",
+                "products_info": productInfo[0],               
+            });
+        }
+        else {
+            res.json({
+                status:200,
+                "message":"Product Information",
+                "products_info": productInfo[0],
+            });
+        }
+    });
+}
+
 exports.fetchStoreProductsById = function(req,res) {
     let sql = `CALL GET_STORE_PRODUCTS(?,?,?,?)`;
     dbConn.query(sql,[+req.body.storeId,+req.body.page_number,+req.body.page_size,req.body.filterBy], function (err, store) {

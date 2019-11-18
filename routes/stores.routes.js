@@ -15,6 +15,9 @@ router.route('/storeinfo')
 router.route('/storeinfo/storeproducts')
     .post(storesController.fetchStoreProductsById);
 
+router.route('/storeinfo/storeproducts/:id')
+    .get(storesController.fetchStoreProductInfoById);
+
 router.route('/storeinfo/storeorders')
     .post(storesController.fetchStoreOrdersById);
 
