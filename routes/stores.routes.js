@@ -18,8 +18,14 @@ router.route('/storeinfo/storeproducts')
 router.route('/storeinfo/storeproducts/:id')
     .get(storesController.fetchStoreProductInfoById);
 
+router.route('/storeinfo/storeproducts/edit')
+    .post(storesController.editStoreProductInfoById);
+
 router.route('/storeinfo/storeorders')
     .post(storesController.fetchStoreOrdersById);
+
+router.route('/storeinfo/storeproducts/updatestock/:id')
+    .patch(storesController.updateProductStock);
 
 router.route('/storeinfo/storeorderproducts/:orderId')
     .get(storesController.fetchStoreOrderProductsById);

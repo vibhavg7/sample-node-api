@@ -26,6 +26,61 @@ exports.fetchAllStores = function(req, res) {
     });
 }
 
+exports.updateProductStock = function(req,res)
+{
+    const updateStock = req.body;
+    dbConn.query("UPDATE stores_products_mapping SET ? WHERE store_product_mapping_id = ?",
+        [updateStock, req.params.id], function (err, updateStock) {
+            if (err) {
+                console.log("error: ", err);
+            }
+            else {
+                let updated = false;
+                if (updateStock.affectedRows == 1) {
+                    updated = true;
+                }
+                res.json({
+                    "message": (updated) ? "stock updated successfully" : "invalid category id",
+                    "status": (updated) ? 200 : 400,
+                    "stock": updateStock,
+                    "product_id": req.params.id
+                });
+            }
+        });
+}
+
+exports.editStoreProductInfoById = function(req,res){
+    const ProductInfo = req.body;
+    let sql = `CALL UPDATE_STORE_PRODUCT_INFO(?,?,?,?,?,?,?,?)`;
+    let productId = +req.body.productId;
+    let store_cost_price = +req.body.store_cost_price;
+    let store_selling_price = +req.body.store_selling_price;
+    let store_margin = +req.body.store_margin;
+    let store_discount = +req.body.store_discount;
+    let status = +req.body.status;
+    let product_marked_price = +req.body.product_marked_price;
+    let stock = +req.body.stock;
+    dbConn.query(sql, [productId, store_cost_price, store_selling_price, store_margin,
+        store_discount, status, product_marked_price, stock],
+        function (err, updatedProduct) {
+            if (err) {
+                console.log("error: ", err);
+                res.json({
+                    "status": 400,
+                    "message": "Product not updated",
+                    "product_id": 0
+                })
+            }
+            else {
+                res.json({
+                    "status": 200,
+                    "message": "Product detail",
+                    "product_id": productId
+                });
+            }
+        });
+}
+
 exports.fetchStoreProductInfoById = function(req,res) {
     let sql = `CALL GET_STORE_PRODUCTINFO(?)`;
     dbConn.query(sql,[+req.params.id], function (err, productInfo) {
