@@ -125,6 +125,48 @@ exports.fetchStoreProductsById = function(req,res) {
     });
 }
 
+exports.deleteStore = function(req,res)
+{
+    dbConn.query("DELETE FROM stores WHERE store_id = ? ", req.params.storeId,
+    function (err, storeData) {
+        if (err) {
+            console.log("error: ", err);
+        }
+        else {
+            let deleted = false;
+            if (storeData.affectedRows == 1) {
+                deleted = true;
+            }
+            res.json({
+                "message": (deleted) ? "store sub Category deleted successfully" : "invalid category id",
+                "status": (deleted) ? 200 : 400,
+                "category_id": req.params.storeId
+            });
+        }
+    });
+}
+
+exports.deleteStoreProduct = function(req,res)
+{
+    dbConn.query("DELETE FROM stores_products_mapping WHERE store_product_mapping_id = ? ", req.params.id,
+    function (err, storeProductData) {
+        if (err) {
+            console.log("error: ", err);
+        }
+        else {
+            let deleted = false;
+            if (storeProductData.affectedRows == 1) {
+                deleted = true;
+            }
+            res.json({
+                "message": (deleted) ? "store sub Category deleted successfully" : "invalid category id",
+                "status": (deleted) ? 200 : 400,
+                "category_id": req.params.id
+            });
+        }
+    });
+}
+
 exports.fetchStoreOrderProductsById = function(req,res) {
     let sql = `CALL GET_ORDER_PRODUCTS(?)`;
     dbConn.query(sql,[+req.params.orderId], 

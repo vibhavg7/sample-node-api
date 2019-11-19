@@ -8,11 +8,11 @@ router.route('/subcategories/:sub_category_id')
 
 
 router.route('/storesubcategories')
-    .post(categoryController.postStoreSubCategories)
-    .delete(categoryController.deleteStoreSubCategory)
+    .post(categoryController.postStoreSubCategories)    
     .put(categoryController.updateStoreSubCategory);
 
 router.route('/storesubcategories/:store_category_id')
+    .delete(categoryController.deleteStoreSubCategory)
     .post(categoryController.getStoreSubCategories);
 
 router.route('/storecategories')

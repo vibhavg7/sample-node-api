@@ -263,7 +263,7 @@ exports.postStoreSubCategories = function (req, res) {
 
 
 exports.deleteStoreSubCategory = function (req, res) {
-    dbConn.query("DELETE FROM categories WHERE category_id = ? ", req.body.category_id,
+    dbConn.query("DELETE FROM categories WHERE category_id = ? ", req.params.store_category_id,
         function (err, storeSubCategory) {
             if (err) {
                 console.log("error: ", err);

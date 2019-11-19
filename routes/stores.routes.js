@@ -16,7 +16,8 @@ router.route('/storeinfo/storeproducts')
     .post(storesController.fetchStoreProductsById);
 
 router.route('/storeinfo/storeproducts/:id')
-    .get(storesController.fetchStoreProductInfoById);
+    .get(storesController.fetchStoreProductInfoById)
+    .delete(storesController.deleteStoreProduct);
 
 router.route('/storeinfo/storeproducts/edit')
     .post(storesController.editStoreProductInfoById);
@@ -32,6 +33,7 @@ router.route('/storeinfo/storeorderproducts/:orderId')
 
 router.route('/storeinfo/:storeId')
     .get(storesController.fetchStoreById)
+    .delete(storesController.deleteStore)
     .put(storesController.updateStore)
 
 
