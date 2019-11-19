@@ -16,11 +16,11 @@ router.route('/storesubcategories/:store_category_id')
     .post(categoryController.getStoreSubCategories);
 
 router.route('/storecategories')
-    .post(categoryController.postStoreCategories)
-    .delete(categoryController.deleteStoreCategory)
+    .post(categoryController.postStoreCategories)    
     .put(categoryController.updateStoreCategory);
 
 router.route('/storecategories/:category_id')
+    .delete(categoryController.deleteStoreCategory)
     .post(categoryController.getStoreCategories);
 
 router.route('/')

@@ -124,7 +124,7 @@ exports.postStoreCategories = function (req, res) {
 
 
 exports.deleteStoreCategory = function (req, res) {
-    dbConn.query("DELETE FROM store_categories WHERE store_category_id = ? ", req.body.store_category_id,
+    dbConn.query("DELETE FROM store_categories WHERE store_category_id = ? ", req.params.category_id,
         function (err, storeCategory) {
             if (err) {
                 console.log("error: ", err);
