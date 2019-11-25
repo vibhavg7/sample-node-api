@@ -10,90 +10,115 @@ var dbConn = mysql.createConnection({
 dbConn.connect();
 
 
-exports.getCategoryInfo = function (req, res) {
-    let sql = `CALL GET_CATEGORY_INFO()`;
-    dbConn.query(sql, function (err, categories) {
+exports.getSubCategoryInfo = function(req,res)
+{
+    let sql = `CALL GET_SUBCATEGORYINFO(?)`;
+    let sub_category_id = +req.params.sub_category_id;
+    
+
+    dbConn.query(sql, [sub_category_id], function (err, categories) {
         if (err) {
             console.log("error: ", err);
         }
         else {
             res.json({
-                "message": "Category list",
-                "products": categories[0]
+                "message": "sub Category list",
+                "store_sub_categories": categories[0]
             });
         }
-    });
+    _});
 }
 
-exports.getStoreCategories = function (req, res) {
+exports.getCategoryInfo = function (req, res) {
+    let sql = `CALL GET_CATEGORY_INFO(?)`;
+    let categoryId = +req.params.store_category_id;
+    
 
-    let sql = `CALL GET_STORE_CATEGORY_INFO(?,?)`;
-    let category_id = +req.params.category_id;
-    dbConn.query(sql, [category_id, req.body.filterBy], function (err, categories) {
-        let arr = [];
-        let arr1 = [];
-        if (category_id == 0) {
-            let categories_data = categories[0];
-            let store_with_sub_categories = _.filter(categories_data,
-                (data) => data['category_id'] != null);
-            let store_with_sub_categories_grouped = _.groupBy(store_with_sub_categories,
-                function (cat) {
-                    return cat.store_category_name;
-                });
-            let category_array = Object.keys(store_with_sub_categories_grouped);
-            category_array.forEach(element => {
-                let obj = {};
-                obj['store_category_id'] = store_with_sub_categories_grouped[element][0]['store_category_id'];
-                obj['store_category_ranking'] = store_with_sub_categories_grouped[element][0]['store_category_ranking'];
-                obj['store_image_url'] = store_with_sub_categories_grouped[element][0]['image_url'];
-                obj['status'] = store_with_sub_categories_grouped[element][0]['status'];
-                obj['last_updated'] = store_with_sub_categories_grouped[element][0]['last_updated'];
-
-                obj['store_category_name'] = element;
-                obj['store_sub_category_name'] = store_with_sub_categories_grouped[element];
-                arr.push(obj);
-            });
-            const store_without_sub_categories = _.filter(categories_data,
-                (data) => data['category_id'] == null);
-
-            // let category_array1 = Object.keys(store_without_sub_categories);
-            store_without_sub_categories.forEach((element) => {
-                let obj = {};
-                obj['store_category_name'] = element['store_category_name'];
-                obj['store_category_id'] = element['store_category_id'];
-                obj['store_image_url'] = element['image_url'];
-                obj['store_category_ranking'] = element['store_category_ranking'];
-                obj['status'] = element['status'];
-                obj['last_updated'] = element['last_updated'];
-                obj['store_sub_category_name'] = [];
-                arr1.push(obj);
-            });
-
-            Array.prototype.push.apply(arr, arr1);
-        }
-
+    dbConn.query(sql, [categoryId], function (err, categories) {
         if (err) {
             console.log("error: ", err);
         }
         else {
-            if (category_id == 0) {
+            let categoriesData = categories[0];
+            let map = new Map();
+            let mainCategoryResult = [];
+            let storeSubCategoryResult = [];
+            for (const item of categoriesData) {
+                if (!map.has(item.store_category_id)) {
+                    map.set(item.store_category_id, true);
+                    mainCategoryResult.push({
+                        "main_category": item.store_category_name,
+                        "main_category_id": item.store_category_id,
+                        "main_category_image_url": item.store_image_url,
+                        "store_sub_category_name": []
+                    })
+                }
+            }
+            map.clear();
+            for (const item of categoriesData) {
+                if (!map.has(item.store_sub_category_id) && item.store_sub_category_id != null) {
+                    map.set(item.store_sub_category_id, true);
+                    storeSubCategoryResult.push({
+                        "store_sub_category": item.store_sub_category_name,
+                        "store_sub_category_id": item.store_sub_category_id,
+                        "sub_store_category_id": item.sub_store_category_id,
+                        "sub_category_data": []
+                    })
+                }
+            }
+            map.clear();
+
+            storeSubCategoryResult.forEach((data) => {
+                var newArray = categoriesData
+                    .filter(item => item.parent_category_id === data.store_sub_category_id)
+                    .map(item => ({
+                        'sub_category_name': item.sub_category_name,
+                        'sub_category_id': item.sub_category_id
+                    }));
+                data['sub_category_data'] = (newArray);
+            });
+
+            mainCategoryResult.forEach((data) => {
+                var newArray = storeSubCategoryResult
+                    .filter(item => item.sub_store_category_id === data.main_category_id)
+                    // .map(item => ({
+                    //     'sub_category_name': item.sub_category_name,
+                    //     'sub_category_id': item.sub_category_id
+                    // }));
+                data['store_sub_category_name'] = (newArray);
+            })
+            res.json({
+                "message": "Category list",
+                "store_categories": mainCategoryResult
+            });
+        }
+    });
+}
+
+exports.getAllStoreCategories = function(req,res) {
+    const newStoreCategory = req.body;
+    let sql = `CALL GET_ALL_STORE_CATEGORIES(?)`;    
+
+    dbConn.query(sql,[req.body.filterBy],
+        function (err, storeCategory) {
+            if (err) {
+                console.log("error: ", err);
                 res.json({
-                    "message": "store category list",
-                    "store_categories": arr
+                    "message": "store Category not found",
+                    "status": 400,
+                    "category_id": 0
                 });
             }
             else {
                 res.json({
-                    "message": "store category list",
-                    "store_categories": categories[0],
-                    "store_sub_categories": categories[1] ? categories[1] : []
-
+                    "message": "store Categories",
+                    "status": 200,
+                    "store_categories": storeCategory[0]
                 });
             }
-
-        }
-    });
+        });
 }
+
 
 exports.postStoreCategories = function (req, res) {
     const newStoreCategory = req.body;
@@ -122,27 +147,6 @@ exports.postStoreCategories = function (req, res) {
         });
 }
 
-
-exports.deleteStoreCategory = function (req, res) {
-    dbConn.query("DELETE FROM store_categories WHERE store_category_id = ? ", req.params.category_id,
-        function (err, storeCategory) {
-            if (err) {
-                console.log("error: ", err);
-            }
-            else {
-                let deleted = false;
-                if (storeCategory.affectedRows == 1) {
-                    deleted = true;
-                }
-                res.json({
-                    "message": (deleted) ? "store Category deleted successfully" : "invalid category id",
-                    "status": (deleted) ? 200 : 400,
-                    "category_id": req.body.store_category_id
-                });
-            }
-        });
-}
-
 exports.updateStoreCategory = function (req, res) {
     const updateStoreCategories = req.body;
     dbConn.query("UPDATE store_categories SET ? WHERE store_category_id = ?",
@@ -165,83 +169,16 @@ exports.updateStoreCategory = function (req, res) {
         });
 }
 
-exports.updateStoreCategoryImages = function (categoryId, imageUrl, req, res) {
-    let sql = `CALL UPDATE_STORE_CATEGORY(?,?,?)`;
-    let storeCategoryId = +categoryId;
-    let image_url = imageUrl;
-    let status = 1;
-    dbConn.query(sql, [storeCategoryId, image_url, status],
-        function (err, updatedCategories) {
-            if (err) {
-                console.log("error: ", err);
-                res.json({
-                    "status": 400,
-                    "message": "store category images not updated",
-                    "product_id": 0
-                })
-            }
-            else {
-                res.json({
-                    "status": 200,
-                    'image_url': req.file.location,
-                    "message": "category detail",
-                    "product": updatedCategories[0][0]
-                });
-            }
-        });
-}
-
-
-//Store Subcategories APIs
-
-exports.getStoreSubCategories = function (req, res) {
-    let sql = `CALL GET_STORE_SUBCATEGORIES(?,?)`;
-    let store_category_id = req.params.store_category_id;
-    let filterBy = req.body.filterBy;
-    dbConn.query(sql, [store_category_id, filterBy], function (err, subcategories) {
-        if (err) {
-            console.log("error: ", err);
-        }
-        else {
-            res.json({
-                "message": "all sub categories of store category list",
-                "store_category_id":store_category_id,
-                "store_sub_categories": subcategories[0]
-            });
-
-        }
-    });
-}
-
-exports.getSubCategoryData = function (req, res) {
-    let sql = `CALL GET_SUBCATEGORYINFO(?)`;
-    let sub_category_id = req.params.sub_category_id;
-    dbConn.query(sql, [sub_category_id], function (err, subcategories) {
-        if (err) {
-            console.log("error: ", err);
-        }
-        else {
-            res.json({
-                "message": "sub category information",
-                "store_sub_categories": subcategories[0]
-            });
-
-        }
-    });
-}
-
-
-
 exports.postStoreSubCategories = function (req, res) {
     const newStoreCategory = req.body;
-    let sql = `CALL ADD_NEW_STORE_SUBCATEGORY(?,?,?,?,?)`;
+    let sql = `CALL ADD_NEW_STORE_SUBCATEGORY(?,?)`;
     let store_category_id = +req.body.store_category_id;
     let category_name = req.body.categoryName;
-    let url = '';
-    let status = +req.body.status;
-    let ranking = +req.body.categoryRanking;
+    // let url = '';
+    // let status = +req.body.status;
+    // let ranking = +req.body.categoryRanking;
 
-    dbConn.query(sql, [store_category_id, category_name, url, status, ranking],
+    dbConn.query(sql, [store_category_id, category_name],
         function (err, storeSubCategory) {
             if (err) {
                 console.log("error: ", err);
@@ -256,27 +193,6 @@ exports.postStoreSubCategories = function (req, res) {
                     "message": "store sub category added successfully",
                     "status": 200,
                     "category_id": storeSubCategory[0][0]['store_sub_category_id']
-                });
-            }
-        });
-}
-
-
-exports.deleteStoreSubCategory = function (req, res) {
-    dbConn.query("DELETE FROM categories WHERE category_id = ? ", req.params.store_category_id,
-        function (err, storeSubCategory) {
-            if (err) {
-                console.log("error: ", err);
-            }
-            else {
-                let deleted = false;
-                if (storeSubCategory.affectedRows == 1) {
-                    deleted = true;
-                }
-                res.json({
-                    "message": (deleted) ? "store sub Category deleted successfully" : "invalid category id",
-                    "status": (deleted) ? 200 : 400,
-                    "category_id": req.body.category_id
                 });
             }
         });
@@ -303,6 +219,119 @@ exports.updateStoreSubCategory = function (req, res) {
         });
 }
 
+exports.deleteStoreSubCategory = function (req, res) {
+    dbConn.query("DELETE FROM categories WHERE category_id = ? ", req.params.store_category_id,
+        function (err, storeSubCategory) {
+            if (err) {
+                console.log("error: ", err);
+            }
+            else {
+                let deleted = false;
+                if (storeSubCategory.affectedRows == 1) {
+                    deleted = true;
+                }
+                res.json({
+                    "message": (deleted) ? "store sub Category deleted successfully" : "invalid category id",
+                    "status": (deleted) ? 200 : 400,
+                    "store_sub_category_id": req.params.store_category_id
+                });
+            }
+        });
+}
+
+
+exports.deleteStoreCategory = function (req, res) {
+    dbConn.query("DELETE FROM store_categories WHERE store_category_id = ? ", req.params.category_id,
+        function (err, storeCategory) {
+            if (err) {
+                console.log("error: ", err);
+            }
+            else {
+                let deleted = false;
+                if (storeCategory.affectedRows == 1) {
+                    deleted = true;
+                }
+                res.json({
+                    "message": (deleted) ? "store Category deleted successfully" : "invalid category id",
+                    "status": (deleted) ? 200 : 400,
+                    "category_id": req.params.category_id
+                });
+            }
+        });
+}
+
+
+//---------------------------- //
+
+exports.postSubCategory = function (req, res) {
+    const newStoreCategory = req.body;
+    let sql = `CALL ADD_NEW_SUBCATEGORY(?,?)`;
+    let store_sub_category_id = +req.body.store_sub_category_id;
+    let sub_category_name = req.body.subCategoryName;
+    // let url = '';
+    // let status = +req.body.status;
+    // let ranking = +req.body.categoryRanking;
+
+    dbConn.query(sql, [store_sub_category_id, sub_category_name],
+        function (err, subCategory) {
+            if (err) {
+                console.log("error: ", err);
+                res.json({
+                    "message": "sub category not added",
+                    "status": 400,
+                    "category_id": 0
+                });
+            }
+            else {
+                res.json({
+                    "message": "sub category added successfully",
+                    "status": 200,
+                    "category_id": subCategory[0][0]['sub_category_id']
+                });
+            }
+        });
+}
+
+exports.updateSubCategory = function (req, res) {
+    const updateStoreSubCategories = req.body;
+    dbConn.query("UPDATE categories SET ? WHERE category_id = ?",
+        [updateStoreSubCategories, req.body.category_id], function (err, storeSubCategory) {
+            if (err) {
+                console.log("error: ", err);
+            }
+            else {
+                let updated = false;
+                if (storeSubCategory.affectedRows == 1) {
+                    updated = true;
+                }
+                res.json({
+                    "message": (updated) ? "sub Category updated successfully" : "invalid category id",
+                    "status": (updated) ? 200 : 400,
+                    "category_id": req.body.category_id
+                });
+            }
+        });
+}
+
+exports.deleteSubCategory = function (req, res) {
+    dbConn.query("DELETE FROM categories WHERE category_id = ? ", req.params.sub_category_id,
+        function (err, subCategory) {
+            if (err) {
+                console.log("error: ", err);
+            }
+            else {
+                let deleted = false;
+                if (subCategory.affectedRows == 1) {
+                    deleted = true;
+                }
+                res.json({
+                    "message": (deleted) ? "sub Category deleted successfully" : "invalid category id",
+                    "status": (deleted) ? 200 : 400,
+                    "category_id": req.body.category_id
+                });
+            }
+        });
+}
 
 
 

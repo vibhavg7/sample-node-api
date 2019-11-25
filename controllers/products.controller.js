@@ -1,6 +1,10 @@
 
 var mysql = require('mysql');
 var dbConn = mysql.createConnection({
+    // host: 'localhost',
+    // user: 'root',
+    // password: 'root',
+    // database: 'grostep'
     host: 'vibhavg91.cce5kiug4ajr.us-east-2.rds.amazonaws.com',
     user: 'root',
     password: 'password',
