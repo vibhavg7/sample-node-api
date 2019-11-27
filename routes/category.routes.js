@@ -21,13 +21,13 @@ router.route('/subcategories/:sub_category_id')
 
 router.route('/storecategories')
     .post(categoryController.getAllStoreCategories)
-
     .put(categoryController.updateStoreCategory);
 
 router.route('/addstorecategory')
     .post(categoryController.postStoreCategories);
 
 router.route('/storecategories/:category_id')
+    .get(categoryController.getStoreCategory)
     .delete(categoryController.deleteStoreCategory)
 
 

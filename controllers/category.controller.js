@@ -120,6 +120,26 @@ exports.getAllStoreCategories = function(req,res) {
 }
 
 
+exports.getStoreCategory = function(req,res){
+    // const updateStoreCategories = req.body;
+    // console.log(req.body)
+    dbConn.query("select * from store_categories WHERE store_category_id = ?",
+        [req.params.category_id], function (err, storeCategory) {
+            if (err) {
+                console.log("error: ", err);
+            }
+            else {                
+                res.json({
+                    "message": "store category information",
+                    "status": 200,
+                    "category": storeCategory,
+                    "category_id": req.params.category_id
+                });
+            }
+        });
+}
+
+
 exports.postStoreCategories = function (req, res) {
     const newStoreCategory = req.body;
     let sql = `CALL ADD_NEW_STORE_CATEGORY(?,?,?)`;
