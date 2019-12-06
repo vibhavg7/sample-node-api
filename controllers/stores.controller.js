@@ -9,6 +9,29 @@ var dbConn = mysql.createConnection({
 dbConn.connect();
 
 
+exports.validateMerchant = function(req,res)
+{
+    let sql = `CALL validateMerchant(?,?)`;
+    console.log(req.body.user_name + " " +req.body.password);
+    dbConn.query(sql, [req.body.user_name, req.body.password], function (err, merchantData) {
+        // res.json(employeeData);
+        if (err) {
+            res.json({
+                "status": 401,
+                "message": "Merchant Details not found",
+                "employeeData": merchantData[0]
+            });
+        }
+        else {
+            res.json({
+                "status": 200,
+                "message": "Merchant Details",
+                "employeeData": merchantData[0]
+            });
+        }
+    });
+}
+
 exports.fetchAllStores = function(req, res) {
     let sql = `CALL GET_ALL_STORES_INFO(?,?,?)`;
     dbConn.query(sql,[+req.body.page_number,+req.body.page_size,req.body.filterBy], 
