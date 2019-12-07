@@ -9,6 +9,29 @@ var dbConn = mysql.createConnection({
 dbConn.connect();
 
 
+exports.fetchOrderBillInformation = function(req,res){
+
+    let sql = `CALL GET_ORDER_BILLINFO(?)`;
+    dbConn.query(sql,[+req.params.orderId], 
+        function (err, orderData) {
+        if (err) {
+            console.log("error: ", err);
+            res.json({
+                status:400,
+                "message":"order bill information not found",
+            });  
+        }
+        else {
+            res.json({
+                "message":"order bill information",
+                "status":200,
+                "customerInfo": orderData[0]
+            });
+        }
+    });
+
+}
+
 exports.fetchOrderDetailsById = function(req, res) {
     let sql = `CALL GET_ORDER_INFO(?)`;
     dbConn.query(sql,[+req.params.orderId], 
