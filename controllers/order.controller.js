@@ -31,6 +31,30 @@ exports.fetchOrderBillInformation = function(req,res){
     });
 }
 
+exports.fetchOrderCount = function(req,res){
+
+    let sql = `CALL GET_ORDER_TYPE_COUNT(?)`;
+    dbConn.query(sql,[+req.body.merchantId], 
+        function (err, orderCount) {
+        if (err) {
+            console.log("error: ", err);
+            res.json({
+                status:400,
+                "message":"order information not found",
+            });  
+        }
+        else {
+            res.json({
+                "message":"orders count information",
+                "status":200,
+                "new_orders_count": orderData[0],
+                "pending_orders_count": orderData[1],
+                "picked_orders_count": orderData[2]
+            });
+        }
+    });
+}
+
 exports.merchantBillconfirmation = function(req,res){
     let sql = `CALL ORDER_BILL_CONFIRMATION(?,?,?)`;
     dbConn.query(sql,[+req.body.order_id,+req.body.bill_amount,+req.body.order_status], 
@@ -76,4 +100,6 @@ exports.fetchOrderDetailsById = function(req, res) {
             });
         }
     });
+
+
 }
