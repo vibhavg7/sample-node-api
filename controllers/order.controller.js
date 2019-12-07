@@ -29,7 +29,27 @@ exports.fetchOrderBillInformation = function(req,res){
             });
         }
     });
+}
 
+exports.merchantBillconfirmation = function(req,res){
+    let sql = `CALL ORDER_BILL_CONFIRMATION(?,?,?)`;
+    dbConn.query(sql,[+req.body.order_id,+req.body.bill_amount,+req.body.order_status], 
+        function (err, orderData) {
+        if (err) {
+            console.log("error: ", err);
+            res.json({
+                status:400,
+                "message":"order bill information not found",
+            });  
+        }
+        else {
+            res.json({
+                "message":"order bill information",
+                "status":200,
+                "billInfo": orderData[0]
+            });
+        }
+    });   
 }
 
 exports.fetchOrderDetailsById = function(req, res) {
