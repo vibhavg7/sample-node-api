@@ -215,8 +215,8 @@ exports.fetchStoreOrderProductsById = function(req,res) {
 }
 
 exports.fetchStoreOrdersById = function(req,res) {
-    let sql = `CALL GET_STORE_ORDERS(?,?,?,?,?)`;
-    dbConn.query(sql,[+req.body.storeId,+req.body.page_number,+req.body.page_size,req.body.filterBy,req.body.order_type],
+    let sql = `CALL GET_STORE_ORDERS(?,?,?,?)`;
+    dbConn.query(sql,[+req.body.storeId,+req.body.page_number,+req.body.page_size,req.body.filterBy],
          function (err, storeOrders) {
         if (err) {
             console.log("error: ", err);
