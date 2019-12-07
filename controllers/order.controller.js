@@ -25,7 +25,7 @@ exports.fetchOrderBillInformation = function(req,res){
             res.json({
                 "message":"order bill information",
                 "status":200,
-                "customerInfo": orderData[0]
+                "billInfo": orderData[0]
             });
         }
     });
