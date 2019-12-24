@@ -5,6 +5,7 @@ const singleUpload = uploadImage.single('image');
 var productsController = require("../controllers/products.controller");
 var categoryController = require("../controllers/category.controller");
 var storesController = require("../controllers/stores.controller");
+var bannerController = require("../controllers/banner.controller");
 
 router.post('/products/:productId', function (req, res, next) {
     singleUpload(req, res, function (err) {
@@ -21,6 +22,8 @@ router.post('/category/:categoryid', function (req, res, next) {
         if (err) {
             return res.status(422).send({ errors: [{ title: 'File Upload Error', detail: err.message }] });
         }
+        console.log(req.params.categoryid);
+        console.log(req.file.location);
         categoryController.updateStoreCategoryImages(req.params.categoryid, req.file.location, req, res);
     })
 });
@@ -33,5 +36,24 @@ router.post('/merchants/:merchantId', function (req, res, next) {
         storesController.updateStoreImages(req.params.merchantId, req.file.location, req, res);
     })
 });
+
+router.post('/banners/:bannerId', function (req, res, next) {
+    singleUpload(req, res, function (err) {
+        if (err) {
+            return res.status(422).send({ errors: [{ title: 'File Upload Error', detail: err.message }] });
+        }
+        bannerController.updateBannerImages(req.params.bannerId, req.file.location, req, res);
+    })
+});
+
+router.post('/subcategories/:categoryId', function (req, res, next) {
+    singleUpload(req, res, function (err) {
+        if (err) {
+            return res.status(422).send({ errors: [{ title: 'File Upload Error', detail: err.message }] });
+        }
+        categoryController.updateSubCategoryImages(req.params.categoryId, req.file.location, req, res);
+    })
+});
+
 
 module.exports = router;

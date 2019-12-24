@@ -9,6 +9,7 @@ var categoryRoutes = require("./routes/category.routes");
 var storesRoutes = require("./routes/stores.routes");
 var customerRoutes = require("./routes/customer.routes");
 var orderRoutes = require("./routes/order.routes");
+var bannerRoutes = require("./routes/banner.routes");
 var imageuploadRoutes = require("./routes/image.upload.routes");
 
 var employeeRoutes = require("./routes/employee.routes");
@@ -36,7 +37,7 @@ app.use('/customerapi', customerRoutes);
 app.use('/orderapi', orderRoutes);
 app.use('/imageuploadapi', imageuploadRoutes);
 app.use('/employeeapi', employeeRoutes);
-
+app.use('/bannerapi', bannerRoutes);
 
 
 // // default route

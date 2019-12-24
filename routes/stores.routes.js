@@ -12,8 +12,14 @@ router.route('/validate')
 router.route('/addstoreproducts')
     .post(storesController.addStoreProducts);
 
-router.route('/storeinfo')
+router.route('/storeinfo')    
     .post(storesController.fetchAllStores);
+
+router.route('/storeinfo/categories/:storeId')
+    .get(storesController.fetchStoreSubCategoriesInfoById);
+
+router.route('/storeinfo/zipCode')
+    .post(storesController.fetchAllStoresBasedOnZipCode);
 
 router.route('/storeinfo/storeproducts')
     .post(storesController.fetchStoreProductsById);

@@ -26,10 +26,16 @@ router.route('/storecategories')
 router.route('/addstorecategory')
     .post(categoryController.postStoreCategories);
 
+router.route('/storecategories/zipcode')
+    .post(categoryController.getAllStoreCategories);
+
+router.route('/storecategories/bannerimages')
+    .post(categoryController.getBannerImages);
+
+
 router.route('/storecategories/:category_id')
     .get(categoryController.getStoreCategory)
     .delete(categoryController.deleteStoreCategory)
-
 
 router.route('/:store_category_id')
     .get(categoryController.getCategoryInfo);

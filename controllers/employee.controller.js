@@ -1,8 +1,12 @@
 var mysql = require('mysql');
 var dbConn = mysql.createConnection({
-    host: 'vibhavg91.cce5kiug4ajr.us-east-2.rds.amazonaws.com',
+    // host: 'vibhavg91.cce5kiug4ajr.us-east-2.rds.amazonaws.com',
+    // user: 'root',
+    // password: 'password',
+    // database: 'grostep'
+    host: 'localhost',
     user: 'root',
-    password: 'password',
+    password: 'root',
     database: 'grostep'
 });
 // connect to database
