@@ -12,17 +12,23 @@ router.route('/validate')
 router.route('/addstoreproducts')
     .post(storesController.addStoreProducts);
 
-router.route('/storeinfo')    
+router.route('/storeinfo')
     .post(storesController.fetchAllStores);
 
+router.route('/storeinfo/storedeliveryslots')
+    .post(storesController.getStoreDeliverySlots);
+
 router.route('/storeinfo/categories/:storeId')
-    .get(storesController.fetchStoreSubCategoriesInfoById);
+            .get(storesController.fetchStoreSubCategoriesInfoById);
 
 router.route('/storeinfo/zipCode')
     .post(storesController.fetchAllStoresBasedOnZipCode);
 
 router.route('/storeinfo/storeproducts')
     .post(storesController.fetchStoreProductsById);
+
+router.route('/storeinfo/storeproductscategorywise')
+    .post(storesController.fetchStoreProductsCategoryWise);
 
 router.route('/storeinfo/storeproducts/:id')
     .get(storesController.fetchStoreProductInfoById)

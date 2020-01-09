@@ -38,6 +38,7 @@ router.post('/merchants/:merchantId', function (req, res, next) {
 });
 
 router.post('/banners/:bannerId', function (req, res, next) {
+    // console.log('dsdsdsd');
     singleUpload(req, res, function (err) {
         if (err) {
             return res.status(422).send({ errors: [{ title: 'File Upload Error', detail: err.message }] });

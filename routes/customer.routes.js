@@ -3,15 +3,33 @@ var router = express.Router();
 
 var customerController = require("../controllers/customer.controller");
 
-router.route('/')
-    // .get(getCustomers)
-    .post(customerController.createCustomer);
+router.route('/register')
+    .post(customerController.registerCustomer);
+
+router.route('/validate')
+    .post(customerController.validateCustomer);
 
 router.route('/customerinfo')
     .post(customerController.fetchAllCustomers);
 
 router.route('/customerinfo/customerorders')
-    .post(customerController.fetchCustomerOrdersById)
+    .post(customerController.fetchCustomerOrdersById);
+
+router.route('/customeraddress')
+    .post(customerController.addDelievryAddress);
+
+router.route('/customeraddress/:customerId')
+    .get(customerController.getCustomerAddresses);
+
+router.route('/customeraddress/selectaddress/:addressId')
+    .put(customerController.updateSelectedAddress);
+
+router.route('/customeraddress/:addressId')
+    .get(customerController.getAddressInfo)
+    .put(customerController.updateAddress)
+    .delete(customerController.deleteAddress);
+
+// router.route('/deleteAddress/:addressId')
 
 router.route('/customerinfo/:customerId')
     .get(customerController.getCustomer)

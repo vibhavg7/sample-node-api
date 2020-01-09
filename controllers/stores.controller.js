@@ -1,13 +1,9 @@
 var mysql = require('mysql');
 var dbConn = mysql.createConnection({
-    host: 'localhost',
+    host: 'vibhavg91.cce5kiug4ajr.us-east-2.rds.amazonaws.com',
     user: 'root',
-    password: 'root',
+    password: process.env.password,
     database: 'grostep'
-    // host: 'vibhavg91.cce5kiug4ajr.us-east-2.rds.amazonaws.com',
-    // user: 'root',
-    // password: 'password',
-    // database: 'grostep'
 });
 // connect to database
 dbConn.connect();
@@ -52,9 +48,60 @@ exports.fetchAllStores = function (req, res) {
         });
 }
 
+exports.getStoreDeliverySlots = function (req, res) {
+
+    let sql = `CALL GET_STORE_INFO(?)`;
+    dbConn.query(sql, [req.body.storeId], function (err, store) {
+        if (err) {
+            res.json({
+                status: 400,
+                "message": "Slots Information not found",
+                "slots": []
+            });
+        }
+        else {
+            var arr = [];
+            const timeoffset = req.body.offset;
+            let current_date = calcTime(timeoffset);
+            let current_hour = current_date.getHours();
+            let current_mins = current_date.getMinutes();
+            let store_opening_time = store[0][0].store_opening_time;
+            let store_closing_time = store[0][0].store_closing_time;
+            if (current_hour - store_opening_time > 0 && store_closing_time - current_hour > 0) {
+                let start_slot_index = 2;
+                if(current_mins > 30) {
+                    start_slot_index = 3;
+                }
+                for (let i = start_slot_index,index = 0; current_hour + i < store_closing_time; i++) {
+                    let slot = {};
+                    slot.slot_id =  index++;
+                    slot.start_time = current_hour + i;
+                    slot.end_time = slot.start_time + 1;
+                    slot.delivery_date = current_date;
+                    arr.push(slot);
+                }
+            }
+            res.json({
+                status: 200,
+                "message": "delivery slots Information",
+                "slots": arr
+            });
+        }
+    });
+}
+
+function calcTime(offset) {
+
+    var d = new Date();
+    var utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+    var nd = new Date(utc + (3600000 * offset));
+    return nd;
+    // return nd.toLocaleString();
+}
+
 exports.fetchAllStoresBasedOnZipCode = function (req, res) {
-    let sql = `CALL GET_ALL_STORES_ZIP_CODE(?)`;
-    dbConn.query(sql, [req.body.filterBy],
+    let sql = `CALL GET_ALL_STORES_ZIP_CODE(?,?)`;
+    dbConn.query(sql, [req.body.filterBy, req.body.zipcode],
         function (err, stores) {
             if (err) {
                 console.log("error: ", err);
@@ -123,6 +170,8 @@ exports.editStoreProductInfoById = function (req, res) {
         });
 }
 
+//to be deleted
+
 exports.fetchStoreProductInfoById = function (req, res) {
     let sql = `CALL GET_STORE_PRODUCTINFO(?)`;
     dbConn.query(sql, [+req.params.id], function (err, productInfo) {
@@ -162,6 +211,31 @@ exports.fetchStoreProductsById = function (req, res) {
                 "message": "Store products Information",
                 "store_products_info": store[0],
                 "store_products_count": store[1]
+            });
+        }
+    });
+}
+
+
+exports.fetchStoreProductsCategoryWise = function (req, res) {
+    let sql = `CALL GET_STORE_PRODUCTS_CATEGORYWISE(?,?)`;
+    console.log(req.body);
+    dbConn.query(sql, [+req.body.category_mapping_id, +req.body.store_id], function (err, storeProducts) {
+        if (err) {
+            console.log("error: ", err);
+            res.json({
+                status: 400,
+                "message": "Store products Information not found",
+                "store_sub_categories_info": [],
+                "store_products_info": []
+            });
+        }
+        else {
+            res.json({
+                status: 200,
+                "message": "Store products Information",
+                "store_sub_categories_info": storeProducts[0],
+                "store_products_info": storeProducts[1]
             });
         }
     });
@@ -278,7 +352,7 @@ exports.fetchStoreById = function (req, res) {
 
 exports.addNewStore = function (req, res) {
     const newProduct = req.body;
-    let sql = `CALL ADD_NEW_STORE(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+    let sql = `CALL ADD_NEW_STORE(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
 
     let storeName = req.body.storeName;
     let storeCategoryName = +req.body.storeCategoryName;
@@ -301,12 +375,17 @@ exports.addNewStore = function (req, res) {
     let storeRating = +req.body.storeRating;
     let latitude = req.body.latitude;
     let longitude = req.body.longitude;
+    let openingTime = +req.body.openingTime;
+    let closingTime = +req.body.closingTime;
+    let openingTimeClock = req.body.openingTimeClock;
+    let closingTimeClock = req.body.closingTimeClock;
     let status = +req.body.status;
 
 
     dbConn.query(sql, [storeName, storeEmail, storePhoneNumber, storeAlternateNumber,
         storeLandlineNumber, country, state, city, storeGSTNumber, storePANNumber,
-        storeAddress, pinCode, storeDescription, storeRating, latitude, longitude, status, storeCategoryName],
+        storeAddress, pinCode, storeDescription, storeRating, latitude, longitude,
+        status, storeCategoryName, openingTime, closingTime, openingTimeClock, closingTimeClock],
         function (err, store) {
             if (err) {
                 console.log("error: ", err);
@@ -420,17 +499,17 @@ exports.updateStoreImages = function (store_id, imageUrl, req, res) {
 
 exports.fetchStoreSubCategoriesInfoById = function (req, res) {
     dbConn.query("select scm.store_category_mapping_id, c.category_id, c.name, c.store_category_id, c.image_url from store_category_mapping scm inner join categories c on scm.store_category_id = c.category_id where scm.store_id = ?;",
-    [req.params.storeId], function (err, storeCategory) {
-        if (err) {
-            console.log("error: ", err);
-        }
-        else {                
-            res.json({
-                status: 200,
-                "message": "Store Categories Information",
-                "store_categories": storeCategory,
-            });
-        }
-    });    
+        [req.params.storeId], function (err, storeCategory) {
+            if (err) {
+                console.log("error: ", err);
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "Store Categories Information",
+                    "store_categories": storeCategory,
+                });
+            }
+        });
 }
 

@@ -1,98 +1,272 @@
 var mysql = require('mysql');
+var jwt = require('jsonwebtoken');
 var dbConn = mysql.createConnection({
-    // host: 'vibhavg91.cce5kiug4ajr.us-east-2.rds.amazonaws.com',
-    // user: 'root',
-    // password: 'password',
-    // database: 'grostep'
-    host: 'localhost',
+    host: 'vibhavg91.cce5kiug4ajr.us-east-2.rds.amazonaws.com',
     user: 'root',
-    password: 'root',
+    password: process.env.password,
     database: 'grostep'
 });
 // connect to database
 dbConn.connect();
 
-exports.fetchAllCustomers = function(req, res) {
-   
+exports.fetchAllCustomers = function (req, res) {
+
     let sql = `CALL GET_ALL_CUSTOMERS(?,?,?)`;
-    dbConn.query(sql,[+req.body.page_number,+req.body.page_size,req.body.filterBy], 
+    dbConn.query(sql, [+req.body.page_number, +req.body.page_size, req.body.filterBy],
         function (err, customers) {
+            if (err) {
+                console.log("error: ", err);
+            }
+            else {
+                res.json({
+                    "message": "customers information",
+                    "customers": customers[0],
+                    "customer_total_count": customers[1][0]
+                });
+            }
+        });
+}
+
+exports.adduserinfo = function (req, res) {
+
+}
+
+exports.registerCustomer = function (req, res) {
+    let sql = `CALL REGISTER_CUSTOMER(?,?)`;
+    const otp_number = Math.floor(100000 + Math.random() * 900000);
+    dbConn.query(sql, [req.body.phone, otp_number], function (err, customer) {
         if (err) {
-            console.log("error: ", err);
+            res.json({
+                "message": "Customer created",
+                "phone": 0,
+                "customer_id": 0
+            });
         }
         else {
             res.json({
-                "message":"customers information",
-                "customers": customers[0],
-                "customer_total_count":customers[1][0]
+                "message": "Customer created",
+                "phone": customer[0][0].phone,
+                "customer_id": customer[0][0].customer_id
             });
         }
     });
 }
 
-exports.createCustomer = function(req, res) {
-    const newCustomer = req.body;
-    dbConn.query("INSERT INTO customer set ?", newCustomer, function (err, customer) {
+exports.updateSelectedAddress = function (req, res) {
+    let sql = `CALL UPDATE_DELIVERY_ADDRESS(?)`;
 
+    dbConn.query(sql, [req.params.addressId],
+        function (err, address) {
+            if (err) {
+                console.log("error: ", err);
+                res.json({
+                    status: 400,
+                    "message": "address not updated",
+                    "address": ''
+                });
+            }
+            else {
+                console.log(JSON.stringify(address));
+                res.json({
+                    status: 200,
+                    "message": "address updated",
+                    "address": address
+                });
+            }
+        });
+}
+
+
+exports.updateAddress = function (req, res) {
+    const updateAddress = req.body;
+    dbConn.query("UPDATE customer_delivery_address SET ? WHERE delivery_address_id = ?",
+        [updateAddress, +req.params.addressId], function (err, address) {
+            console.log(err);
+            if (err) {
+                res.json({
+                    status: 400,
+                    "message": "address not updated",
+                    "address": ''
+                });
+
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "address updated",
+                    "address": address
+                });
+            }
+        });
+}
+
+exports.getAddressInfo = function (req, res) {
+    dbConn.query("select * from customer_delivery_address cda INNER JOIN grostep.customer_address_type cdt on cda.address_type = cdt.address_type_id where cda.delivery_address_id = ?;",
+        [req.params.addressId], function (err, addressInfo) {
+            if (err) {
+                console.log("error: ", err);
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "customer address Information",
+                    "addressInfo": addressInfo,
+                });
+            }
+        });
+}
+
+exports.addDelievryAddress = function (req, res) {
+
+    let sql = `CALL ADD_NEW_DELIVERY_ADDRESS(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+
+    dbConn.query(sql, [req.body.address, req.body.address2, req.body.city,
+    req.body.state, req.body.country, +req.body.pincode,
+    req.body.latitude, req.body.longitude, +req.body.address_type,
+    req.body.landmark, req.body.phone, +req.body.customer_id,
+    req.body.customer_name, req.body.flatNumber],
+        function (err, address) {
+            if (err) {
+                console.log("error: ", err);
+                res.json({
+                    "message": "address not added",
+                    "status": 400,
+                    "banner_id": 0
+                });
+            }
+            else {
+                console.log(JSON.stringify(address));
+                res.json({
+                    "status": 200,
+                    "message": "address added",
+                    "address_id": address[0][0]['address_id']
+                });
+            }
+        });
+
+}
+
+exports.deleteAddress = function (req, res) {
+    console.log('deleteAddress');
+    dbConn.query("DELETE FROM customer_delivery_address WHERE delivery_address_id = ? ", req.params.addressId,
+        function (err, addressData) {
+            if (err) {
+                console.log("error: ", err);
+            }
+            else {
+                let deleted = false;
+                if (addressData.affectedRows == 1) {
+                    deleted = true;
+                }
+                res.json({
+                    "message": (deleted) ? "address deleted successfully" : "invalid address id",
+                    "status": (deleted) ? 200 : 400,
+                    "address_id": req.params.addressId
+                });
+            }
+        });
+}
+
+exports.validateCustomer = function (req, res) {
+    let sql = `CALL validateCustomer(?,?)`;
+    dbConn.query(sql, [req.body.phone_number, req.body.otp_number], function (err, customerData) {
+        console.log(customerData);
         if (err) {
-            console.log("error: ", err);
+            res.json({
+                "status": 401,
+                "message": "customer Details not found",
+                "token": "",
+                "customerData": []
+            });
         }
         else {
-            console.log(JSON.stringify(customer.insertId));
-            res.json({
-                "message":"Customer created",
-                "customer_id":customer.insertId
-            });
+            if (customerData[0][0].status == 1) {
+                sendToken(customerData[0][0], res);
+            } else {
+                res.json({
+                    "status": 204,
+                    "message": "OTP not valid",
+                    "token": "",
+                    "customerData": []
+                });
+            }
         }
     });
 }
 
-exports.fetchCustomerOrdersById = function(req,res) {
+function sendToken(item, res) {
+    var token = jwt.sign(item.customer_id, "123");
+    res.json({
+        "status": 200,
+        "message": "customer Details",
+        "token": token,
+        "customerData": item
+    });
+}
+
+
+
+exports.fetchCustomerOrdersById = function (req, res) {
     let sql = `CALL GET_CUSTOMER_ORDERS(?,?,?,?)`;
-    dbConn.query(sql,[+req.body.customerId,+req.body.page_number,+req.body.page_size,req.body.filterBy], 
+    dbConn.query(sql, [+req.body.customerId, +req.body.page_number, +req.body.page_size, req.body.filterBy],
         function (err, customerOrders) {
-        if (err) {
-            console.log("error: ", err);
-            res.json({
-                status:400,
-                "message":"Customer orders Information not found",
-                "customer_orders_info": customerOrders[0],
-                "customer_order_count":customerOrders[1]
-            });
-        }
-        else {
-            res.json({
-                status:200,
-                "message":"Customer orders Information",
-                "customer_orders_info": customerOrders[0],
-                "customer_order_count":customerOrders[1]
-            });
-        }
-    });
+            if (err) {
+                console.log("error: ", err);
+                res.json({
+                    status: 400,
+                    "message": "Customer orders Information not found",
+                    "customer_orders_info": customerOrders[0],
+                    "customer_order_count": customerOrders[1]
+                });
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "Customer orders Information",
+                    "customer_orders_info": customerOrders[0],
+                    "customer_order_count": customerOrders[1]
+                });
+            }
+        });
 }
 
-exports.getCustomer = function(req, res)
-{
+exports.getCustomer = function (req, res) {
     let sql = `CALL GET_CUSTOMER_DETAIL(?)`;
-    dbConn.query(sql, req.params.customerId,function (err, customer) {
+    dbConn.query(sql, req.params.customerId, function (err, customer) {
         if (err) {
             console.log("error: ", err);
         }
         else {
             res.json({
-                "message" : "Customer Information",
-                "status":200,
-                "customer_info":customer[0],
-                "customer_delivery_addresses":customer[1]
+                "message": "Customer Information",
+                "status": 200,
+                "customer_info": customer[0],
+                "customer_delivery_addresses": customer[1]
             });
             // res.json(customer);
         }
     });
 }
 
-exports.deleteCustomer = function(req, res)
-{
-    dbConn.query("DELETE FROM customer WHERE customer_id = ? ", req.params.customerId,function (err, customer) {
+exports.getCustomerAddresses = function (req, res) {
+    dbConn.query("select * from customer_delivery_address cda INNER JOIN grostep.customer_address_type cdt on cda.address_type = cdt.address_type_id where cda.customer_id = ?;",
+        [req.params.customerId], function (err, addressInfo) {
+            if (err) {
+                console.log("error: ", err);
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "customer address Information",
+                    "addressInfo": addressInfo,
+                });
+            }
+        });
+}
+
+
+exports.deleteCustomer = function (req, res) {
+    dbConn.query("DELETE FROM customer WHERE customer_id = ? ", req.params.customerId, function (err, customer) {
         if (err) {
             console.log("error: ", err);
         }
@@ -103,16 +277,29 @@ exports.deleteCustomer = function(req, res)
     });
 }
 
-exports.updateCustomer = function(req, res)
-{
-    const updateCustomer =  req.body;
-    dbConn.query("UPDATE customer SET ? WHERE customer_id = ?", [updateCustomer, req.params.customerId],function (err, customer) {
+exports.updateCustomer = function (req, res) {
+    const updateCustomer = req.body;
+    dbConn.query("UPDATE customer SET ? WHERE customer_id = ?", [updateCustomer, req.params.customerId], function (err, customer) {
         if (err) {
             console.log("error: ", err);
+            res.json({
+                status: 400,
+                "message": "customer Information not updated",
+                "customer": banner
+            });
         }
         else {
-            console.log(JSON.stringify(customer));
-            res.json(customer);
+            // console.log(JSON.stringify(customer));
+            let updated = false;
+            if (customer.affectedRows == 1) {
+                updated = true;
+            }
+            res.json({
+                "message": (updated) ? "customer Information updated successfully" : "customer Information not updated",
+                "status": (updated) ? 200 : 400,
+                "customer": customer,
+                "customer_id": req.params.customerId
+            });
         }
     });
 }
