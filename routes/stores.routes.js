@@ -34,7 +34,7 @@ router.route('/storeinfo/storeproducts/:id')
     .get(storesController.fetchStoreProductInfoById)
     .delete(storesController.deleteStoreProduct);
 
-router.route('/storeinfo/storeproducts/edit')
+router.route('/storeinfo/storeproducts/edit/:productId')
     .post(storesController.editStoreProductInfoById);
 
 router.route('/storeinfo/storeorders')

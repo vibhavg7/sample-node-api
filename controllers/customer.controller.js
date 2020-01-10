@@ -1,30 +1,33 @@
 var mysql = require('mysql');
 var jwt = require('jsonwebtoken');
-var dbConn = mysql.createConnection({
+
+var pool = mysql.createPool({
+    connectionLimit: 10,
     host: 'vibhavg91.cce5kiug4ajr.us-east-2.rds.amazonaws.com',
     user: 'root',
     password: process.env.password,
     database: 'grostep'
 });
-// connect to database
-dbConn.connect();
 
 exports.fetchAllCustomers = function (req, res) {
 
     let sql = `CALL GET_ALL_CUSTOMERS(?,?,?)`;
-    dbConn.query(sql, [+req.body.page_number, +req.body.page_size, req.body.filterBy],
-        function (err, customers) {
-            if (err) {
-                console.log("error: ", err);
-            }
-            else {
-                res.json({
-                    "message": "customers information",
-                    "customers": customers[0],
-                    "customer_total_count": customers[1][0]
-                });
-            }
-        });
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [+req.body.page_number, +req.body.page_size, req.body.filterBy],
+            function (err, customers) {
+                if (err) {
+                    console.log("error: ", err);
+                }
+                else {
+                    res.json({
+                        "message": "customers information",
+                        "customers": customers[0],
+                        "customer_total_count": customers[1][0]
+                    });
+                }
+                dbConn.release();
+            });
+    });
 }
 
 exports.adduserinfo = function (req, res) {
@@ -34,163 +37,180 @@ exports.adduserinfo = function (req, res) {
 exports.registerCustomer = function (req, res) {
     let sql = `CALL REGISTER_CUSTOMER(?,?)`;
     const otp_number = Math.floor(100000 + Math.random() * 900000);
-    dbConn.query(sql, [req.body.phone, otp_number], function (err, customer) {
-        if (err) {
-            res.json({
-                "message": "Customer created",
-                "phone": 0,
-                "customer_id": 0
-            });
-        }
-        else {
-            res.json({
-                "message": "Customer created",
-                "phone": customer[0][0].phone,
-                "customer_id": customer[0][0].customer_id
-            });
-        }
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [req.body.phone, otp_number], function (err, customer) {
+            if (err) {
+                res.json({
+                    "message": "Customer created",
+                    "phone": 0,
+                    "customer_id": 0
+                });
+            }
+            else {
+                res.json({
+                    "message": "Customer created",
+                    "phone": customer[0][0].phone,
+                    "customer_id": customer[0][0].customer_id
+                });
+            }
+            dbConn.release();
+        });
     });
 }
 
 exports.updateSelectedAddress = function (req, res) {
     let sql = `CALL UPDATE_DELIVERY_ADDRESS(?)`;
-
-    dbConn.query(sql, [req.params.addressId],
-        function (err, address) {
-            if (err) {
-                console.log("error: ", err);
-                res.json({
-                    status: 400,
-                    "message": "address not updated",
-                    "address": ''
-                });
-            }
-            else {
-                console.log(JSON.stringify(address));
-                res.json({
-                    status: 200,
-                    "message": "address updated",
-                    "address": address
-                });
-            }
-        });
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [req.params.addressId],
+            function (err, address) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "address not updated",
+                        "address": ''
+                    });
+                }
+                else {
+                    console.log(JSON.stringify(address));
+                    res.json({
+                        status: 200,
+                        "message": "address updated",
+                        "address": address
+                    });
+                }
+                dbConn.release();
+            });
+    });
 }
 
 
 exports.updateAddress = function (req, res) {
     const updateAddress = req.body;
-    dbConn.query("UPDATE customer_delivery_address SET ? WHERE delivery_address_id = ?",
-        [updateAddress, +req.params.addressId], function (err, address) {
-            console.log(err);
-            if (err) {
-                res.json({
-                    status: 400,
-                    "message": "address not updated",
-                    "address": ''
-                });
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("UPDATE customer_delivery_address SET ? WHERE delivery_address_id = ?",
+            [updateAddress, +req.params.addressId], function (err, address) {
+                console.log(err);
+                if (err) {
+                    res.json({
+                        status: 400,
+                        "message": "address not updated",
+                        "address": ''
+                    });
 
-            }
-            else {
-                res.json({
-                    status: 200,
-                    "message": "address updated",
-                    "address": address
-                });
-            }
-        });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "address updated",
+                        "address": address
+                    });
+                }
+                dbConn.release();
+            });
+    });
 }
 
 exports.getAddressInfo = function (req, res) {
-    dbConn.query("select * from customer_delivery_address cda INNER JOIN grostep.customer_address_type cdt on cda.address_type = cdt.address_type_id where cda.delivery_address_id = ?;",
-        [req.params.addressId], function (err, addressInfo) {
-            if (err) {
-                console.log("error: ", err);
-            }
-            else {
-                res.json({
-                    status: 200,
-                    "message": "customer address Information",
-                    "addressInfo": addressInfo,
-                });
-            }
-        });
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("select * from customer_delivery_address cda INNER JOIN grostep.customer_address_type cdt on cda.address_type = cdt.address_type_id where cda.delivery_address_id = ?;",
+            [req.params.addressId], function (err, addressInfo) {
+                if (err) {
+                    console.log("error: ", err);
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "customer address Information",
+                        "addressInfo": addressInfo,
+                    });
+                }
+                dbConn.release();
+            });
+    });
 }
 
 exports.addDelievryAddress = function (req, res) {
 
     let sql = `CALL ADD_NEW_DELIVERY_ADDRESS(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
-
-    dbConn.query(sql, [req.body.address, req.body.address2, req.body.city,
-    req.body.state, req.body.country, +req.body.pincode,
-    req.body.latitude, req.body.longitude, +req.body.address_type,
-    req.body.landmark, req.body.phone, +req.body.customer_id,
-    req.body.customer_name, req.body.flatNumber],
-        function (err, address) {
-            if (err) {
-                console.log("error: ", err);
-                res.json({
-                    "message": "address not added",
-                    "status": 400,
-                    "banner_id": 0
-                });
-            }
-            else {
-                console.log(JSON.stringify(address));
-                res.json({
-                    "status": 200,
-                    "message": "address added",
-                    "address_id": address[0][0]['address_id']
-                });
-            }
-        });
-
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [req.body.address, req.body.address2, req.body.city,
+        req.body.state, req.body.country, +req.body.pincode,
+        req.body.latitude, req.body.longitude, +req.body.address_type,
+        req.body.landmark, req.body.phone, +req.body.customer_id,
+        req.body.customer_name, req.body.flatNumber],
+            function (err, address) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        "message": "address not added",
+                        "status": 400,
+                        "banner_id": 0
+                    });
+                }
+                else {
+                    console.log(JSON.stringify(address));
+                    res.json({
+                        "status": 200,
+                        "message": "address added",
+                        "address_id": address[0][0]['address_id']
+                    });
+                }
+                dbConn.release();
+            });
+    });
 }
 
 exports.deleteAddress = function (req, res) {
-    console.log('deleteAddress');
-    dbConn.query("DELETE FROM customer_delivery_address WHERE delivery_address_id = ? ", req.params.addressId,
-        function (err, addressData) {
-            if (err) {
-                console.log("error: ", err);
-            }
-            else {
-                let deleted = false;
-                if (addressData.affectedRows == 1) {
-                    deleted = true;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("DELETE FROM customer_delivery_address WHERE delivery_address_id = ? ", req.params.addressId,
+            function (err, addressData) {
+                if (err) {
+                    console.log("error: ", err);
                 }
-                res.json({
-                    "message": (deleted) ? "address deleted successfully" : "invalid address id",
-                    "status": (deleted) ? 200 : 400,
-                    "address_id": req.params.addressId
-                });
-            }
-        });
+                else {
+                    let deleted = false;
+                    if (addressData.affectedRows == 1) {
+                        deleted = true;
+                    }
+                    res.json({
+                        "message": (deleted) ? "address deleted successfully" : "invalid address id",
+                        "status": (deleted) ? 200 : 400,
+                        "address_id": req.params.addressId
+                    });
+                }
+                dbConn.release();
+            });
+    });
 }
 
 exports.validateCustomer = function (req, res) {
     let sql = `CALL validateCustomer(?,?)`;
-    dbConn.query(sql, [req.body.phone_number, req.body.otp_number], function (err, customerData) {
-        console.log(customerData);
-        if (err) {
-            res.json({
-                "status": 401,
-                "message": "customer Details not found",
-                "token": "",
-                "customerData": []
-            });
-        }
-        else {
-            if (customerData[0][0].status == 1) {
-                sendToken(customerData[0][0], res);
-            } else {
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [req.body.phone_number, req.body.otp_number], function (err, customerData) {
+            console.log(customerData);
+            if (err) {
                 res.json({
-                    "status": 204,
-                    "message": "OTP not valid",
+                    "status": 401,
+                    "message": "customer Details not found",
                     "token": "",
                     "customerData": []
                 });
             }
-        }
+            else {
+                if (customerData[0][0].status == 1) {
+                    sendToken(customerData[0][0], res);
+                } else {
+                    res.json({
+                        "status": 204,
+                        "message": "OTP not valid",
+                        "token": "",
+                        "customerData": []
+                    });
+                }
+            }
+            dbConn.release();
+        });
     });
 }
 
@@ -208,98 +228,112 @@ function sendToken(item, res) {
 
 exports.fetchCustomerOrdersById = function (req, res) {
     let sql = `CALL GET_CUSTOMER_ORDERS(?,?,?,?)`;
-    dbConn.query(sql, [+req.body.customerId, +req.body.page_number, +req.body.page_size, req.body.filterBy],
-        function (err, customerOrders) {
-            if (err) {
-                console.log("error: ", err);
-                res.json({
-                    status: 400,
-                    "message": "Customer orders Information not found",
-                    "customer_orders_info": customerOrders[0],
-                    "customer_order_count": customerOrders[1]
-                });
-            }
-            else {
-                res.json({
-                    status: 200,
-                    "message": "Customer orders Information",
-                    "customer_orders_info": customerOrders[0],
-                    "customer_order_count": customerOrders[1]
-                });
-            }
-        });
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [+req.body.customerId, +req.body.page_number, +req.body.page_size, req.body.filterBy],
+            function (err, customerOrders) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "Customer orders Information not found",
+                        "customer_orders_info": customerOrders[0],
+                        "customer_order_count": customerOrders[1]
+                    });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "Customer orders Information",
+                        "customer_orders_info": customerOrders[0],
+                        "customer_order_count": customerOrders[1]
+                    });
+                }
+                dbConn.release();
+            });
+    });
 }
 
 exports.getCustomer = function (req, res) {
     let sql = `CALL GET_CUSTOMER_DETAIL(?)`;
-    dbConn.query(sql, req.params.customerId, function (err, customer) {
-        if (err) {
-            console.log("error: ", err);
-        }
-        else {
-            res.json({
-                "message": "Customer Information",
-                "status": 200,
-                "customer_info": customer[0],
-                "customer_delivery_addresses": customer[1]
-            });
-            // res.json(customer);
-        }
-    });
-}
-
-exports.getCustomerAddresses = function (req, res) {
-    dbConn.query("select * from customer_delivery_address cda INNER JOIN grostep.customer_address_type cdt on cda.address_type = cdt.address_type_id where cda.customer_id = ?;",
-        [req.params.customerId], function (err, addressInfo) {
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, req.params.customerId, function (err, customer) {
             if (err) {
                 console.log("error: ", err);
             }
             else {
                 res.json({
-                    status: 200,
-                    "message": "customer address Information",
-                    "addressInfo": addressInfo,
+                    "message": "Customer Information",
+                    "status": 200,
+                    "customer_info": customer[0],
+                    "customer_delivery_addresses": customer[1]
                 });
+                // res.json(customer);
             }
+            dbConn.release();
         });
+    });
+}
+
+exports.getCustomerAddresses = function (req, res) {
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("select * from customer_delivery_address cda INNER JOIN grostep.customer_address_type cdt on cda.address_type = cdt.address_type_id where cda.customer_id = ?;",
+            [req.params.customerId], function (err, addressInfo) {
+                if (err) {
+                    console.log("error: ", err);
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "customer address Information",
+                        "addressInfo": addressInfo,
+                    });
+                }
+                dbConn.release();
+            });
+    });
 }
 
 
 exports.deleteCustomer = function (req, res) {
-    dbConn.query("DELETE FROM customer WHERE customer_id = ? ", req.params.customerId, function (err, customer) {
-        if (err) {
-            console.log("error: ", err);
-        }
-        else {
-            console.log(JSON.stringify(customer));
-            res.json(customer);
-        }
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("DELETE FROM customer WHERE customer_id = ? ", req.params.customerId, function (err, customer) {
+            if (err) {
+                console.log("error: ", err);
+            }
+            else {
+                console.log(JSON.stringify(customer));
+                res.json(customer);
+            }
+            dbConn.release();
+        });
     });
 }
 
 exports.updateCustomer = function (req, res) {
     const updateCustomer = req.body;
-    dbConn.query("UPDATE customer SET ? WHERE customer_id = ?", [updateCustomer, req.params.customerId], function (err, customer) {
-        if (err) {
-            console.log("error: ", err);
-            res.json({
-                status: 400,
-                "message": "customer Information not updated",
-                "customer": banner
-            });
-        }
-        else {
-            // console.log(JSON.stringify(customer));
-            let updated = false;
-            if (customer.affectedRows == 1) {
-                updated = true;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("UPDATE customer SET ? WHERE customer_id = ?", [updateCustomer, req.params.customerId], function (err, customer) {
+            if (err) {
+                console.log("error: ", err);
+                res.json({
+                    status: 400,
+                    "message": "customer Information not updated",
+                    "customer": banner
+                });
             }
-            res.json({
-                "message": (updated) ? "customer Information updated successfully" : "customer Information not updated",
-                "status": (updated) ? 200 : 400,
-                "customer": customer,
-                "customer_id": req.params.customerId
-            });
-        }
+            else {
+                let updated = false;
+                if (customer.affectedRows == 1) {
+                    updated = true;
+                }
+                res.json({
+                    "message": (updated) ? "customer Information updated successfully" : "customer Information not updated",
+                    "status": (updated) ? 200 : 400,
+                    "customer": customer,
+                    "customer_id": req.params.customerId
+                });
+            }
+            dbConn.release();
+        });
     });
 }
