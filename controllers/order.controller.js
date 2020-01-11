@@ -216,6 +216,7 @@ exports.fetchCustomerOrders = function (req, res) {
                             "cust_location": item.cust_location,
                             "cust_pincode": item.cust_pincode,
                             "cust_location": item.cust_location,
+                            "delivery_amount": item.delivery_fee,
                             "cust_lat": item.cust_lat,
                             "cust_long": item.cust_long,
                             "address_type": item.address_type,
@@ -227,6 +228,8 @@ exports.fetchCustomerOrders = function (req, res) {
                             "store_location": item.store_location,
                             "delivery_phone_number": item.delivery_phone_number,
                             "delivery_phone_number": item.delivery_phone_number,
+                            "order_status": item.order_status,
+                            "payment_mode_type": item.payment_mode_type,
                             "products": []
                         })
                     }
