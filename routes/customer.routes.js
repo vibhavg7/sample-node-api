@@ -18,11 +18,9 @@ router.route('/customerinfo/customerorders')
 router.route('/customeraddress')
     .post(customerController.addDelievryAddress);
 
-router.route('/customeraddress/:customerId')
-    .get(customerController.getCustomerAddresses);
-
 router.route('/customeraddress/selectaddress/:addressId')
     .put(customerController.updateSelectedAddress);
+
 
 router.route('/customeraddress/:addressId')
     .get(customerController.getAddressInfo)
@@ -30,6 +28,10 @@ router.route('/customeraddress/:addressId')
     .delete(customerController.deleteAddress);
 
 // router.route('/deleteAddress/:addressId')
+
+router.route('/customeraddressoncart/:customerId')
+    .get(customerController.getCustomerAddresses);
+
 
 router.route('/customerinfo/:customerId')
     .get(customerController.getCustomer)
