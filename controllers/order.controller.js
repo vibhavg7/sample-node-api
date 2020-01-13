@@ -8,7 +8,7 @@ var pool = mysql.createPool({
 });
 exports.placeOrder = function (req, res) {
 
-    let sql = `CALL PLACE_CUSTOMER_ORDER(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+    let sql = `CALL PLACE_CUSTOMER_ORDER(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
    
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [
@@ -25,7 +25,8 @@ exports.placeOrder = function (req, res) {
             +req.body.totalitemcount,
             +req.body.delivernow,
             req.body.deliverydate,
-            req.body.deliveryslot],
+            req.body.deliveryslot,
+            req.body.instructions],
             function (err, orderData) {
                 if (err) {
                     console.log(err);

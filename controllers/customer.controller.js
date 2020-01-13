@@ -59,9 +59,9 @@ exports.registerCustomer = function (req, res) {
 }
 
 exports.updateSelectedAddress = function (req, res) {
-    let sql = `CALL UPDATE_DELIVERY_ADDRESS(?)`;
+    let sql = `CALL UPDATE_DELIVERY_ADDRESS(?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [req.params.addressId],
+        dbConn.query(sql, [+req.params.addressId, +req.body.customerId],
             function (err, address) {
                 if (err) {
                     console.log("error: ", err);
@@ -276,7 +276,7 @@ exports.getCustomer = function (req, res) {
 
 exports.getCustomerAddresses = function (req, res) {
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("select * from customer_delivery_address cda INNER JOIN grostep.customer_address_type cdt on cda.address_type = cdt.address_type_id where cda.customer_id = ?;",
+        dbConn.query("select cda.customer_name,cda.delivery_address_id,cda.address,cda.address2,cda.pincode,cda.landmark,cda.phone,cdt.type,cda.flatNumber,cda.status from customer_delivery_address cda INNER JOIN grostep.customer_address_type cdt on cda.address_type = cdt.address_type_id where cda.customer_id = ?",
             [req.params.customerId], function (err, addressInfo) {
                 if (err) {
                     console.log("error: ", err);
