@@ -1,5 +1,6 @@
 var mysql = require('mysql');
 var jwt = require('jsonwebtoken');
+var rp = require('request-promise');
 
 var pool = mysql.createPool({
     connectionLimit: 10,
@@ -36,20 +37,35 @@ exports.adduserinfo = function (req, res) {
 
 exports.registerCustomer = function (req, res) {
     let sql = `CALL REGISTER_CUSTOMER(?,?)`;
-    const otp_number = Math.floor(100000 + Math.random() * 900000);
+    const otp_number = Math.floor(1000 + Math.random() * 9000);
+    let msgid = '';
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [req.body.phone, otp_number], function (err, customer) {
             if (err) {
                 res.json({
-                    "message": "Customer created",
+                    "status": 400,
+                    "message": "Customer not created",
                     "phone": 0,
                     "customer_id": 0
                 });
             }
             else {
+                let msg = `Hello your generated otp is :${otp_number}`;
+                rp(`http://login.aquasms.com/sendSMS?username=vibhav&message=${msg}&sendername=GROSTP&smstype=TRANS&numbers=${req.body.phone}&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa`)
+                    .then(function (res) {
+                        // Process html...
+                        console.log(res);
+                        msgid = res[0]['msgid'];
+                    })
+                    .catch(function (err) {
+                        // Crawling failed...
+                        console.log(err);
+                    });
                 res.json({
+                    "status": 200,
                     "message": "Customer created",
                     "phone": customer[0][0].phone,
+                    "msgid": msgid,
                     "customer_id": customer[0][0].customer_id
                 });
             }

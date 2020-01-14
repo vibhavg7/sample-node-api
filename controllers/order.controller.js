@@ -1,4 +1,5 @@
 var mysql = require('mysql');
+var rp = require('request-promise');
 var pool = mysql.createPool({
     connectionLimit: 10,
     host: 'vibhavg91.cce5kiug4ajr.us-east-2.rds.amazonaws.com',
@@ -9,7 +10,7 @@ var pool = mysql.createPool({
 exports.placeOrder = function (req, res) {
 
     let sql = `CALL PLACE_CUSTOMER_ORDER(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
-   
+
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [
             +req.body.customerid,
@@ -47,12 +48,22 @@ exports.placeOrder = function (req, res) {
                                 return obj[key];
                             })
                         });
-                        // dbConn.end();      
                         var sql = "INSERT INTO grostep.order_products_info (store_product_id, quantity,order_id) VALUES ?";
                         dbConn.query(sql, [values], function (err) {
                             if (err) {
                                 throw err;
                             } else {
+                                // let msg = `Hello your order ${orderData[0][0]['order_id']} has been placed successfully`;
+                                // rp(`http://login.aquasms.com/sendSMS?username=vibhav&message=${msg}&sendername=GROSTP&smstype=TRANS&numbers=${req.body.phone}&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa`)
+                                //     .then(function (res) {
+                                //         // Process html...
+                                //         console.log(res);
+                                //         msgid = res[0]['msgid'];
+                                //     })
+                                //     .catch(function (err) {
+                                //         // Crawling failed...
+                                //         console.log(err);
+                                //     });
                                 res.json({
                                     "status": 200,
                                     "message": "order sucessfully placed added",
@@ -77,7 +88,7 @@ exports.placeOrder = function (req, res) {
 
 exports.fetchOrderBillInformation = function (req, res) {
     let sql = `CALL GET_ORDER_BILLINFO(?)`;
-  
+
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.params.orderId],
             function (err, orderData) {
@@ -103,7 +114,7 @@ exports.fetchOrderBillInformation = function (req, res) {
 
 exports.fetchOrderCount = function (req, res) {
     let sql = `CALL GET_ORDER_TYPE_COUNT(?)`;
-  
+
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.body.merchantId],
             function (err, orderCount) {
@@ -130,7 +141,7 @@ exports.fetchOrderCount = function (req, res) {
 
 exports.merchantBillconfirmation = function (req, res) {
     let sql = `CALL ORDER_BILL_CONFIRMATION(?,?,?)`;
- 
+
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.body.order_id, +req.body.bill_amount, +req.body.order_status],
             function (err, orderData) {
@@ -156,7 +167,7 @@ exports.merchantBillconfirmation = function (req, res) {
 exports.fetchOrderDetailsById = function (req, res) {
 
     let sql = `CALL GET_ORDER_INFO(?)`;
-  
+
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.params.orderId],
             function (err, orderData) {
@@ -236,23 +247,23 @@ exports.fetchCustomerOrders = function (req, res) {
                     }
                 }
                 map.clear();
-                for (const item of orderData) {                    
-                        orderProductsResult.push({
-                            "order_id": item.order_id,
-                            "product_id": item.product_id,
-                            "store_product_mapping_id": item.store_product_mapping_id,
-                            "product_image_url": item.product_image_url,
-                            "store_cost_price": item.store_cost_price,
-                            "store_selling_price": item.store_selling_price,
-                            "store_selling_price": item.store_selling_price,
-                            "store_discount": item.store_discount,
-                            "product_marked_price": item.product_marked_price,
-                            "product_name": item.product_name,
-                            "product_marked_price": item.product_marked_price,
-                            "quantity_buyed":item.quantity_buyed,
-                            "weight": item.quantity,
-                            "weight_text": item.weight_text,
-                        });
+                for (const item of orderData) {
+                    orderProductsResult.push({
+                        "order_id": item.order_id,
+                        "product_id": item.product_id,
+                        "store_product_mapping_id": item.store_product_mapping_id,
+                        "product_image_url": item.product_image_url,
+                        "store_cost_price": item.store_cost_price,
+                        "store_selling_price": item.store_selling_price,
+                        "store_selling_price": item.store_selling_price,
+                        "store_discount": item.store_discount,
+                        "product_marked_price": item.product_marked_price,
+                        "product_name": item.product_name,
+                        "product_marked_price": item.product_marked_price,
+                        "quantity_buyed": item.quantity_buyed,
+                        "weight": item.quantity,
+                        "weight_text": item.weight_text,
+                    });
                 }
 
                 mainOrderResult.forEach((data) => {
