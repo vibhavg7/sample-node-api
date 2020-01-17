@@ -147,6 +147,32 @@ exports.fetchOrderBillInformation = function (req, res) {
     });
 }
 
+exports.updateOrder = function(req, res) {
+    const updatedOrder = req.body;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("UPDATE orders SET ? WHERE order_id = ?", [updatedOrder, req.params.orderId], function (err, order) {
+            if (err) {
+                console.log("error: ", err);
+                res.json({
+                    status: 400,
+                    "message": "order Information not updated",
+                    "order": order
+                });
+
+            }
+            else {
+                console.log(JSON.stringify(order));
+                res.json({
+                    status: 200,
+                    "message": "order Information updated",
+                    "order": order
+                });
+            }
+            dbConn.release();
+        });
+    });
+}
+
 
 exports.fetchMerchantOrderCountById = function (req, res) {
     let sql = `CALL GET_MERCHANT_ORDERS_COUNT(?)`;

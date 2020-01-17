@@ -16,7 +16,7 @@ router.route('/placeorder')
     .post(orderController.placeOrder);
 
 router.route('/:orderId')
-    .get(orderController.fetchOrderDetailsById);
-
+    .get(orderController.fetchOrderDetailsById)
+    .put(orderController.updateOrder);
 
 module.exports = router;
