@@ -1,0 +1,13 @@
+{
+    "type": "service_account",
+    "project_id": "grostep-realtime-nodejs",
+    "private_key_id": "829d89223fe670bdce7a7c6870c5eccb7838e118",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDcVkbvu8fEF2g7\nvSxB/i7xRqjryi11n39M1im4XUwQY5ilorjmpbairTrBMk5rzmHGkY8QxSaecdix\n50DbsJUlxOr6PtZzShGnMKoj3UXS3f7qVLBtN3gB5Z2MNtHzNiBOFu5m/Pck5EkD\n0D3ZziKD6awmlr/OyeUIQxvgeiAqI65sIdZ+aBna+xmqrn61El9UoFsYtOYGX7e4\nr4zpFo/0bdRvHnGIs2W1ZR2xGBCkHNCDY59JaWac0j4CELv3R0hmPgKv8JpioWNh\nibthPfY3yb6zhqs8nrgRbd28SFmyC123wQwf7FBQPqeqW4AZhuQFDh6Hed3X2YeL\n0rQUHCtZAgMBAAECggEABImg/luUpUeCIFt9/NdE6jfKpMh4yoeqsc9l8+O1UaUW\nG1slia0h/L7/4G4DysPo+ZOSfwWVt6+f3Hy8YN8wbc2yCnie0VMA2BDwKrrqLt80\nL76SFOhj3U4i7M9NiupeHJ2WR/gFCEp3QnqDEOg7h7yZN1Y6xFceE18mb3y0YDRq\nyPRP0gcPRuEr1ZjYf7AA1dN+L028gDGIsOZ5J34AZZY8IrpJOq8zlTgpgOQrRggd\neSNBRz91S1qMuKg6sTdrjxPE2UamxZR/IAL58ZwX+CfHNh+TApbFOLVj9HfalXj+\nAfgJs8o/fNtyfO+s59HFzTIVs5m0j2L/gOtoqLjkfQKBgQD5S3qOKLlfWh7a/0Nq\n8qHqeRMBVvAOZL/SZyEwqeRGHqxqcCkv5YfxJhGmzuiYYzUY794vVxX7qzeM9XJD\nYfZlu8VsfbyjyTbNVA0kdTb9Os7MPpLSC+Zty0mUbjqiW2NucW6gGze+etn7/bJM\noQPwsAX/01K35TRno5nWewYrzwKBgQDiQ2i7Z2iNwFEjx40TBrDY6acEoXnEfMHu\n2LN2nlI9A9qBBGDwBNWrvTZ/F7x+meqHmnbhNumJ5Y7KfWw0Jucm2ucecEI+QMla\nlmnyTFADwKXW2JLFn2f3a8Vy3vB/AYIpQoUQkFEQM4xfuyv7O49Z9ACNaHVDtacr\nLUfuEzI4VwKBgAMTzHJ+zDMCIMlhR0rFrfv//J0Snqn+0mNdhIpePoQjEsvJkKiX\ns8LlTmh5u2NOLjSdmWeKMqpFpczmpr9wMSN2WuyI7NA0xqloNTVTARfFJxJcX2Ga\nZgDK9qCPb8fbSvHtEomFbH28dH5o1k+d2TeaZKiQyj+c47W3zklYgW3/AoGBALyX\n91oNbYaJwJgUIrCzKQEEcGRZu8ddPcC5+4xplp6o8Z4MakhlnzwQ8LWqsUDNRkFV\nLLW4MZzxLL33IROvQYiPeYlThMOi+LJ7IUAG/8LA9vpHdr8miWAgAmonDUqvlTCS\n85rEz+yzKtQ4jQZRtMEDstorMWMIrJg+m/ADLB7tAoGAbg7mJfqAnIdvhVwl+0WV\nDx+GDsTnXuRZy2kgRHinyMkoFUcOBzh+zU0/hCyuV7+acVFDBoGxEtB1+4w9aBIe\ndZH07p5fVJBpicM8Bw2o9AizpCWWoxofHw+BLphng8lS/faR75xmc/SAbXIyhAtU\n4m74AP6w/DU0vDq9dxsJ4L4=\n-----END PRIVATE KEY-----\n",
+    "client_email": "firebase-adminsdk-ksx73@grostep-realtime-nodejs.iam.gserviceaccount.com",
+    "client_id": "114150827852908866212",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-ksx73%40grostep-realtime-nodejs.iam.gserviceaccount.com"
+  }
+  

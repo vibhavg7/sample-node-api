@@ -330,9 +330,10 @@ exports.fetchStoreOrderProductsById = function (req, res) {
 }
 
 exports.fetchStoreOrdersById = function (req, res) {
-    let sql = `CALL GET_STORE_ORDERS(?,?,?,?)`;
+    // console.log(req.body);
+    let sql = `CALL GET_STORE_ORDERS(?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy],
+        dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy, req.body.order_type],
             function (err, storeOrders) {
                 if (err) {
                     res.json({
@@ -484,9 +485,11 @@ exports.addStoreProducts = function (req, res) {
 }
 
 exports.updateStore = function (req, res) {
-    const updateStore = req.body;
+    const updatedStore = req.body;
+    // console.log(updatedStore);
+    // console.log(req.params.storeId);
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("UPDATE stores SET ? WHERE store_id = ?", [updateStore, req.params.storeId], function (err, store) {
+        dbConn.query("UPDATE stores SET ? WHERE store_id = ?", [updatedStore, req.params.storeId], function (err, store) {
             if (err) {
                 console.log("error: ", err);
                 res.json({

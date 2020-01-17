@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 
 var storesController = require("../controllers/stores.controller");
+var orderController = require("../controllers/order.controller");
 
 router.route('/addnewstore')
     .post(storesController.addNewStore);
@@ -19,7 +20,7 @@ router.route('/storeinfo/storedeliveryslots')
     .post(storesController.getStoreDeliverySlots);
 
 router.route('/storeinfo/categories/:storeId')
-            .get(storesController.fetchStoreSubCategoriesInfoById);
+    .get(storesController.fetchStoreSubCategoriesInfoById);
 
 router.route('/storeinfo/zipCode')
     .post(storesController.fetchAllStoresBasedOnZipCode);
@@ -45,6 +46,10 @@ router.route('/storeinfo/storeproducts/updatestock/:id')
 
 router.route('/storeinfo/storeorderproducts/:orderId')
     .get(storesController.fetchStoreOrderProductsById);
+
+router.route('/merchantorderscount/:storeId')
+    .get(orderController.fetchMerchantOrderCountById);
+
 
 router.route('/storeinfo/:storeId')
     .get(storesController.fetchStoreById)

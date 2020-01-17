@@ -1,5 +1,8 @@
 var mysql = require('mysql');
 var rp = require('request-promise');
+var admin = require("firebase-admin");
+
+
 var pool = mysql.createPool({
     connectionLimit: 10,
     host: 'vibhavg91.cce5kiug4ajr.us-east-2.rds.amazonaws.com',
@@ -53,6 +56,39 @@ exports.placeOrder = function (req, res) {
                             if (err) {
                                 throw err;
                             } else {
+
+                                // var payload = {
+                                //     data: {
+                                //       orderid: orderData[0][0]['order_id']
+                                //     }
+                                //   };
+
+                                var payload = {
+                                    data: {
+                                      score: '89355',
+                                      time: '2:45'
+                                    }
+                                  };
+
+                                var options = {
+                                    priority: 'high',
+                                    timeToLive: 60 * 60 * 24
+                                };
+
+                                console.log(req.body.storeToken);
+
+
+                                admin.messaging().sendToDevice(req.body.storeToken, payload, options)
+                                    .then(function (response) {
+                                        // See the MessagingDevicesResponse reference documentation for
+                                        // the contents of response.
+                                        console.log('Successfully sent message:', response);
+                                    })
+                                    .catch(function (error) {
+                                        console.log('Error sending message:', error);
+                                    });
+
+
                                 // let msg = `Hello your order ${orderData[0][0]['order_id']} has been placed successfully`;
                                 // rp(`http://login.aquasms.com/sendSMS?username=vibhav&message=${msg}&sendername=GROSTP&smstype=TRANS&numbers=${req.body.phone}&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa`)
                                 //     .then(function (res) {
@@ -109,7 +145,35 @@ exports.fetchOrderBillInformation = function (req, res) {
                 dbConn.release();
             });
     });
+}
 
+
+exports.fetchMerchantOrderCountById = function (req, res) {
+    let sql = `CALL GET_MERCHANT_ORDERS_COUNT(?)`;
+
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [+req.params.storeId],
+            function (err, orderData) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "order count information not found",
+                    });
+                }
+                else {
+                    // console.log(orderData);
+                    res.json({
+                        "message": "orders counts information",
+                        "status": 200,
+                        "new_order_count": orderData[0],
+                        "pending_order_count": orderData[1],
+                        "picked_order_count": orderData[2]
+                    });
+                }
+                dbConn.release();
+            });
+    });
 }
 
 exports.fetchOrderCount = function (req, res) {

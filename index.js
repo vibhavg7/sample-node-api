@@ -1,8 +1,14 @@
 var express = require('express');
 var app = express();
+var admin = require("firebase-admin");
 var bodyParser = require('body-parser');
 var cors = require('cors');
+var serviceAccount = require("./services/grostep-firebase-sdk.json");
 
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://grostep-realtime-nodejs.firebaseio.com"
+});
 var indexRoutes = require("./routes/index.routes");
 var productRoutes = require("./routes/products.routes");
 var categoryRoutes = require("./routes/category.routes");
@@ -47,8 +53,8 @@ app.use('/bannerapi', bannerRoutes);
 //     return res.send({ error: true, message: 'hello',keys:process.env });
 // });
 
- // set port
- app.listen(3000, function () {
+// set port
+app.listen(3000, function () {
     console.log('Node app is running on port 3000');
 });
 module.exports = app;
