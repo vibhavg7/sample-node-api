@@ -94,6 +94,32 @@ exports.getCategoryInfo = function (req, res) {
     });
 }
 
+exports.getAllStoreCategoriesBasedOnZipCode = function (req, res) {
+    const newStoreCategory = req.body;
+    let sql = `CALL GET_ALL_STORE_CATEGORIES_ZIPCODE(?)`;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [req.body.filterBy],
+            function (err, storeCategory) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        "message": "store Category not found",
+                        "status": 400,
+                        "category_id": 0
+                    });
+                }
+                else {
+                    res.json({
+                        "message": "store Categories",
+                        "status": 200,
+                        "store_categories": storeCategory[0]
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
 exports.getAllStoreCategories = function (req, res) {
     const newStoreCategory = req.body;
     let sql = `CALL GET_ALL_STORE_CATEGORIES(?)`;
