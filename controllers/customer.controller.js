@@ -36,11 +36,11 @@ exports.adduserinfo = function (req, res) {
 }
 
 exports.registerCustomer = function (req, res) {
-    let sql = `CALL REGISTER_CUSTOMER(?,?)`;
+    let sql = `CALL REGISTER_CUSTOMER(?,?,?)`;
     const otp_number = Math.floor(1000 + Math.random() * 9000);
     let msgid = '';
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [req.body.phone, otp_number], function (err, customer) {
+        dbConn.query(sql, [req.body.phone, otp_number, req.body.token], function (err, customer) {
             if (err) {
                 res.json({
                     "status": 400,
