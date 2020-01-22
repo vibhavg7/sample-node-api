@@ -2,10 +2,10 @@ var mysql = require('mysql');
 
 var pool = mysql.createPool({
     connectionLimit: 10,
-    host: 'vibhavg91.cce5kiug4ajr.us-east-2.rds.amazonaws.com',
-    user: 'root',
-    password: process.env.password,
-    database: 'grostep'
+    host: process.env.dbhost,
+    user: process.env.dbuser,
+    password: process.env.dbpassword,
+    database: process.env.database
 });
 
 exports.fetchAllActiveOffers = function (req, res) {
@@ -113,7 +113,8 @@ exports.addNewCoupon = function (req, res) {
     let status = +req.body.status;
 
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [voucherCode, voucherAmount, expirydatetime, voucherCartAmount, voucherType, description, status],
+        dbConn.query(sql, [voucherCode, voucherAmount, expirydatetime, 
+            voucherCartAmount, voucherType, description, status],
             function (err, coupon) {
                 if (err) {
                     console.log("error: ", err);

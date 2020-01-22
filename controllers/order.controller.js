@@ -5,10 +5,10 @@ var admin = require("firebase-admin");
 
 var pool = mysql.createPool({
     connectionLimit: 10,
-    host: 'vibhavg91.cce5kiug4ajr.us-east-2.rds.amazonaws.com',
-    user: 'root',
-    password: process.env.password,
-    database: 'grostep'
+    host: process.env.dbhost,
+    user: process.env.dbuser,
+    password: process.env.dbpassword,
+    database: process.env.database
 });
 exports.placeOrder = function (req, res) {
 
@@ -63,30 +63,30 @@ exports.placeOrder = function (req, res) {
                                 //     }
                                 //   };
 
-                                var payload = {
-                                    data: {
-                                      score: '89355',
-                                      time: '2:45'
-                                    }
-                                  };
+                                // var payload = {
+                                //     data: {
+                                //       score: '89355',
+                                //       time: '2:45'
+                                //     }
+                                //   };
 
-                                var options = {
-                                    priority: 'high',
-                                    timeToLive: 60 * 60 * 24
-                                };
+                                // var options = {
+                                //     priority: 'high',
+                                //     timeToLive: 60 * 60 * 24
+                                // };
 
-                                console.log(req.body.storeToken);
+                                // console.log(req.body.storeToken);
 
 
-                                admin.messaging().sendToDevice(req.body.storeToken, payload, options)
-                                    .then(function (response) {
-                                        // See the MessagingDevicesResponse reference documentation for
-                                        // the contents of response.
-                                        console.log('Successfully sent message:', response);
-                                    })
-                                    .catch(function (error) {
-                                        console.log('Error sending message:', error);
-                                    });
+                                // admin.messaging().sendToDevice(req.body.storeToken, payload, options)
+                                //     .then(function (response) {
+                                //         // See the MessagingDevicesResponse reference documentation for
+                                //         // the contents of response.
+                                //         console.log('Successfully sent message:', response);
+                                //     })
+                                //     .catch(function (error) {
+                                //         console.log('Error sending message:', error);
+                                //     });
 
 
                                 // let msg = `Hello your order ${orderData[0][0]['order_id']} has been placed successfully`;
@@ -345,11 +345,11 @@ exports.fetchCustomerOrders = function (req, res) {
                         "product_image_url": item.product_image_url,
                         "store_cost_price": item.store_cost_price,
                         "store_selling_price": item.store_selling_price,
-                        "store_selling_price": item.store_selling_price,
+                        // "store_selling_price": item.store_selling_price,
                         "store_discount": item.store_discount,
                         "product_marked_price": item.product_marked_price,
                         "product_name": item.product_name,
-                        "product_marked_price": item.product_marked_price,
+                        // "product_marked_price": item.product_marked_price,
                         "quantity_buyed": item.quantity_buyed,
                         "weight": item.quantity,
                         "weight_text": item.weight_text,

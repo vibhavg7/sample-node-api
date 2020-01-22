@@ -4,10 +4,10 @@ var rp = require('request-promise');
 
 var pool = mysql.createPool({
     connectionLimit: 10,
-    host: 'vibhavg91.cce5kiug4ajr.us-east-2.rds.amazonaws.com',
-    user: 'root',
-    password: process.env.password,
-    database: 'grostep'
+    host: process.env.dbhost,
+    user: process.env.dbuser,
+    password: process.env.dbpassword,
+    database: process.env.database
 });
 
 exports.fetchAllCustomers = function (req, res) {
@@ -35,10 +35,12 @@ exports.adduserinfo = function (req, res) {
 
 }
 
-exports.registerCustomer = function (req, res) {
+exports.registerCustomer = function (req, res) {    
     let sql = `CALL REGISTER_CUSTOMER(?,?,?)`;
     const otp_number = Math.floor(1000 + Math.random() * 9000);
     let msgid = '';
+    console.log(req.body);
+    console.log(otp_number);
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [req.body.phone, otp_number, req.body.token], function (err, customer) {
             if (err) {
@@ -327,6 +329,7 @@ exports.deleteCustomer = function (req, res) {
 
 exports.updateCustomer = function (req, res) {
     const updateCustomer = req.body;
+    console.log(updateCustomer);
     pool.getConnection(function (err, dbConn) {
         dbConn.query("UPDATE customer SET ? WHERE customer_id = ?", [updateCustomer, req.params.customerId], function (err, customer) {
             if (err) {
@@ -334,7 +337,7 @@ exports.updateCustomer = function (req, res) {
                 res.json({
                     status: 400,
                     "message": "customer Information not updated",
-                    "customer": banner
+                    "customer": customer
                 });
             }
             else {
