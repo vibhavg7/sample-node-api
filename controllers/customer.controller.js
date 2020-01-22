@@ -4,10 +4,10 @@ var rp = require('request-promise');
 
 var pool = mysql.createPool({
     connectionLimit: 10,
-    host: process.env.dbhost,
-    user: process.env.dbuser,
+    host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
+    user: 'root',
     password: process.env.dbpassword,
-    database: process.env.database
+    database: 'grostep'
 });
 
 exports.fetchAllCustomers = function (req, res) {

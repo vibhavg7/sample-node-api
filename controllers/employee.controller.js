@@ -1,9 +1,9 @@
 var mysql = require('mysql');
 var dbConn = mysql.createConnection({
-    host: process.env.dbhost,
-    user: process.env.dbuser,
+    host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
+    user: 'root',
     password: process.env.dbpassword,
-    database: process.env.database
+    database: 'grostep'
 });
 // connect to database
 dbConn.connect();
