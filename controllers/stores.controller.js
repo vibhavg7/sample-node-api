@@ -1,5 +1,5 @@
 var mysql = require('mysql');
-
+var jwt = require('jsonwebtoken');
 var pool = mysql.createPool({
     connectionLimit: 10,
     host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
@@ -9,29 +9,90 @@ var pool = mysql.createPool({
 });
 
 
-exports.validateMerchant = function (req, res) {
-    let sql = `CALL validateMerchant(?,?)`;
+exports.registerMerchant = function (req, res) {
+    let sql = `CALL REGISTER_MERCHANT(?,?,?)`;
+    const otp_number = Math.floor(1000 + Math.random() * 9000);
+    let msgid = '';
+    console.log(req.body);
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [req.body.user_name, req.body.password], function (err, merchantData) {
-            // res.json(employeeData);
+        dbConn.query(sql, [req.body.phone, otp_number, req.body.token], function (err, merchant) {
             if (err) {
                 res.json({
-                    "status": 401,
-                    "message": "Merchant Details not found",
-                    "employeeData": merchantData[0]
+                    "status": 400,
+                    "message": "merchant not registred",
+                    "phone": 0,
+                    "store_id": 0
                 });
             }
             else {
+                let msg = `Hello your generated otp is :${otp_number}`;
+                console.log(msg);
+                // rp(`http://login.aquasms.com/sendSMS?username=vibhav&message=${msg}&sendername=GROSTP&smstype=TRANS&numbers=${req.body.phone}&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa`)
+                //     .then(function (res) {
+                //         // Process html...
+                //         console.log(res);
+                //         msgid = res[0]['msgid'];
+                //     })
+                //     .catch(function (err) {
+                //         // Crawling failed...
+                //         console.log(err);
+                //     });
                 res.json({
                     "status": 200,
-                    "message": "Merchant Details",
-                    "employeeData": merchantData[0]
+                    "message": "Merchant login successfully",
+                    "phone": merchant[0][0].phone_number,
+                    "msgid": msg,
+                    "store_id": merchant[0][0].store_id
                 });
             }
             dbConn.release();
         });
     });
+}
 
+exports.validateMerchant = function (req, res) {
+    let sql = `CALL validateMerchant(?,?)`;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [req.body.phone_number, req.body.otp_number], function (err, merchantData) {
+            // res.json(employeeData);
+            if (err) {
+                res.json({
+                    "status": 401,
+                    "message": "Merchant Details not found",
+                    "merchantData": merchantData[0]
+                });
+            }
+            else {
+                if (merchantData[0][0].login_status == 1) {
+                    sendToken(merchantData[0][0], res);
+                } else {
+                    res.json({
+                        "status": 204,
+                        "message": "OTP not valid",
+                        "token": "",
+                        "merchantData": []
+                    });
+                }
+                // res.json({
+                //     "status": 200,
+                //     "message": "Merchant Details",
+                //     "employeeData": merchantData[0]
+                // });
+            }
+            dbConn.release();
+        });
+    });
+
+}
+
+function sendToken(item, res) {
+    var token = jwt.sign(item.store_id, "123");
+    res.json({
+        "status": 200,
+        "message": "customer Details",
+        "token": token,
+        "merchantData": item
+    });
 }
 
 exports.fetchAllStores = function (req, res) {
@@ -156,26 +217,26 @@ exports.updateProductStock = function (req, res) {
 exports.editStoreProductInfoById = function (req, res) {
     const ProductInfo = req.body;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("UPDATE grostep.stores_products_mapping SET ? WHERE store_product_mapping_id = ?", 
-                [ProductInfo, +req.params.productId], function (err, updatedProduct) {
-            if (err) {
-                console.log("error: ", err);
-                res.json({
-                    status: 400,
-                    "message": "Product not updated",
-                    "coupon": updatedProduct
-                });
+        dbConn.query("UPDATE grostep.stores_products_mapping SET ? WHERE store_product_mapping_id = ?",
+            [ProductInfo, +req.params.productId], function (err, updatedProduct) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "Product not updated",
+                        "coupon": updatedProduct
+                    });
 
-            }
-            else {
-                res.json({
-                    status: 200,
-                    "message": "coupon Information updated",
-                    "coupon": updatedProduct
-                });
-            }
-            dbConn.release();
-        });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "coupon Information updated",
+                        "coupon": updatedProduct
+                    });
+                }
+                dbConn.release();
+            });
     });
 }
 
@@ -380,6 +441,7 @@ exports.fetchStoreById = function (req, res) {
 }
 
 exports.addNewStore = function (req, res) {
+    console.log('Hi');
     const newProduct = req.body;
     let sql = `CALL ADD_NEW_STORE(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
 
@@ -411,11 +473,13 @@ exports.addNewStore = function (req, res) {
     let status = +req.body.status;
     let password = req.body.password;
 
+    // console.log(req.body);
+
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [storeName, storeEmail, storePhoneNumber, storeAlternateNumber,
             storeLandlineNumber, country, state, city, storeGSTNumber, storePANNumber,
             storeAddress, pinCode, storeDescription, storeRating, latitude, longitude,
-            status, storeCategoryName, openingTime, closingTime, openingTimeClock, closingTimeClock,password],
+            status, storeCategoryName, openingTime, closingTime, openingTimeClock, closingTimeClock, password],
             function (err, store) {
                 if (err) {
                     console.log("error: ", err);

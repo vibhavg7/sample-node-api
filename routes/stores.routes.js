@@ -7,6 +7,9 @@ var orderController = require("../controllers/order.controller");
 router.route('/addnewstore')
     .post(storesController.addNewStore);
 
+router.route('/register')
+    .post(storesController.registerMerchant);
+
 router.route('/validate')
     .post(storesController.validateMerchant);
 

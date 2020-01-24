@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 
 var customerController = require("../controllers/customer.controller");
-
+var orderController = require("../controllers/order.controller");
 router.route('/register')
     .post(customerController.registerCustomer);
 
@@ -13,7 +13,7 @@ router.route('/customerinfo')
     .post(customerController.fetchAllCustomers);
 
 router.route('/customerinfo/customerorders')
-    .post(customerController.fetchCustomerOrdersById);
+    .post(orderController.fetchCustomerOrders);
 
 router.route('/customeraddress')
     .post(customerController.addDelievryAddress);
