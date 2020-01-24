@@ -1,5 +1,6 @@
 var mysql = require('mysql');
 var jwt = require('jsonwebtoken');
+var rp = require('request-promise');
 var pool = mysql.createPool({
     connectionLimit: 10,
     host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
@@ -25,25 +26,32 @@ exports.registerMerchant = function (req, res) {
                 });
             }
             else {
-                let msg = `Hello your generated otp is :${otp_number}`;
-                console.log(msg);
-                // rp(`http://login.aquasms.com/sendSMS?username=vibhav&message=${msg}&sendername=GROSTP&smstype=TRANS&numbers=${req.body.phone}&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa`)
-                //     .then(function (res) {
-                //         // Process html...
-                //         console.log(res);
-                //         msgid = res[0]['msgid'];
-                //     })
-                //     .catch(function (err) {
-                //         // Crawling failed...
-                //         console.log(err);
-                //     });
-                res.json({
-                    "status": 200,
-                    "message": "Merchant login successfully",
-                    "phone": merchant[0][0].phone_number,
-                    "msgid": msg,
-                    "store_id": merchant[0][0].store_id
-                });
+                if(merchant[0].length > 0) {
+                    let msg = `Hello merchant your generated otp is :${otp_number}`;
+                     rp(`http://login.aquasms.com/sendSMS?username=vibhav&message=${msg}&sendername=GROSTP&smstype=TRANS&numbers=${req.body.phone}&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa`)
+                    .then(function (res) {
+                        // Process html...
+                        // console.log(res);
+                        msgid = res[0]['msgid'];
+                    })
+                    .catch(function (err) {
+                        // Crawling failed...
+                        console.log(err);
+                    });
+                    res.json({
+                        "status": 200,
+                        "message": "Merchant login successfully",
+                        "phone": merchant[0][0].phone_number,
+                        "store_id": merchant[0][0].store_id
+                    });
+                } else {
+                    res.json({
+                        "status": 400,
+                        "message": "Merchant not found",
+                        "phone": 0,
+                        "store_id": 0
+                    });
+                }
             }
             dbConn.release();
         });
