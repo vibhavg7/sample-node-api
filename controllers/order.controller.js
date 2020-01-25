@@ -85,17 +85,17 @@ exports.placeOrder = function (req, res) {
                                 //         console.log('Error sending message:', error);
                                 //     });
 
-                                // admin.messaging().sendToDevice(registrationTokens, payload, options)
-                                //     .then(function (response) {
-                                //         console.log("Successfully sent message:", response);
-                                //     })
-                                //     .catch(function (error) {
-                                //         console.log("Error sending message:", error);
-                                //     });
+                                admin.messaging().sendToDevice(registrationTokens, payload, options)
+                                    .then(function (response) {
+                                        console.log("Successfully sent message:", response);
+                                    })
+                                    .catch(function (error) {
+                                        console.log("Error sending message:", error);
+                                    });
                                 res.json({
                                     "status": 200,
                                     "message": "order sucessfully placed added",
-                                    "order_id": orderData[0][0]['order_id']
+                                    "order_id": orderData[1][0]['order_id']
                                 });
                             }
                         });
