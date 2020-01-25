@@ -41,12 +41,13 @@ exports.placeOrder = function (req, res) {
                     });
                 }
                 else {
-                    if (orderData[0][0]['order_id']) {
+                    var token1 = orderData[0][0];
+                    if (orderData[1][0]['order_id']) {
                         let keys = ['id', 'quantity', 'orderid']
                         let values = req.body.products.map((obj) => {
                             return keys.map((key) => {
                                 if (key == 'orderid') {
-                                    return orderData[0][0]['order_id'];
+                                    return orderData[1][0]['order_id'];
                                 }
                                 return obj[key];
                             })
@@ -57,27 +58,23 @@ exports.placeOrder = function (req, res) {
                                 throw err;
                             } else {
 
-                                // var payload = {
-                                //     data: {
-                                //       orderid: orderData[0][0]['order_id']
-                                //     }
-                                //   };
-
-                                // var payload = {
-                                //     data: {
-                                //       score: '89355',
-                                //       time: '2:45'
-                                //     }
-                                //   };
-
-                                // var options = {
-                                //     priority: 'high',
-                                //     timeToLive: 60 * 60 * 24
-                                // };
-
-                                // console.log(req.body.storeToken);
+                                var registrationTokens = [
+                                    token1['customer_token'],
+                                    token1['store_token'],
+                                ];
 
 
+                                var payload = {
+                                    notification: {
+                                        title: "This is a Notification",
+                                        body: "This is the body of the notification message."
+                                    }
+                                };
+
+                                var options = {
+                                    priority: "high",
+                                    timeToLive: 60 * 60 * 24
+                                };
                                 // admin.messaging().sendToDevice(req.body.storeToken, payload, options)
                                 //     .then(function (response) {
                                 //         // See the MessagingDevicesResponse reference documentation for
@@ -88,18 +85,13 @@ exports.placeOrder = function (req, res) {
                                 //         console.log('Error sending message:', error);
                                 //     });
 
-
-                                // let msg = `Hello your order ${orderData[0][0]['order_id']} has been placed successfully`;
-                                // rp(`http://login.aquasms.com/sendSMS?username=vibhav&message=${msg}&sendername=GROSTP&smstype=TRANS&numbers=${req.body.phone}&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa`)
-                                //     .then(function (res) {
-                                //         // Process html...
-                                //         console.log(res);
-                                //         msgid = res[0]['msgid'];
-                                //     })
-                                //     .catch(function (err) {
-                                //         // Crawling failed...
-                                //         console.log(err);
-                                //     });
+                                admin.messaging().sendToDevice(registrationTokens, payload, options)
+                                    .then(function (response) {
+                                        console.log("Successfully sent message:", response);
+                                    })
+                                    .catch(function (error) {
+                                        console.log("Error sending message:", error);
+                                    });
                                 res.json({
                                     "status": 200,
                                     "message": "order sucessfully placed added",
@@ -109,12 +101,7 @@ exports.placeOrder = function (req, res) {
                         });
                     }
                 }
-
-                // console.log(pool._freeConnections.indexOf(dbConn)); // -1
-
                 dbConn.release();
-
-                // console.log(pool._freeConnections.indexOf(dbConn)); // 0
             });
     });
 
@@ -147,7 +134,7 @@ exports.fetchOrderBillInformation = function (req, res) {
     });
 }
 
-exports.updateOrder = function(req, res) {
+exports.updateOrder = function (req, res) {
     const updatedOrder = req.body;
     pool.getConnection(function (err, dbConn) {
         dbConn.query("UPDATE orders SET ? WHERE order_id = ?", [updatedOrder, req.params.orderId], function (err, order) {
