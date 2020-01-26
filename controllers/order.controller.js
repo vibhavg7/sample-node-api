@@ -59,15 +59,16 @@ exports.placeOrder = function (req, res) {
                             } else {
 
                                 var registrationTokens = [
-                                    token1['customer_token'],
+                                    // token1['customer_token']
                                     token1['store_token'],
                                 ];
 
 
                                 var payload = {
                                     notification: {
-                                        title: "This is a Notification",
-                                        body: "This is the body of the notification message."
+                                        title: "New order recieved",
+                                        body: `Hello , ${orderData[0][0]['store_name']} you have recieved new order # ${orderData[1][0]['order_id']}. Click here for details.`
+                                        // "This is the body of the notification message."
                                     }
                                 };
 
