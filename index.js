@@ -17,6 +17,7 @@ var customerRoutes = require("./routes/customer.routes");
 var orderRoutes = require("./routes/order.routes");
 var bannerRoutes = require("./routes/banner.routes");
 var offerRoutes = require("./routes/offers.routes");
+var deliveryRoutes = require("./routes/delivery.routes");
 var imageuploadRoutes = require("./routes/image.upload.routes");
 
 var employeeRoutes = require("./routes/employee.routes");
@@ -46,6 +47,7 @@ app.use('/ordersapi', orderRoutes);
 app.use('/imageuploadapi', imageuploadRoutes);
 app.use('/employeeapi', employeeRoutes);
 app.use('/bannerapi', bannerRoutes);
+app.use('/deliveryapi', deliveryRoutes);
 
 
 // // default route
