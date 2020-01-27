@@ -183,10 +183,17 @@ exports.fetchAllStoresBasedOnZipCode = function (req, res) {
         dbConn.query(sql, [req.body.filterBy, req.body.zipcode],
             function (err, stores) {
                 if (err) {
-                    console.log("error: ", err);
+                    // console.log("error: ", err);
+                    res.json({
+                        "status": 400,
+                        "message": "stores information not found",
+                        "store": [],
+                        "store_total_count": {}
+                    });
                 }
                 else {
                     res.json({
+                        "status": 200,
                         "message": "stores information",
                         "store": stores[0],
                         "store_total_count": stores[1][0]
