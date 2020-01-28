@@ -178,9 +178,9 @@ function calcTime(offset) {
 }
 
 exports.fetchAllStoresBasedOnZipCode = function (req, res) {
-    let sql = `CALL GET_ALL_STORES_ZIP_CODE(?,?)`;
+    let sql = `CALL GET_ALL_STORES_ZIP_CODE(?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [req.body.filterBy, req.body.zipcode],
+        dbConn.query(sql, [req.body.filterBy, req.body.zipcode, +req.body.categoryId],
             function (err, stores) {
                 if (err) {
                     // console.log("error: ", err);
