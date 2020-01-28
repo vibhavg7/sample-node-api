@@ -136,7 +136,11 @@ exports.fetchOrderBillInformation = function (req, res) {
 }
 
 exports.updateOrder = function (req, res) {
-    const updatedOrder = req.body;
+    // const updatedOrder = req.body;
+    let updatedOrder = {};
+    updatedOrder.status = req.body.status;
+    updatedOrder.order_merchant_status = req.body.order_merchant_status;
+
     pool.getConnection(function (err, dbConn) {
         dbConn.query("UPDATE orders SET ? WHERE order_id = ?", [updatedOrder, req.params.orderId], function (err, order) {
             if (err) {
@@ -146,15 +150,26 @@ exports.updateOrder = function (req, res) {
                     "message": "order Information not updated",
                     "order": order
                 });
-
             }
-            else {
-                console.log(JSON.stringify(order));
-                res.json({
-                    status: 200,
-                    "message": "order Information updated",
-                    "order": order
-                });
+            else {               
+                var sql = "INSERT INTO grostep.order_merchant_info (merchant_id,order_id, status) VALUES(?,?,?)";
+                let todo = [+req.body.storeId, +req.params.orderId, +req.body.order_merchant_status];
+                dbConn.query(sql, todo, function (err, inserteddata) {
+                    if (err) {
+                        res.json({
+                            status: 400,
+                            "message": err.message,
+                            "order": 0
+                        });
+                    } else {
+                        
+                        res.json({
+                            status: 200,
+                            "message": "order Information updated",
+                            "order": order
+                        });
+                    }
+                });              
             }
             dbConn.release();
         });
@@ -183,6 +198,35 @@ exports.fetchMerchantOrderCountById = function (req, res) {
                         "new_order_count": orderData[0],
                         "pending_order_count": orderData[1],
                         "picked_order_count": orderData[2]
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
+
+exports.fetchDeliveryBoyOrders = function (req, res) {
+    let sql = `CALL GET_DELIVERYPERSON_ORDERS()`;
+
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql,
+            function (err, orderData) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "order count information not found",
+                    });
+                }
+                else {
+                    // console.log(orderData);
+                    res.json({
+                        "message": "orders counts information",
+                        "status": 200,
+                        "new_order_count": orderData[0],
+                        "running_order_count": orderData[1],
+                        "delivered_order_count": orderData[2]
                     });
                 }
                 dbConn.release();
