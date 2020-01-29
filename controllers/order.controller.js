@@ -176,6 +176,33 @@ exports.updateOrder = function (req, res) {
     });
 }
 
+exports.fetchDeliveryPersonOrderCountById = function (req, res) {
+    let sql = `CALL GET_DELIVERYPERSON_ORDERS_COUNT(?)`;
+
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [+req.params.deliveryPersonId],
+            function (err, orderData) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "order count information not found",
+                    });
+                }
+                else {
+                    // console.log(orderData);
+                    res.json({
+                        "message": "orders counts information",
+                        "status": 200,
+                        "running_order_count": orderData[0],
+                        "delivered_order_count": orderData[1],
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
 
 exports.fetchMerchantOrderCountById = function (req, res) {
     let sql = `CALL GET_MERCHANT_ORDERS_COUNT(?)`;
