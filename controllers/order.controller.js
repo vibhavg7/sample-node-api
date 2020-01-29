@@ -151,7 +151,7 @@ exports.updateOrder = function (req, res) {
                     "order": order
                 });
             }
-            else {               
+            else {
                 var sql = "INSERT INTO grostep.order_merchant_info (merchant_id,order_id, status) VALUES(?,?,?)";
                 let todo = [+req.body.storeId, +req.params.orderId, +req.body.order_merchant_status];
                 dbConn.query(sql, todo, function (err, inserteddata) {
@@ -162,18 +162,120 @@ exports.updateOrder = function (req, res) {
                             "order": 0
                         });
                     } else {
-                        
+
+                        //logic to send push notification to all available delivery boys and customer notified 
+
+
+                        // var registrationTokens = [
+                        //     // token1['customer_token']
+                        //     token1['store_token'],
+                        // ];
+
+
+                        // var payload = {
+                        //     notification: {
+                        //         title: "New order recieved",
+                        //         body: `Hello , ${orderData[0][0]['store_name']} you have recieved new order # ${orderData[1][0]['order_id']}. Click here for details.`
+                        //         // "This is the body of the notification message."
+                        //     }
+                        // };
+
+                        // var options = {
+                        //     priority: "high",
+                        //     timeToLive: 60 * 60 * 24
+                        // };
+
+                        // admin.messaging().sendToDevice(registrationTokens, payload, options)
+                        //     .then(function (response) {
+                        //         console.log("Successfully sent message:", response);
+                        //     })
+                        //     .catch(function (error) {
+                        //         console.log("Error sending message:", error);
+                        //     });
+
+
                         res.json({
                             status: 200,
                             "message": "order Information updated",
                             "order": order
                         });
                     }
-                });              
+                });
             }
             dbConn.release();
         });
     });
+}
+
+exports.updateOrderStatusByMerchant = function (req, res) {
+
+    let sql = `CALL UPDATE_ORDERSTATUS_BY_STORE(?,?,?,?)`;
+
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [+req.body.storeId, +req.params.orderId, req.body.status, req.body.order_merchant_status],
+            function (err, orderData) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "order information not found",
+                    });
+                }
+                else {
+                    let customer_token = orderData[0][0]['customer_token'];
+
+                    dbConn.query("SELECT token FROM grostep.deliveryperson WHERE available = 1 and status = 1 and token is not null", function (err, deliverypersondata) {
+                        if (err) {
+                            res.json({
+                                status: 400,
+                                "message": "delivery person Information not found",
+                                "deliverypersondata": []
+                            });
+                        }
+                        else {
+
+                            let registrationTokens = [];
+
+                            // registrationTokens.push(customer_token);
+
+                            deliverypersondata.forEach((data) => {
+                                registrationTokens.push(data['token']);
+                            })
+
+                            var payload = {
+                                notification: {
+                                    title: "New order recieved",
+                                    body: `Hello , ${orderData[0][0]['store_name']} have recieved new order # ${orderData[0][0]['order_id']}. Click here to accept the order.`
+                                    // "This is the body of the notification message."
+                                }
+                            };
+
+                            var options = {
+                                priority: "high",
+                                timeToLive: 60 * 60 * 24
+                            };
+                            admin.messaging().sendToDevice(registrationTokens, payload, options)
+                                .then(function (response) {
+                                    console.log("Successfully sent message:", response);
+                                })
+                                .catch(function (error) {
+                                    console.log("Error sending message:", error);
+                                });
+
+                                res.json({
+                                    status: 200,
+                                    "message": "order Information updated",
+                                    "order": orderData[0][0]['order_id']
+                                });
+                        }
+                    });
+
+                }
+                dbConn.release();
+            });
+    });
+
+
 }
 
 exports.fetchDeliveryPersonOrderCountById = function (req, res) {

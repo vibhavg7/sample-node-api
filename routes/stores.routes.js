@@ -53,11 +53,14 @@ router.route('/storeinfo/storeorderproducts/:orderId')
 router.route('/merchantorderscount/:storeId')
     .get(orderController.fetchMerchantOrderCountById);
 
-
 router.route('/storeinfo/:storeId')
     .get(storesController.fetchStoreById)
     .delete(storesController.deleteStore)
-    .put(storesController.updateStore)
+    .put(storesController.updateStore);
+
+
+router.route('/:orderId')
+    .put(orderController.updateOrderStatusByMerchant);
 
 
 module.exports = router;
