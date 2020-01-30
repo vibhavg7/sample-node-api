@@ -10,7 +10,7 @@ var pool = mysql.createPool({
     database: 'grostep'
 });
 
-exports.fetchAllNewOrders = function(req,res) {
+exports.fetchAllNewOrders = function (req, res) {
     pool.getConnection(function (err, dbConn) {
         dbConn.query("SELECT o.order_id,o.total_amount,o.delivery_fee,o.discount_amount,o.payable_amount,o.status AS 'order_current_status',o.total_item_count,o.deliver_now,o.delivery_date,o.delivery_slot,o.instructions,o.order_deliveryperson_status,cda.customer_name,cda.phone AS 'customer_phone_number',cda.flatNumber AS 'customer_flatNumber',cda.landmark AS 'customer_landmark',cda.longitude AS 'customer_longitude',cda.latitude AS 'customer_latitude',cda.pincode AS 'customer_pincode',cda.city AS 'customer_city',cda.state AS 'customer_state',cda.country AS 'customer_country',cda.address AS 'customer_address',cda.address2 AS 'customer_address2',s.store_name,s.phone_number AS 'store_phone_number', s.alternative_number AS 'store_alternative_number',s.address AS 'store_address',s.state AS 'store_state',s.city AS 'store_city',s.country AS 'store_country', s.pin_code As 'store_pincode',s.latitude AS 'store_latitude', s.longitude AS 'store_longitude',pm.payment_method_name FROM grostep.orders o inner join stores s on o.store_id = s.store_id inner join payment_method pm on o.payment_mode = pm.payment_method_id inner join grostep.customer_delivery_address cda on o.delivery_address_id = cda.delivery_address_id where o.delivery_person_id = 0 and o.order_deliveryperson_status = 1", function (err, orders) {
             if (err) {
@@ -64,8 +64,8 @@ exports.addNewDeliveryPerson = function (req, res) {
     let email = req.body.email;
 
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [deliveryPersonName, aadharNumber, status, 
-                            panNumber, phone, email],
+        dbConn.query(sql, [deliveryPersonName, aadharNumber, status,
+            panNumber, phone, email],
             function (err, delivery) {
                 if (err) {
                     console.log("error: ", err);
@@ -152,18 +152,18 @@ exports.registerDeliveryPerson = function (req, res) {
                 });
             }
             else {
-                if(deliveryPerson[0].length > 0) {
+                if (deliveryPerson[0].length > 0) {
                     let msg = `Hello Delivery Person your generated otp is :${otp_number}`;
-                     rp(`http://login.aquasms.com/sendSMS?username=vibhav&message=${msg}&sendername=GROSTP&smstype=TRANS&numbers=${req.body.phone}&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa`)
-                    .then(function (res) {
-                        // Process html...
-                        // console.log(res);
-                        msgid = res[0]['msgid'];
-                    })
-                    .catch(function (err) {
-                        // Crawling failed...
-                        console.log(err);
-                    });
+                    rp(`http://login.aquasms.com/sendSMS?username=vibhav&message=${msg}&sendername=GROSTP&smstype=TRANS&numbers=${req.body.phone}&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa`)
+                        .then(function (res) {
+                            // Process html...
+                            // console.log(res);
+                            msgid = res[0]['msgid'];
+                        })
+                        .catch(function (err) {
+                            // Crawling failed...
+                            console.log(err);
+                        });
                     res.json({
                         "status": 200,
                         "message": "Delivery Person login successfully",
@@ -190,7 +190,7 @@ exports.validateDeliveryPerson = function (req, res) {
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [req.body.phone_number, req.body.otp_number], function (err, deliveryPersonData) {
             // res.json(employeeData);
-             console.log(err);
+            console.log(err);
             if (err) {
                 res.json({
                     "status": 401,
@@ -213,6 +213,58 @@ exports.validateDeliveryPerson = function (req, res) {
             dbConn.release();
         });
     });
+
+}
+
+
+exports.updateOrderStatusByDeliveryPerson = function (req, res) {
+
+    let sql = `CALL UPDATE_ORDERSTATUS_BY_DELIVERYPERSON(?,?,?,?)`;
+
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [+req.body.deliverypersonid, +req.params.orderId, req.body.status, req.body.order_delivery_person_status],
+            function (err, orderData) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "order information not found",
+                    });
+                }
+                else {
+                    let customer_token = orderData[0][0]['customer_token'];
+                    let store_token = orderData[0][0]['store_token'];
+                    let registrationTokens = [];
+                    registrationTokens.push(customer_token); registrationTokens.push(store_token);
+                    var payload = {
+                        notification: {
+                            title: "New order recieved",
+                            body: `Hello , Delivery person have been sucessfully assigned for the order # ${orderData[0][0]['order_id']}.`
+                            // "This is the body of the notification message."
+                        }
+                    };
+
+                    var options = {
+                        priority: "high",
+                        timeToLive: 60 * 60 * 24
+                    };
+                    admin.messaging().sendToDevice(registrationTokens, payload, options)
+                        .then(function (response) {
+                            console.log("Successfully sent message:", response);
+                        })
+                        .catch(function (error) {
+                            console.log("Error sending message:", error);
+                    });
+                    res.json({
+                        status: 200,
+                        "message": "order Information updated",
+                        "order": orderData[0][0]['order_id']
+                    });
+                }
+                dbConn.release();
+            });
+    });
+
 
 }
 

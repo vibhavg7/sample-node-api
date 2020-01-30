@@ -28,4 +28,7 @@ router.route('/fetchAllNewOrders')
 router.route('/deliveryinfo/:deliveryPersonId')
     .get(deliveryController.fetchDeliveryPersonInfoById)
     .put(deliveryController.updateDeliveryPerson);
+
+router.route('/updateorder/:orderid')
+    .put(deliveryController.updateDeliveryPerson);
 module.exports = router;
