@@ -25,6 +25,9 @@ router.route('/deliverypersonorderscount/:deliveryPersonId')
 router.route('/fetchAllNewOrders')
     .get(deliveryController.fetchAllNewOrders);
 
+router.route('/fetchAllRunningOrders/:deliveryPersonId')
+    .get(deliveryController.fetchAllRunningOrders);
+
 router.route('/deliveryinfo/:deliveryPersonId')
     .get(deliveryController.fetchDeliveryPersonInfoById)
     .put(deliveryController.updateDeliveryPerson);
