@@ -224,7 +224,7 @@ exports.updateOrderStatusByMerchant = function (req, res) {
     
                                 deliverypersondata.forEach((data) => {
                                     registrationTokens.push(data['token']);
-                                })
+                                });
     
                                 var payload = {
                                     notification: {
@@ -243,7 +243,7 @@ exports.updateOrderStatusByMerchant = function (req, res) {
                                     })
                                     .catch(function (error) {
                                         console.log("Error sending message:", error);
-                                    });
+                                });
     
                                 res.json({
                                     status: 200,
@@ -252,7 +252,7 @@ exports.updateOrderStatusByMerchant = function (req, res) {
                                 });
                             }
                         });
-                    } else if(req.body.order_merchant_status == 6) {
+                    } else if(req.body.order_merchant_status == 3) {
                         let customer_token = orderData[0][0]['customer_token'];
                         let delivery_person_token = orderData[0][0]['delivery_person_token'];
                         registrationTokens.push(delivery_person_token);
