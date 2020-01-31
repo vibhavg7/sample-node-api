@@ -206,7 +206,7 @@ exports.fetchAllStoresBasedOnZipCode = function (req, res) {
 
 exports.fetchAllOngoingOrders = function (req, res) {
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("SELECT * FROM grostep.orders o where o.store_id  = ? and o.order_merchant_status BETWEEN 2 AND 3;",req.params.storeId, function (err, ongoingorders) {
+        dbConn.query("SELECT o.order_id ,o.total_item_count,o.order_amount,o.added_date AS 'order_placing_date',s.store_name  FROM grostep.orders o inner join stores s on o.store_id = s.store_id where o.store_id  = ? and o.order_merchant_status BETWEEN 2 AND 3;",req.params.storeId, function (err, ongoingorders) {
             if (err) {
                 res.json({
                     status: 400,
@@ -228,7 +228,7 @@ exports.fetchAllOngoingOrders = function (req, res) {
 
 exports.fetchAllBilledOrders = function (req, res) {
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("SELECT * FROM grostep.orders o where o.store_id  = ? and o.order_merchant_status = 4;",req.params.storeId, function (err, billedOrders) {
+        dbConn.query("SELECT o.order_id ,o.total_item_count,o.order_amount,o.added_date AS 'order_placing_date',s.store_name  FROM grostep.orders o inner join stores s on o.store_id = s.store_id where o.store_id  = ? and o.order_merchant_status = 4;",req.params.storeId, function (err, billedOrders) {
             if (err) {
                 res.json({
                     status: 400,
