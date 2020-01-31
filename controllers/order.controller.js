@@ -59,16 +59,13 @@ exports.placeOrder = function (req, res) {
                             } else {
 
                                 var registrationTokens = [
-                                    // token1['customer_token']
                                     token1['store_token'],
                                 ];
-
 
                                 var payload = {
                                     notification: {
                                         title: "New order recieved",
                                         body: `Hello , ${orderData[0][0]['store_name']} you have recieved new order # ${orderData[1][0]['order_id']}. Click here for details.`
-                                        // "This is the body of the notification message."
                                     }
                                 };
 
@@ -76,15 +73,6 @@ exports.placeOrder = function (req, res) {
                                     priority: "high",
                                     timeToLive: 60 * 60 * 24
                                 };
-                                // admin.messaging().sendToDevice(req.body.storeToken, payload, options)
-                                //     .then(function (response) {
-                                //         // See the MessagingDevicesResponse reference documentation for
-                                //         // the contents of response.
-                                //         console.log('Successfully sent message:', response);
-                                //     })
-                                //     .catch(function (error) {
-                                //         console.log('Error sending message:', error);
-                                //     });
 
                                 admin.messaging().sendToDevice(registrationTokens, payload, options)
                                     .then(function (response) {
@@ -222,53 +210,78 @@ exports.updateOrderStatusByMerchant = function (req, res) {
                     });
                 }
                 else {
-                    let customer_token = orderData[0][0]['customer_token'];
-
-                    dbConn.query("SELECT token FROM grostep.deliveryperson WHERE available = 1 and status = 1 and token is not null", function (err, deliverypersondata) {
-                        if (err) {
-                            res.json({
-                                status: 400,
-                                "message": "delivery person Information not found",
-                                "deliverypersondata": []
-                            });
-                        }
-                        else {
-
-                            let registrationTokens = [];
-
-                            // registrationTokens.push(customer_token);
-
-                            deliverypersondata.forEach((data) => {
-                                registrationTokens.push(data['token']);
-                            })
-
-                            var payload = {
-                                notification: {
-                                    title: "New order recieved",
-                                    body: `Hello , ${orderData[0][0]['store_name']} have recieved new order # ${orderData[0][0]['order_id']}. Click here to accept the order.`
-                                    // "This is the body of the notification message."
-                                }
-                            };
-
-                            var options = {
-                                priority: "high",
-                                timeToLive: 60 * 60 * 24
-                            };
-                            admin.messaging().sendToDevice(registrationTokens, payload, options)
-                                .then(function (response) {
-                                    console.log("Successfully sent message:", response);
-                                })
-                                .catch(function (error) {
-                                    console.log("Error sending message:", error);
+                    let registrationTokens = [];
+                    if(req.body.order_merchant_status == 2) {
+                        dbConn.query("SELECT token FROM grostep.deliveryperson WHERE available = 1 and status = 1 and token is not null", function (err, deliverypersondata) {
+                            if (err) {
+                                res.json({
+                                    status: 400,
+                                    "message": "delivery person Information not found",
+                                    "deliverypersondata": []
                                 });
-
+                            }
+                            else {
+    
+                                deliverypersondata.forEach((data) => {
+                                    registrationTokens.push(data['token']);
+                                })
+    
+                                var payload = {
+                                    notification: {
+                                        title: "New order recieved",
+                                        body: `Hello , ${orderData[0][0]['store_name']} have recieved new order # ${orderData[0][0]['order_id']}. Click here to accept the order.`
+                                    }
+                                };
+    
+                                var options = {
+                                    priority: "high",
+                                    timeToLive: 60 * 60 * 24
+                                };
+                                admin.messaging().sendToDevice(registrationTokens, payload, options)
+                                    .then(function (response) {
+                                        console.log("Successfully sent message:", response);
+                                    })
+                                    .catch(function (error) {
+                                        console.log("Error sending message:", error);
+                                    });
+    
                                 res.json({
                                     status: 200,
                                     "message": "order Information updated",
                                     "order": orderData[0][0]['order_id']
                                 });
-                        }
-                    });
+                            }
+                        });
+                    } else if(req.body.order_merchant_status == 6) {
+                        let customer_token = orderData[0][0]['customer_token'];
+                        let delivery_person_token = orderData[0][0]['delivery_person_token'];
+                        registrationTokens.push(delivery_person_token);
+                        var payload = {
+                            notification: {
+                                title: "Items confirmed by Merchant",
+                                body: `Hello , ${orderData[0][0]['delivery_person_name']} items is confirmed for new order # ${orderData[0][0]['order_id']}. Click here to view the order.`
+                            }
+                        };
+
+                        var options = {
+                            priority: "high",
+                            timeToLive: 60 * 60 * 24
+                        };
+                        admin.messaging().sendToDevice(registrationTokens, payload, options)
+                            .then(function (response) {
+                                console.log("Successfully sent message:", response);
+                            })
+                            .catch(function (error) {
+                                console.log("Error sending message:", error);
+                            });
+
+                        res.json({
+                            status: 200,
+                            "message": "order Information updated",
+                            "order": orderData[0][0]['order_id']
+                        });
+
+                    }
 
                 }
                 dbConn.release();

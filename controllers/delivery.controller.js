@@ -282,13 +282,18 @@ exports.updateOrderStatusByDeliveryPerson = function (req, res) {
                     let registrationTokens = [];
                     let messageTitle = '';
                     let messageBody = '';
-                    registrationTokens.push(customer_token); registrationTokens.push(store_token);
 
                     if(req.body.order_delivery_person_status == 2) {
+                        registrationTokens.push(customer_token); registrationTokens.push(store_token);
                         messageTitle = 'Delivery Person assigned';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} have been sucessfully assigned for the order # ${orderData[0][0]['order_id']}.`;
                     } else if(req.body.order_delivery_person_status == 3) {
+                        registrationTokens.push(customer_token); registrationTokens.push(store_token);
                         messageTitle = 'Delivery Person reached store and will start picking items';
+                        messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} reached store and will start picking items for the order # ${orderData[0][0]['order_id']}.`;
+                    }  else if(req.body.order_delivery_person_status == 6) {
+                        registrationTokens.push(customer_token);
+                        messageTitle = 'Delivery Person is on the way to deliver';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} reached store and will start picking items for the order # ${orderData[0][0]['order_id']}.`;
                     }
 
