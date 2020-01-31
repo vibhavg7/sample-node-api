@@ -204,6 +204,50 @@ exports.fetchAllStoresBasedOnZipCode = function (req, res) {
     });
 }
 
+exports.fetchAllOngoingOrders = function (req, res) {
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("SELECT * FROM grostep.orders o where o.store_id  = ? and o.order_merchant_status BETWEEN 2 AND 3;",req.params.storeId, function (err, ongoingorders) {
+            if (err) {
+                res.json({
+                    status: 400,
+                    "message": "ongoing orders Information not found",
+                    "ongoingorders": []
+                });
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "ongoing orders Information",
+                    "ongoingorders": ongoingorders
+                });
+            }
+            dbConn.release();
+        });
+    });
+}
+
+exports.fetchAllBilledOrders = function (req, res) {
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("SELECT * FROM grostep.orders o where o.store_id  = ? and o.order_merchant_status = 4;",req.params.storeId, function (err, billedOrders) {
+            if (err) {
+                res.json({
+                    status: 400,
+                    "message": "Billed Orders Information not found",
+                    "billedOrders": []
+                });
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "Billed Orders Information",
+                    "billedOrders": billedOrders
+                });
+            }
+            dbConn.release();
+        });
+    });
+}
+
 exports.updateProductStock = function (req, res) {
     const updateStock = req.body;
     pool.getConnection(function (err, dbConn) {

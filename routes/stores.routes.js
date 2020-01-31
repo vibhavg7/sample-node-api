@@ -53,6 +53,12 @@ router.route('/storeinfo/storeorderproducts/:orderId')
 router.route('/merchantorderscount/:storeId')
     .get(orderController.fetchMerchantOrderCountById);
 
+router.route('/fetchAllRunningOrders/:storeId')
+    .get(storesController.fetchAllOngoingOrders);
+
+router.route('/fetchAllPickedOrders/:storeId')
+    .get(storesController.fetchAllBilledOrders);
+
 router.route('/storeinfo/:storeId')
     .get(storesController.fetchStoreById)
     .delete(storesController.deleteStore)
