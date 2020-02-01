@@ -98,11 +98,11 @@ exports.placeOrder = function (req, res) {
 }
 
 
-// exports.updateOrderBillImage = function (orderId, imageUrl, req, res) {
-//     let sql = `CALL UPDATE_ORDER_IMAGES(?,?)`;
-//     let orderId = +orderId;
-//     let image_url = imageUrl;
-//     pool.getConnection(function (err, dbConn) {
+exports.updateOrderBillImage = function (orderId, imageUrl, req, res) {
+    let sql = `CALL UPDATE_ORDER_IMAGES(?,?)`;
+    let orderId = +orderId;
+    let image_url = imageUrl;
+    // pool.getConnection(function (err, dbConn) {
 //         dbConn.query(sql, [storeId, image_url],
 //             function (err, updatedStore) {
 //                 if (err) {
@@ -122,8 +122,8 @@ exports.placeOrder = function (req, res) {
 //                 }
 //                 dbConn.release();
 //             });
-//     });
-// }
+    // });
+}
 
 exports.fetchOrderBillInformation = function (req, res) {
     let sql = `CALL GET_ORDER_BILLINFO(?)`;
