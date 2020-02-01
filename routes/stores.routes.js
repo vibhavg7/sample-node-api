@@ -13,6 +13,9 @@ router.route('/register')
 router.route('/validate')
     .post(storesController.validateMerchant);
 
+router.route('/logoutStore/:storeId')
+    .put(storesController.updateStore);
+
 router.route('/addstoreproducts')
     .post(storesController.addStoreProducts);
 
