@@ -10,6 +10,9 @@ router.route('/addnewdeliveryperson')
 router.route('/register')
     .post(deliveryController.registerDeliveryPerson);
 
+router.route('/logoutDeliveryPerson/:storeId')
+    .put(deliveryController.updateDeliveryPerson);
+
 router.route('/validate')
     .post(deliveryController.validateDeliveryPerson);
 
