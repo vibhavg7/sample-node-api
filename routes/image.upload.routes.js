@@ -3,7 +3,6 @@ var router = express.Router();
 var uploadImage = require("../services/file-upload");
 const singleUpload = uploadImage.single('image');
 var productsController = require("../controllers/products.controller");
-var orderController = require("../controllers/order.controller");
 var categoryController = require("../controllers/category.controller");
 var storesController = require("../controllers/stores.controller");
 var bannerController = require("../controllers/banner.controller");
@@ -35,16 +34,6 @@ router.post('/merchants/:merchantId', function (req, res, next) {
             return res.status(422).send({ errors: [{ title: 'File Upload Error', detail: err.message }] });
         }
         storesController.updateStoreImages(req.params.merchantId, req.file.location, req, res);
-    })
-});
-
-router.post('/uploadOrderBill/:orderId', function (req, res, next) {
-    singleUpload(req, res, function (err) {
-        if (err) {
-            return res.status(422).send({ errors: [{ title: 'File Upload Error', detail: err.message }] });
-        }
-        // console.log(req.file.location);
-        orderController.updateOrderBillImage(req.params.orderId, req.file.location, req, res);
     })
 });
 
