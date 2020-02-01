@@ -333,13 +333,13 @@ exports.fetchMerchantOrderCountById = function (req, res) {
                     });
                 }
                 else {
-                    // console.log(orderData);
                     res.json({
                         "message": "orders counts information",
                         "status": 200,
                         "new_order_count": orderData[0],
                         "pending_order_count": orderData[1],
-                        "picked_order_count": orderData[2]
+                        "pending_billing_order_count": orderData[2],
+                        "picked_order_count": orderData[3]
                     });
                 }
                 dbConn.release();
