@@ -98,6 +98,33 @@ exports.placeOrder = function (req, res) {
 }
 
 
+exports.updateOrderBillImage = function (orderId, imageUrl, req, res) {
+    let sql = `CALL UPDATE_ORDER_IMAGES(?,?)`;
+    let orderId = +orderId;
+    let image_url = imageUrl;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [storeId, image_url],
+            function (err, updatedStore) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        "status": 400,
+                        "message": "order images not updated",
+                        "orderImage": 0
+                    })
+                }
+                else {
+                    res.json({
+                        "status": 200,
+                        "message": "bill image detail",
+                        "orderImage": updatedStore[0][0]
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
 exports.fetchOrderBillInformation = function (req, res) {
     let sql = `CALL GET_ORDER_BILLINFO(?)`;
 
