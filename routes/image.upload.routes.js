@@ -43,7 +43,13 @@ router.post('/uploadOrderBill/:orderId', function (req, res, next) {
         if (err) {
             return res.status(422).send({ errors: [{ title: 'File Upload Error', detail: err.message }] });
         }
-        ordersController.updateOrderBillImage(req.params.orderId, req.file.location, req, res);
+        res.json({
+            "status": 200,
+            "message": "bill image detail",
+            "orderImage": req.file.location
+        });
+        // storesController.updateStoreImages(req.params.merchantId, req.file.location, req, res);
+        // ordersController.updateOrderBillImage(req.params.orderId, req.file.location, req, res);
     })
 });
 
