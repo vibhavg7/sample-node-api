@@ -55,6 +55,28 @@ exports.fetchAllRunningOrders = function (req, res) {
     });
 }
 
+exports.fetchRunningStatusByOrderId = function (req, res) {
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("SELECT o.order_id,o.order_merchant_status,o.total_amount,o.delivery_fee,o.discount_amount,o.payable_amount,o.status AS 'order_current_status',o.total_item_count,o.deliver_now,o.delivery_date,o.delivery_slot,o.instructions,o.order_deliveryperson_status,cda.customer_name,cda.phone AS 'customer_phone_number',cda.flatNumber AS 'customer_flatNumber',cda.landmark AS 'customer_landmark',cda.longitude AS 'customer_longitude',cda.latitude AS 'customer_latitude',cda.pincode AS 'customer_pincode',cda.city AS 'customer_city',cda.state AS 'customer_state',cda.country AS 'customer_country',cda.address AS 'customer_address',cda.address2 AS 'customer_address2',s.store_name,s.phone_number AS 'store_phone_number', s.alternative_number AS 'store_alternative_number',s.address AS 'store_address',s.state AS 'store_state',s.city AS 'store_city',s.country AS 'store_country', s.pin_code As 'store_pincode',s.latitude AS 'store_latitude', s.longitude AS 'store_longitude',pm.payment_method_name FROM grostep.orders o inner join stores s on o.store_id = s.store_id inner join payment_method pm on o.payment_mode = pm.payment_method_id inner join grostep.customer_delivery_address cda on o.delivery_address_id = cda.delivery_address_id where o.delivery_person_id  = ? and o.order_id = ?  ",[req.body.deliverypersonid, req.body.orderId], function (err, orderdata) {
+            if (err) {
+                res.json({
+                    status: 400,
+                    "message": "order Information not found",
+                    "orderdata": []
+                });
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "running order Information",
+                    "orderdata": orderdata
+                });
+            }
+            dbConn.release();
+        });
+    });
+}
+
 exports.fetchAllDeliveredOrders = function (req, res) {
     pool.getConnection(function (err, dbConn) {
         dbConn.query("SELECT o.order_id,o.total_amount,o.delivery_fee,o.discount_amount,o.payable_amount,o.status AS 'order_current_status',o.total_item_count,o.deliver_now,o.delivery_date,o.delivery_slot,o.instructions,o.order_deliveryperson_status,cda.customer_name,cda.phone AS 'customer_phone_number',cda.flatNumber AS 'customer_flatNumber',cda.landmark AS 'customer_landmark',cda.longitude AS 'customer_longitude',cda.latitude AS 'customer_latitude',cda.pincode AS 'customer_pincode',cda.city AS 'customer_city',cda.state AS 'customer_state',cda.country AS 'customer_country',cda.address AS 'customer_address',cda.address2 AS 'customer_address2',s.store_name,s.phone_number AS 'store_phone_number', s.alternative_number AS 'store_alternative_number',s.address AS 'store_address',s.state AS 'store_state',s.city AS 'store_city',s.country AS 'store_country', s.pin_code As 'store_pincode',s.latitude AS 'store_latitude', s.longitude AS 'store_longitude',pm.payment_method_name FROM grostep.orders o inner join stores s on o.store_id = s.store_id inner join payment_method pm on o.payment_mode = pm.payment_method_id inner join grostep.customer_delivery_address cda on o.delivery_address_id = cda.delivery_address_id where o.delivery_person_id  = ? and o.order_deliveryperson_status = 7 ",req.params.deliveryPersonId, function (err, deliveredorders) {
@@ -291,7 +313,12 @@ exports.updateOrderStatusByDeliveryPerson = function (req, res) {
                         registrationTokens.push(customer_token); registrationTokens.push(store_token);
                         messageTitle = 'Delivery Person reached store and will start picking items';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} reached store and will start picking items for the order # ${orderData[0][0]['order_id']}.`;
-                    }  else if(req.body.order_delivery_person_status == 6) {
+                    } else if(req.body.order_delivery_person_status == 5) {
+                        registrationTokens.push(customer_token);
+                        messageTitle = 'Delivery Person picked the items and waiting for bill confirmation';
+                        messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} picked for the order # ${orderData[0][0]['order_id']} and waiting for bill confirmation.`;
+                    }    
+                    else if(req.body.order_delivery_person_status == 6) {
                         registrationTokens.push(customer_token);
                         messageTitle = 'Delivery Person is on the way to deliver';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} reached store and will start picking items for the order # ${orderData[0][0]['order_id']}.`;

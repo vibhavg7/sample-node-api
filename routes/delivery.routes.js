@@ -28,6 +28,9 @@ router.route('/deliverypersonorderscount/:deliveryPersonId')
 router.route('/fetchAllNewOrders')
     .get(deliveryController.fetchAllNewOrders);
 
+router.route('/fetchRunningStatusByOrderId')
+    .post(deliveryController.fetchRunningStatusByOrderId);
+
 router.route('/fetchAllRunningOrders/:deliveryPersonId')
     .get(deliveryController.fetchAllRunningOrders);
 
