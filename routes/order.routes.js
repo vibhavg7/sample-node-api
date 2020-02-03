@@ -9,6 +9,12 @@ router.route('/orderinfo/orderbill/:orderId')
 router.route('/customerorders')
     .post(orderController.fetchCustomerOrders);
 
+router.route('/customerliveorders')
+    .post(orderController.fetchCustomerLiveOrders);
+
+router.route('/customerliveorders/:orderId')
+    .get(orderController.fetchCustomerLiveOrderDetailById);
+
 router.route('/orderinfo/orderbill/merchantconfirmation')
     .post(orderController.merchantBillconfirmation);
 

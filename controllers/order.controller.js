@@ -454,6 +454,55 @@ exports.merchantBillconfirmation = function (req, res) {
     });
 }
 
+exports.fetchCustomerLiveOrders = function(req, res) {
+    let customerId = req.body.customerId;
+    console.log(customerId);
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("SELECT o.order_id,o.total_amount,o.delivery_fee,o.discount_amount,o.payable_amount,o.status AS 'order_current_status',ost.type AS 'order_current_status_type',o.status AS 'order_current_status',o.total_item_count,o.deliver_now,o.delivery_date,o.delivery_slot,o.order_deliveryperson_status,s.store_name,pm.payment_method_name FROM grostep.orders o inner join stores s on o.store_id = s.store_id inner join payment_method pm on o.payment_mode = pm.payment_method_id inner join grostep.order_status_types ost on o.status = ost.order_type_id where o.customer_id = ? and o.status BETWEEN 1 AND 10;",customerId, function (err,livecustomerorders) {
+            if (err) {
+                res.json({
+                    status: 400,
+                    "message": "customer live orders Information not found",
+                    "livecustomerorders": []
+                });
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "customer live orders Information",
+                    "livecustomerorders": livecustomerorders
+                });
+            }
+            dbConn.release();
+        });
+    });
+}
+
+exports.fetchCustomerLiveOrderDetailById = function(req, res) {
+    let orderId = req.params.orderId;
+    console.log(orderId);
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("SELECT o.order_id,o.status AS 'order_current_status',o.order_deliveryperson_status FROM grostep.orders o where o.order_id = ?;",orderId, function (err,livecustomerorderdetail) {
+            if (err) {
+                res.json({
+                    status: 400,
+                    "message": "customer live orders Information not found",
+                    "livecustomerorderdetail": {}
+                });
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "customer live orders Information",
+                    "livecustomerorderdetail": livecustomerorderdetail[0]
+                });
+            }
+            dbConn.release();
+        });
+    });
+}
+
+
 exports.fetchOrderDetailsById = function (req, res) {
 
     let sql = `CALL GET_ORDER_INFO(?)`;
