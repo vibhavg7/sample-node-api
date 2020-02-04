@@ -38,7 +38,7 @@ router.route('/customerinfo/:customerId')
     .put(customerController.updateCustomer)
     .delete(customerController.deleteCustomer);
 
-router.route('/:orderId')    
+router.route('/updateOrder/:orderId')    
     .put(customerController.updateOrderStatusByCustomer);
 
 module.exports = router;
