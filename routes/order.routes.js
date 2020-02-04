@@ -3,9 +3,6 @@ var router = express.Router();
 
 var orderController = require("../controllers/order.controller");
 
-router.route('/orderinfo/orderbill/:orderId')
-    .get(orderController.fetchOrderBillInformation);
-
 router.route('/customerorders')
     .post(orderController.fetchCustomerOrders);
 
@@ -24,5 +21,8 @@ router.route('/placeorder')
 router.route('/:orderId')
     .get(orderController.fetchOrderDetailsById)
     .put(orderController.updateOrder);
+
+router.route('/orderinfo/orderbill/:orderId')
+    .get(orderController.fetchOrderBillInformation);
 
 module.exports = router;

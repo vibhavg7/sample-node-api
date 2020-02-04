@@ -308,6 +308,35 @@ exports.updateOrderStatusByMerchant = function (req, res) {
                             "order": orderData[0][0]['order_id']
                         });
 
+                    } else if(req.body.order_merchant_status == 4) {
+                        let customer_token = orderData[0][0]['customer_token'];
+                        let delivery_person_token = orderData[0][0]['delivery_person_token'];
+                        registrationTokens.push(delivery_person_token);
+                        var payload = {
+                            notification: {
+                                title: "Items bill confirmed by Merchant",
+                                body: `Hello , ${orderData[0][0]['delivery_person_name']} items bill is confirmed for new order # ${orderData[0][0]['order_id']}. Please proceed.`
+                            }
+                        };
+
+                        var options = {
+                            priority: "high",
+                            timeToLive: 60 * 60 * 24
+                        };
+                        admin.messaging().sendToDevice(registrationTokens, payload, options)
+                            .then(function (response) {
+                                console.log("Successfully sent message:", response);
+                            })
+                            .catch(function (error) {
+                                console.log("Error sending message:", error);
+                            });
+
+                        res.json({
+                            status: 200,
+                            "message": "order Information updated",
+                            "order": orderData[0][0]['order_id']
+                        });
+
                     }
 
                 }
