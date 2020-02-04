@@ -251,11 +251,12 @@ exports.updateOrderStatusByMerchant = function (req, res) {
                                 deliverypersondata.forEach((data) => {
                                     registrationTokens.push(data['token']);
                                 });
+                                registrationTokens.push(orderData[0][0]['customer_token']);
     
                                 var payload = {
                                     notification: {
                                         title: "New order recieved",
-                                        body: `Hello , ${orderData[0][0]['store_name']} have recieved new order # ${orderData[0][0]['order_id']}. Click here to accept the order.`
+                                        body: `Hello , ${orderData[0][0]['store_name']} have accepted the new order # ${orderData[0][0]['order_id']}. Click here to view details.`
                                     }
                                 };
     
@@ -482,7 +483,7 @@ exports.fetchCustomerLiveOrderDetailById = function(req, res) {
     let orderId = req.params.orderId;
     console.log(orderId);
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("SELECT o.order_id,o.status AS 'order_current_status',o.order_deliveryperson_status FROM grostep.orders o where o.order_id = ?;",orderId, function (err,livecustomerorderdetail) {
+        dbConn.query("SELECT o.order_id,o.status AS 'order_current_status',o.order_deliveryperson_status,o.bill_image_url FROM grostep.orders o where o.order_id = ?;",orderId, function (err,livecustomerorderdetail) {
             if (err) {
                 res.json({
                     status: 400,
