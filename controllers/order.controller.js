@@ -483,7 +483,7 @@ exports.fetchCustomerLiveOrderDetailById = function(req, res) {
     let orderId = req.params.orderId;
     console.log(orderId);
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("SELECT o.order_id,o.status AS 'order_current_status',o.order_deliveryperson_status,o.bill_image_url FROM grostep.orders o where o.order_id = ?;",orderId, function (err,livecustomerorderdetail) {
+        dbConn.query("SELECT o.order_id,o.status AS 'order_current_status',dp.delivery_person_name,dp.phone,dp.rating,o.bill_image_url FROM grostep.orders o left join deliveryperson dp on o.delivery_person_id = dp.delivery_person_id where o.order_id = ?;",orderId, function (err,livecustomerorderdetail) {
             if (err) {
                 res.json({
                     status: 400,
