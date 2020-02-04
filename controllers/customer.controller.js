@@ -356,3 +356,62 @@ exports.updateCustomer = function (req, res) {
         });
     });
 }
+
+
+exports.updateOrderStatusByCustomer = function (req, res) {
+
+    let sql = `CALL UPDATE_ORDERSTATUS_BY_CUSTOMER(?,?)`;
+
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [+req.params.orderId, req.body.status],
+            function (err, orderData) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "order information not found",
+                    });
+                }
+                else {
+                    let store_token = orderData[0][0]['store_token'];
+                    let delivery_person_token = orderData[0][0]['delivery_person_token'];
+                    let registrationTokens = [];
+                    let messageTitle = '';
+                    let messageBody = '';
+
+                    registrationTokens.push(store_token);
+                    registrationTokens.push(delivery_person_token);
+                    messageTitle = 'Bill accepted by customer';
+                    messageBody = `Hello ,Bill has been accepted for the order # ${orderData[0][0]['order_id']}.Please proceed furthur`;
+
+                    var payload = {
+                        notification: {
+                            title: messageTitle,
+                            body: messageBody
+                            // "This is the body of the notification message."
+                        }
+                    };
+
+                    var options = {
+                        priority: "high",
+                        timeToLive: 60 * 60 * 24
+                    };
+                    admin.messaging().sendToDevice(registrationTokens, payload, options)
+                        .then(function (response) {
+                            // console.log("Successfully sent message:", response);
+                        })
+                        .catch(function (error) {
+                            // console.log("Error sending message:", error);
+                    });
+                    res.json({
+                        status: 200,
+                        "message": "order Information updated",
+                        "order": orderData[0][0]['order_id']
+                    });
+                }
+                dbConn.release();
+            });
+    });
+
+
+}

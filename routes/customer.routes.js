@@ -37,6 +37,8 @@ router.route('/customerinfo/:customerId')
     .get(customerController.getCustomer)
     .put(customerController.updateCustomer)
     .delete(customerController.deleteCustomer);
-// .post(createCustomer);
+
+router.route('/:orderId')    
+    .put(customerController.updateOrderStatusByCustomer);
 
 module.exports = router;
