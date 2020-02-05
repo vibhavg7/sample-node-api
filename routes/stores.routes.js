@@ -62,6 +62,9 @@ router.route('/fetchAllRunningOrders/:storeId')
 router.route('/fetchAllPickedOrders/:storeId')
     .get(storesController.fetchAllBilledOrders);
 
+router.route('/fetchAllPendingBilledOrders/:storeId')
+    .get(storesController.fetchAllPendingBilledOrders);
+
 router.route('/storeinfo/:storeId')
     .get(storesController.fetchStoreById)
     .delete(storesController.deleteStore)

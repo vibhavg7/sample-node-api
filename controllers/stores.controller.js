@@ -26,18 +26,18 @@ exports.registerMerchant = function (req, res) {
                 });
             }
             else {
-                if(merchant[0].length > 0) {
+                if (merchant[0].length > 0) {
                     let msg = `Hello merchant your generated otp is :${otp_number}`;
-                     rp(`http://login.aquasms.com/sendSMS?username=vibhav&message=${msg}&sendername=GROSTP&smstype=TRANS&numbers=${req.body.phone}&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa`)
-                    .then(function (res) {
-                        // Process html...
-                        // console.log(res);
-                        msgid = res[0]['msgid'];
-                    })
-                    .catch(function (err) {
-                        // Crawling failed...
-                        console.log(err);
-                    });
+                    rp(`http://login.aquasms.com/sendSMS?username=vibhav&message=${msg}&sendername=GROSTP&smstype=TRANS&numbers=${req.body.phone}&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa`)
+                        .then(function (res) {
+                            // Process html...
+                            // console.log(res);
+                            msgid = res[0]['msgid'];
+                        })
+                        .catch(function (err) {
+                            // Crawling failed...
+                            console.log(err);
+                        });
                     res.json({
                         "status": 200,
                         "message": "Merchant login successfully",
@@ -106,20 +106,24 @@ function sendToken(item, res) {
 exports.fetchAllStores = function (req, res) {
     let sql = `CALL GET_ALL_STORES_INFO(?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [+req.body.page_number, +req.body.page_size, req.body.filterBy],
-            function (err, stores) {
-                if (err) {
-                    console.log("error: ", err);
-                }
-                else {
-                    res.json({
-                        "message": "stores information",
-                        "store": stores[0],
-                        "store_total_count": stores[1][0]
-                    });
-                }
-                dbConn.release
-            });
+        if (err) {
+            console.error(err);
+        } else {
+            dbConn.query(sql, [+req.body.page_number, +req.body.page_size, req.body.filterBy],
+                function (err, stores) {
+                    if (err) {
+                        console.log("error: ", err);
+                    }
+                    else {
+                        res.json({
+                            "message": "stores information",
+                            "store": stores[0],
+                            "store_total_count": stores[1][0]
+                        });
+                    }
+                    dbConn.release();
+                });
+        }
     });
 }
 
@@ -206,7 +210,7 @@ exports.fetchAllStoresBasedOnZipCode = function (req, res) {
 
 exports.fetchAllOngoingOrders = function (req, res) {
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("SELECT o.order_id ,o.order_merchant_status,o.order_deliveryperson_status,o.status,o.total_item_count,o.total_amount AS 'order_amount',o.added_date AS 'order_placing_date',s.store_name  FROM grostep.orders o inner join stores s on o.store_id = s.store_id where o.store_id  = ? and o.order_merchant_status BETWEEN 2 AND 3;",req.params.storeId, function (err, ongoingorders) {
+        dbConn.query("SELECT o.order_id ,o.order_merchant_status,o.order_deliveryperson_status,o.status,o.total_item_count,o.total_amount AS 'order_amount',o.added_date AS 'order_placing_date',s.store_name  FROM grostep.orders o inner join stores s on o.store_id = s.store_id where o.store_id  = ? and o.order_merchant_status BETWEEN 2 AND 3;", req.params.storeId, function (err, ongoingorders) {
             if (err) {
                 res.json({
                     status: 400,
@@ -228,7 +232,7 @@ exports.fetchAllOngoingOrders = function (req, res) {
 
 exports.fetchAllBilledOrders = function (req, res) {
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("SELECT o.order_id ,o.total_item_count,o.total_amount AS 'order_amount',o.added_date AS 'order_placing_date',s.store_name  FROM grostep.orders o inner join stores s on o.store_id = s.store_id where o.store_id  = ? and o.order_merchant_status = 4;",req.params.storeId, function (err, billedOrders) {
+        dbConn.query("SELECT o.order_id ,o.total_item_count,o.total_amount AS 'order_amount',o.added_date AS 'order_placing_date',s.store_name  FROM grostep.orders o inner join stores s on o.store_id = s.store_id where o.store_id  = ? and o.order_merchant_status = 4;", req.params.storeId, function (err, billedOrders) {
             if (err) {
                 res.json({
                     status: 400,
@@ -421,6 +425,28 @@ exports.deleteStoreProduct = function (req, res) {
                 }
                 dbConn.release();
             });
+    });
+}
+
+exports.fetchAllPendingBilledOrders = function (req, res) {
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("SELECT o.order_id ,o.total_item_count,o.total_amount AS 'order_amount',o.added_date AS 'order_placing_date',s.store_name  FROM grostep.orders o inner join stores s on o.store_id = s.store_id where o.store_id  = ? and o.order_merchant_status = 4;", req.params.storeId, function (err, billedOrders) {
+            if (err) {
+                res.json({
+                    status: 400,
+                    "message": "Billed Orders Information not found",
+                    "billedOrders": []
+                });
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "Billed Orders Information",
+                    "billedOrders": billedOrders
+                });
+            }
+            dbConn.release();
+        });
     });
 }
 
