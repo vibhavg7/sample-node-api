@@ -149,6 +149,40 @@ exports.getAddressInfo = function (req, res) {
     });
 }
 
+exports.authenticateservicelocation = function(req, res) {
+    let sql = `CALL CHECK_SERVICE_LOCATION(?,?,?,?)`;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [req.body.zipcode,req.body.city, req.body.state, req.body.country],
+            function (err, servicableareacount) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        "message": "area not servicable",
+                        "status": 400,
+                        "locationresponse": 0
+                    });
+                }
+                else {
+                    if (servicableareacount[0][0]['servicable_area_check'] == 0) {
+                        res.json({
+                            "status": 200,
+                            "message": "area not servicable",
+                            "locationresponse": servicableareacount[0][0]
+                        });
+                    } else {
+                        res.json({
+                            "status": 200,
+                            "message": "area servicable",
+                            "locationresponse": servicableareacount[0][0]
+                        });
+                    }
+                    
+                }
+                dbConn.release();
+            });
+    });
+}
+
 exports.addDelievryAddress = function (req, res) {
 
     let sql = `CALL ADD_NEW_DELIVERY_ADDRESS(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
@@ -295,7 +329,7 @@ exports.getCustomer = function (req, res) {
 
 exports.getCustomerAddresses = function (req, res) {
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("select cda.customer_name,cda.delivery_address_id,cda.address,cda.address2,cda.pincode,cda.landmark,cda.phone,cdt.type,cda.flatNumber,cda.status from customer_delivery_address cda INNER JOIN grostep.customer_address_type cdt on cda.address_type = cdt.address_type_id where cda.customer_id = ?",
+        dbConn.query("select cda.customer_name,cda.delivery_address_id,cda.address,cda.address2,cda.pincode,cda.landmark,cda.phone,cdt.type,cda.flatNumber,cda.status,cdt.address_type_id from customer_delivery_address cda INNER JOIN grostep.customer_address_type cdt on cda.address_type = cdt.address_type_id where cda.customer_id = ?",
             [req.params.customerId], function (err, addressInfo) {
                 if (err) {
                     console.log("error: ", err);

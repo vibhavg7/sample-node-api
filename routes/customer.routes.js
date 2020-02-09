@@ -21,6 +21,9 @@ router.route('/customeraddress')
 router.route('/customeraddress/selectaddress/:addressId')
     .put(customerController.updateSelectedAddress);
 
+router.route('/authenticateservicelocation')
+    .post(customerController.authenticateservicelocation);
+
 
 router.route('/customeraddress/:addressId')
     .get(customerController.getAddressInfo)
@@ -38,7 +41,7 @@ router.route('/customerinfo/:customerId')
     .put(customerController.updateCustomer)
     .delete(customerController.deleteCustomer);
 
-router.route('/updateOrder/:orderId')    
+router.route('/updateOrder/:orderId')
     .put(customerController.updateOrderStatusByCustomer);
 
 module.exports = router;
