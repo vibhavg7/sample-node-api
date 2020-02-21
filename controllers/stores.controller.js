@@ -708,3 +708,55 @@ exports.fetchStoreSubCategoriesInfoById = function (req, res) {
     });
 }
 
+exports.searchStoreAndProductsBasedOnName = function (req, res) {
+    let sql = `CALL SEARCH_STORES_AND_PRODUCTS(?,?,?)`;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [req.body.filterBy, req.body.zipcode, +req.body.categoryId],
+            function (err, stores) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        "status": 400,
+                        "message": "stores information not found",
+                        "store": []
+                    });
+                }
+                else {
+                    let storeProductsData = stores[1];
+                    let map = new Map();
+                    let mainCategoryResult = [];
+                    for (const item of storeProductsData) {
+                        if (!map.has(item.store_id)) {
+                            map.set(item.store_id, true);
+                            mainCategoryResult.push({
+                                "store_name": item.store_name,
+                                "store_id": item.store_id,
+                                "store_image_url": item.store_image_url,
+                                "store_address": item.address,
+                                "closed": item.closed,
+                                "productsData": []
+                            })
+                        }
+                    }
+                    map.clear();
+                    
+                    mainCategoryResult.forEach((data) => {
+                        var newArray = storeProductsData
+                            .filter((item) => {
+                                return (item.store_id === data.store_id);
+                            })
+                        data['productsData'] = (newArray);
+                    });
+    
+
+                    res.json({
+                        "status": 200,
+                        "message": "stores information",
+                        "store": stores[0],
+                        "products": mainCategoryResult
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}

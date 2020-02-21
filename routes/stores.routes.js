@@ -31,6 +31,9 @@ router.route('/storeinfo/categories/:storeId')
 router.route('/storeinfo/zipCode')
     .post(storesController.fetchAllStoresBasedOnZipCode);
 
+router.route('/storeinfo/searchStoreAndProductsBasedOnName')
+    .post(storesController.searchStoreAndProductsBasedOnName);
+
 router.route('/storeinfo/storeproducts')
     .post(storesController.fetchStoreProductsById);
 
