@@ -33,7 +33,7 @@ router.route('/customeraddress/:addressId')
 // router.route('/deleteAddress/:addressId')
 
 router.route('/customeraddressoncart/:customerId')
-    .get(customerController.getCustomerAddresses);
+    .post(customerController.getCustomerAddresses);
 
 
 router.route('/customerinfo/:customerId')
