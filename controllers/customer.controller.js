@@ -78,9 +78,9 @@ exports.registerCustomer = function (req, res) {
 }
 
 exports.updateSelectedAddress = function (req, res) {
-    let sql = `CALL UPDATE_DELIVERY_ADDRESS(?,?)`;
+    let sql = `CALL UPDATE_DELIVERY_ADDRESS(?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [+req.params.addressId, +req.body.customerId],
+        dbConn.query(sql, [+req.params.addressId, +req.body.customerId, req.body.city],
             function (err, address) {
                 if (err) {
                     console.log("error: ", err);
