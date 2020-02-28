@@ -120,6 +120,30 @@ exports.fetchAllDeliveryPersons = function (req, res) {
     });
 }
 
+exports.fetchDeliveryRatesAndFeesCityWise = function (req, res) {
+
+    let sql = `CALL FETCH_DeliveryRatesAndFeesCityWise(?,?)`;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [req.body.city, req.body.state],
+            function (err, deliveryRatesAndFees) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        "message": "no delivery rates and fees information",
+                        "deliveryRatesAndFees": [],
+                    });
+                }
+                else {
+                    res.json({
+                        "message": "delivery rates and fees information",
+                        "deliveryRatesAndFees": deliveryRatesAndFees[0],
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
 exports.addNewDeliveryPerson = function (req, res) {
     let sql = `CALL ADD_NEW_DeliveryPerson(?,?,?,?,?,?)`;
 

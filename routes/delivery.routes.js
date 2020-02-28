@@ -19,6 +19,10 @@ router.route('/validate')
 router.route('/deliveryinfo')
     .post(deliveryController.fetchAllDeliveryPersons);
 
+router.route('/deliveryratesandfees/:customerId')
+    .post(deliveryController.fetchDeliveryRatesAndFeesCityWise);
+
+
 // router.route('/fetchactiveorders')
 //     .get(orderController.fetchDeliveryBoyOrders);
 
