@@ -732,6 +732,7 @@ exports.searchStoreAndProductsBasedOnName = function (req, res) {
                                 "store_name": item.store_name,
                                 "store_id": item.store_id,
                                 "store_image_url": item.store_image_url,
+                                "token": item.token,
                                 "store_address": item.address,
                                 "closed": item.closed,
                                 "productsData": []
