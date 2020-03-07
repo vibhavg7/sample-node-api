@@ -735,6 +735,8 @@ exports.searchStoreAndProductsBasedOnName = function (req, res) {
                                 "token": item.token,
                                 "store_address": item.address,
                                 "closed": item.closed,
+                                "latitude": item.latitude,
+                                "longitude": item.longitude,
                                 "productsData": []
                             })
                         }
