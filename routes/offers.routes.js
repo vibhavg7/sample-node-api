@@ -6,6 +6,9 @@ var offersController = require("../controllers/offers.controller");
 router.route('/customeroffers')
     .get(offersController.fetchAllActiveOffers);
 
+router.route('/searchVoucherByName')
+    .post(offersController.searchActiveCouponByName);
+
 router.route('/addnewcoupon')
     .post(offersController.addNewCoupon);
 

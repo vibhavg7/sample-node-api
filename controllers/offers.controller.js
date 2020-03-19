@@ -8,6 +8,37 @@ var pool = mysql.createPool({
     database: 'grostep'
 });
 
+exports.searchActiveCouponByName = function(req,res) {
+
+    let sql = `CALL SEARCH_VOUCHER_BY_NAME(?,?)`;
+
+    let voucherCode = req.body.voucherCode;
+    let cartAmount = +req.body.cartAmount;
+    console.log(voucherCode);
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [voucherCode, cartAmount],
+            function (err, voucherInfo) {
+                console.log(voucherInfo);
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        "message": "coupon not found",
+                        "status": 400,
+                        "coupon": []
+                    });
+                }
+                else {
+                    res.json({
+                        "status": 200,
+                        "message": "coupon information",
+                        "coupon": voucherInfo[0]
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
 exports.fetchAllActiveOffers = function (req, res) {
     pool.getConnection(function (err, dbConn) {
         dbConn.query("SELECT * FROM vouchers where status = 1", function (err, vouchers) {
