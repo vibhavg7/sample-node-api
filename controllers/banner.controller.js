@@ -8,6 +8,33 @@ var pool = mysql.createPool({
     database: 'grostep'
 });
 
+exports.getAllBannersBasedOnCity = function (req, res) {
+    const newStoreCategory = req.body;
+    let sql = `CALL GET_ALL_BANNERS_CITYWISE(?)`;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [req.body.filterBy],
+            function (err, banners) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        "message": "banners not found",
+                        "status": 400,
+                        "banners": 0
+                    });
+                }
+                else {
+                    res.json({
+                        "message": "banners city wise",
+                        "status": 200,
+                        "banners": banners[0]
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
+
 exports.fetchAllBanners = function (req, res) {
     let sql = `CALL GET_ALL_BANNER_INFO(?,?,?)`;
     pool.getConnection(function (err, dbConn) {

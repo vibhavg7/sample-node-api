@@ -94,9 +94,9 @@ exports.getCategoryInfo = function (req, res) {
     });
 }
 
-exports.getAllStoreCategoriesBasedOnZipCode = function (req, res) {
+exports.getAllStoreCategoriesBasedOnCity = function (req, res) {
     const newStoreCategory = req.body;
-    let sql = `CALL GET_ALL_STORE_CATEGORIES_ZIPCODE(?)`;
+    let sql = `CALL GET_ALL_STORE_CATEGORIES_CITYWISE(?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [req.body.filterBy],
             function (err, storeCategory) {
@@ -105,7 +105,7 @@ exports.getAllStoreCategoriesBasedOnZipCode = function (req, res) {
                     res.json({
                         "message": "store Category not found",
                         "status": 400,
-                        "category_id": 0
+                        "store_categories": []
                     });
                 }
                 else {

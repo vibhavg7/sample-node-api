@@ -9,6 +9,9 @@ router.route('/addnewbanner')
 router.route('/bannerinfo')
     .post(bannerController.fetchAllBanners);
 
+router.route('/bannerinfo/citywise')
+    .post(bannerController.getAllBannersBasedOnCity);
+
 router.route('/bannerinfo/:bannerId')
     .get(bannerController.fetchBannerInfoById)
     .delete(bannerController.deleteBanner)

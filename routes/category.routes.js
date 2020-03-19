@@ -26,8 +26,8 @@ router.route('/storecategories')
 router.route('/addstorecategory')
     .post(categoryController.postStoreCategories);
 
-router.route('/storecategories/zipcode')
-    .post(categoryController.getAllStoreCategoriesBasedOnZipCode);
+router.route('/storecategories/citywise')
+    .post(categoryController.getAllStoreCategoriesBasedOnCity);
 
 router.route('/storecategories/bannerimages')
     .post(categoryController.getBannerImages);
