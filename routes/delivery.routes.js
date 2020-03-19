@@ -4,11 +4,51 @@ var router = express.Router();
 var deliveryController = require("../controllers/delivery.controller");
 var orderController = require("../controllers/order.controller");
 
+router.route('/deliveryareasinfo/banners')
+    .post(deliveryController.fetchAllDeliveryAreaBannersByAreaId);
+
+router.route('/deliveryareasinfo/categories')
+    .post(deliveryController.fetchAllDeliveryAreaCategoriesByAreaId);
+
+router.route('/deliveryareasinfo/banners/:bannerId')
+    .get(deliveryController.fetchAllDeliveryAreaBannersById);
+
+//fetchAllDeliveryAreaCategoriesById
+
+router.route('/deliveryareasinfo/categories/:categoryId')
+    .get(deliveryController.fetchAllDeliveryAreaCategoriesById);
+
+router.route('/deliveryareasinfo/categoryearch/:queryString')
+    .get(deliveryController.searchCategoryByName);
+
+router.route('/deliveryareasinfo/bannersearch/:queryString')
+    .get(deliveryController.searchBannerByName);
+
+router.route('/editDeliveryAreaBanner/edit/:id')
+    .post(deliveryController.editDeliveryAreaBanner);
+
+router.route('/editDeliveryAreaCategory/edit/:id')
+    .post(deliveryController.editDeliveryAreaCategory);
+    
+
+
+router.route('/addDeliveryAreaCategory')
+    .post(deliveryController.addDeliveryAreaCategory);
+
+router.route('/addDeliveryAreaBanner')
+    .post(deliveryController.addDeliveryAreaBanner);
+
 router.route('/addnewdeliveryperson')
     .post(deliveryController.addNewDeliveryPerson);
 
 router.route('/register')
     .post(deliveryController.registerDeliveryPerson);
+
+router.route('/deliveryareasinfo')
+    .post(deliveryController.fetchAllDeliveryAreas);
+
+router.route('/deliveryareasinfo/:areaId')
+    .get(deliveryController.fetchDeliveryAreaInfoById);    
 
 router.route('/logoutDeliveryPerson/:deliveryPersonId')
     .put(deliveryController.updateDeliveryPerson);

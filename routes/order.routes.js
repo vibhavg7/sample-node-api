@@ -3,6 +3,9 @@ var router = express.Router();
 
 var orderController = require("../controllers/order.controller");
 
+router.route('/fetchallOrders')
+    .post(orderController.fetchAllOrders);
+
 router.route('/customerorders')
     .post(orderController.fetchCustomerOrders);
 

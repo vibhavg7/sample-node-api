@@ -566,6 +566,32 @@ exports.fetchOrderDetailsById = function (req, res) {
 
 }
 
+exports.fetchAllOrders = function(req,res) {
+    let sql = `CALL GET_STORE_ORDERS(?,?,?,?,?)`;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy, req.body.order_type],
+            function (err, orders) {
+                if (err) {
+                    res.json({
+                        status: 400,
+                        "message": "Store orders Information not found",
+                        "orders_info": [],
+                        "order_count": []
+                    });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "Store orders Information",
+                        "orders_info": orders[0],
+                        "order_count": orders[1][0]
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
 exports.fetchCustomerOrders = function (req, res) {
     let sql = `CALL GET_CUSTOMER_ORDERS(?,?,?,?)`;
 

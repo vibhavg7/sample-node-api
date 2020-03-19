@@ -144,6 +144,72 @@ exports.fetchDeliveryRatesAndFeesCityWise = function (req, res) {
     });
 }
 
+exports.addDeliveryAreaCategory = function (req, res) {
+    let sql = `CALL ADD_NEW_DeliveryArea_Category(?,?,?,?,?)`;
+
+    let areaId = +req.body.areaId;
+    let categoryId = +req.body.store_category_id;
+    let status = +req.body.status;
+    let category_text = req.body.category_text;
+    let category_ranking = req.body.category_ranking;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [areaId, categoryId, status,
+            category_text,category_ranking],
+            function (err, deliveryAreaCategory) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        "message": "deliveryAreaCategory not added",
+                        "status": 400,
+                        "deliveryAreaCategory_id": 0
+                    });
+                }
+                else {
+                    console.log(JSON.stringify(deliveryAreaCategory));
+                    res.json({
+                        "status": 200,
+                        "message": "deliveryAreaCategory added",
+                        "deliveryAreaCategory_id": deliveryAreaCategory[0][0]['inserted_id']
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
+exports.addDeliveryAreaBanner = function (req, res) {
+    let sql = `CALL ADD_NEW_DeliveryArea_Banner(?,?,?,?)`;
+
+    let areaId = +req.body.areaId;
+    let bannerId = +req.body.banner_id;
+    let status = +req.body.status;
+    let banner_text = req.body.banner_text;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [areaId, bannerId, status,
+            banner_text],
+            function (err, deliveryAreaBanner) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        "message": "deliveryAreaBanner not added",
+                        "status": 400,
+                        "deliveryAreaBanner_id": 0
+                    });
+                }
+                else {
+                    console.log(JSON.stringify(deliveryAreaBanner));
+                    res.json({
+                        "status": 200,
+                        "message": "delivery added",
+                        "deliveryAreaBanner_id": deliveryAreaBanner[0][0]['inserted_id']
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
+
 exports.addNewDeliveryPerson = function (req, res) {
     let sql = `CALL ADD_NEW_DeliveryPerson(?,?,?,?,?,?)`;
 
@@ -220,6 +286,257 @@ exports.fetchDeliveryPersonInfoById = function (req, res) {
                     status: 200,
                     "message": "Delivery Person Information",
                     "deliveryPersonData": deliveryPersonData[0]
+                });
+            }
+            dbConn.release();
+        });
+    });
+}
+
+exports.fetchAllDeliveryAreas = function(req,res) {
+    let sql = `CALL GET_ALL_DELIVERYAREAS(?,?,?)`;
+    pool.getConnection(function (err, dbConn) {
+        if (err) {
+            console.error(err);
+        } else {
+            dbConn.query(sql, [+req.body.page_number, +req.body.page_size, req.body.filterBy],
+                function (err, deliveryareas) {
+                    if (err) {
+                        console.log("error: ", err);
+                    }
+                    else {
+                        res.json({
+                            "message": "delivery areas information",
+                            "deliveryareas": deliveryareas[0],
+                            "deliveryareas_total_count": deliveryareas[1][0]
+                        });
+                    }
+                    dbConn.release();
+                });
+        }
+    });
+}
+
+exports.fetchDeliveryAreaInfoById = function (req, res) {
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("SELECT * FROM serviceable_areas WHERE serviceable_area_id = ? ", req.params.areaId, function (err, deliveryAreaData) {
+            if (err) {
+                res.json({
+                    status: 400,
+                    "message": "delivery Area Information not found",
+                    "deliveryArea": []
+                });
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "delivery Area Information",
+                    "deliveryArea": deliveryAreaData[0]
+                });
+            }
+            dbConn.release();
+        });
+    });
+}
+
+exports.searchCategoryByName = function(req,res) {
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(`select mc.store_category_id,mc.store_category_name,mc.image_url from main_categories mc 
+                        where LOWER(mc.store_category_name) 
+                        LIKE CONCAT('%', ?, '%') and mc.status = 1;`, req.params.queryString.toLowerCase(), function (err, categoryData) {
+            if (err) {
+                res.json({
+                    status: 400,
+                    "message": "delivery Area categoryData not found",
+                    "categoryData": []
+                });
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "delivery categoryData Information",
+                    "categoryData": categoryData
+                });
+            }
+            dbConn.release();
+        });
+    });
+}
+
+exports.searchBannerByName = function(req,res) {
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("select bi.banner_id,bi.banner_name,bi.image_url from banner_info bi where banner_name LIKE CONCAT('%', ?, '%') and bi.status = 1;", req.params.queryString, function (err, bannerData) {
+            if (err) {
+                res.json({
+                    status: 400,
+                    "message": "delivery Area bannerData not found",
+                    "bannerData": []
+                });
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "delivery bannerData Information",
+                    "bannerData": bannerData
+                });
+            }
+            dbConn.release();
+        });
+    });
+}
+
+exports.fetchAllDeliveryAreaCategoriesByAreaId = function (req, res) {
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(`select sac.id,sac.serviceable_area_id,sac.store_category_id,sac.last_updated,sac.category_text,sac.status,
+        sac.category_ranking,
+        mc.store_category_name,mc.image_url,
+        sa.city,sa.state,sa.country,sa.city_alternate_name
+        from servicable_area_categories sac 
+        left join main_categories mc on sac.store_category_id = mc.store_category_id
+        left join grostep.serviceable_areas sa on sac.serviceable_area_id = sa.serviceable_area_id where sac.serviceable_area_id = ?`, req.body.areaId, function (err, categoryData) {
+            if (err) {
+                res.json({
+                    status: 400,
+                    "message": "delivery Area bannerData not found",
+                    "categoryData": []
+                });
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "delivery categoryData Information",
+                    "categoryData": categoryData
+                });
+            }
+            dbConn.release();
+        });
+    });
+}
+
+exports.fetchAllDeliveryAreaBannersByAreaId = function (req, res) {
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("select sab.id,sab.serviceable_area_id,sab.banner_id,sab.last_updated,sab.banner_text,sab.status,sa.city,sa.state,sa.country,sa.city_alternate_name,bi.banner_name,bi.image_url from servicable_area_banners sab left join grostep.serviceable_areas sa on sab.serviceable_area_id = sa.serviceable_area_id left join banner_info bi on sab.banner_id = bi.banner_id where sab.serviceable_area_id = ?", req.body.areaId, function (err, bannerData) {
+            if (err) {
+                res.json({
+                    status: 400,
+                    "message": "delivery Area bannerData not found",
+                    "bannerData": []
+                });
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "delivery bannerData Information",
+                    "bannerData": bannerData
+                });
+            }
+            dbConn.release();
+        });
+    });
+}
+
+exports.editDeliveryAreaCategory = function(req,res) {
+    const categoryInfo = req.body;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("UPDATE grostep.servicable_area_categories SET ? WHERE id = ?",
+            [categoryInfo, +req.params.id], function (err, updatedDeliveryAreaCategory) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "updatedDeliveryAreaCategory not updated",
+                        "updatedDeliveryAreaCategory": []
+                    });
+
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "updatedDeliveryAreaCategory Information updated",
+                        "updatedDeliveryAreaCategory": updatedDeliveryAreaCategory
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
+exports.editDeliveryAreaBanner = function(req,res) {
+    const ProductInfo = req.body;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("UPDATE grostep.servicable_area_banners SET ? WHERE id = ?",
+            [ProductInfo, +req.params.id], function (err, updatedDeliveryAreaBanner) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "DeliveryAreaBanner not updated",
+                        "coupon": []
+                    });
+
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "DeliveryAreaBanner Information updated",
+                        "coupon": updatedDeliveryAreaBanner
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
+exports.fetchAllDeliveryAreaCategoriesById = function(req,res) {
+    console.log('Hi');
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(`select sac.id,sac.serviceable_area_id,sac.store_category_id,sac.last_updated,sac.category_text,sac.status,
+                        sac.category_ranking,
+                        mc.store_category_name,mc.image_url,
+                        sa.city,sa.state,sa.country,sa.city_alternate_name
+                        from servicable_area_categories sac 
+                        left join main_categories mc on sac.store_category_id = mc.store_category_id
+                        left join grostep.serviceable_areas sa on sac.serviceable_area_id = sa.serviceable_area_id where sac.id = ?`,
+                        req.params.categoryId, 
+                      function (err, categoryData) {
+            if (err) {
+                res.json({
+                    status: 400,
+                    "message": "delivery Area categoryData not found",
+                    "categoryData": []
+                });
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "delivery categoryData Information",
+                    "categoryData": categoryData
+                });
+            }
+            dbConn.release();
+        });
+    });
+}
+
+exports.fetchAllDeliveryAreaBannersById = function (req, res) {
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(`select sab.serviceable_area_id,sab.banner_id,sab.last_updated,sab.banner_text,sab.status,
+                      sa.city,sa.state,sa.country,sa.city_alternate_name,bi.banner_name,bi.image_url from servicable_area_banners 
+                      sab left join grostep.serviceable_areas sa on sab.serviceable_area_id = sa.serviceable_area_id 
+                      left join banner_info bi on sab.banner_id = bi.banner_id where sab.id = ?`, req.params.bannerId, 
+                      function (err, bannerData) {
+            if (err) {
+                res.json({
+                    status: 400,
+                    "message": "delivery Area bannerData not found",
+                    "bannerData": []
+                });
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "delivery bannerData Information",
+                    "bannerData": bannerData
                 });
             }
             dbConn.release();
