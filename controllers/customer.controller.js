@@ -2,7 +2,7 @@ var mysql = require('mysql');
 var jwt = require('jsonwebtoken');
 var rp = require('request-promise');
 var admin = require("firebase-admin");
-
+var http = require('http');
 var pool = mysql.createPool({
     connectionLimit: 10,
     host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
@@ -36,46 +36,70 @@ exports.adduserinfo = function (req, res) {
 
 }
 
-exports.registerCustomer = function (req, res) {    
+exports.registerCustomer = function (req, res) {
     let sql = `CALL REGISTER_CUSTOMER(?,?,?)`;
     const otp_number = Math.floor(1000 + Math.random() * 9000);
     let msgid = '';
-    console.log(req.body);
-    console.log(otp_number);
-    pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [req.body.phone, otp_number, req.body.token], function (err, customer) {
-            if (err) {
-                res.json({
-                    "status": 400,
-                    "message": "Customer not created",
-                    "phone": 0,
-                    "customer_id": 0
-                });
-            }
-            else {
-                let msg = `Hello your generated otp is :${otp_number}`;
-                rp(`http://login.aquasms.com/sendSMS?username=vibhav&message=${msg}&sendername=GROSTP&smstype=TRANS&numbers=${req.body.phone}&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa`)
-                    .then(function (res) {
-                        // Process html...
-                        console.log(res);
-                        msgid = res[0]['msgid'];
-                    })
-                    .catch(function (err) {
-                        // Crawling failed...
-                        console.log(err);
+    if(isNumeric(req.body.phone) && (req.body.phone).length === 10) {
+        pool.getConnection(function (err, dbConn) {
+            dbConn.query(sql, [req.body.phone, otp_number, req.body.token], function (err, customer) {
+                if (err) {
+                    res.json({
+                        "status": 400,
+                        "message": "Customer not created",
+                        "phone": 0,
+                        "customer_id": 0,
+                        "msgid" : ''
                     });
-                res.json({
-                    "status": 200,
-                    "message": "Customer created",
-                    "phone": customer[0][0].phone,
-                    "msgid": msgid,
-                    "customer_id": customer[0][0].customer_id
-                });
-            }
-            dbConn.release();
+                }
+                else {
+                    let msg = `Hello your generated otp is :${otp_number}`;
+                    var str = '';
+                    let phone = +req.body.phone;
+                    var options = {
+                        host: 'login.aquasms.com',
+                        port: 80,
+                        path: encodeURI('/sendSMS?username=vibhav&message=' + msg + '&sendername=GROSTP&smstype=TRANS&numbers=' + phone + '&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa'),
+                        method: 'GET'
+                    };
+                    var reqGet = http.request(options, function (res1) {
+                        res1.on('data', function (chunk) {
+                            str += chunk;
+                        });
+                        res1.on('end', function(){
+                            console.log(JSON.parse(str)[1]['msgid']);
+                            // return str;
+                            return res.json({
+                                "status": 200,
+                                "message": "Customer created",
+                                "phone": customer[0][0].phone,
+                                "msgid": JSON.parse(str)[1]['msgid'],
+                                "customer_id": customer[0][0].customer_id
+                            });
+                        });
+                    }).end();
+                    reqGet.on('error', function(e) {
+                        console.error(e);
+                    });
+                }
+                dbConn.release();
+            });
         });
-    });
+    } else {
+        console.log('Bye');
+        return res.json({
+            "status": 400,
+            "message": "Phone number is incorrect",
+            "phone": req.body.phone,
+            "customer_id": 0,
+            "msgid" : ''
+        });
+    }
 }
+
+function isNumeric(num){
+    return !isNaN(num)
+  }
 
 exports.updateSelectedAddress = function (req, res) {
     let sql = `CALL UPDATE_DELIVERY_ADDRESS(?,?,?)`;
@@ -91,7 +115,8 @@ exports.updateSelectedAddress = function (req, res) {
                     });
                 }
                 else {
-                    console.log(JSON.stringify(address));
+                    console.log('Hey');
+                    // console.log(JSON.stringify(address));
                     res.json({
                         status: 200,
                         "message": "address updated",
@@ -149,10 +174,10 @@ exports.getAddressInfo = function (req, res) {
     });
 }
 
-exports.authenticateservicelocation = function(req, res) {
+exports.authenticateservicelocation = function (req, res) {
     let sql = `CALL CHECK_SERVICE_LOCATION(?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [req.body.zipcode,req.body.city, req.body.state, req.body.country],
+        dbConn.query(sql, [req.body.zipcode, req.body.city, req.body.state, req.body.country],
             function (err, servicableareacount) {
                 if (err) {
                     console.log("error: ", err);
@@ -176,7 +201,7 @@ exports.authenticateservicelocation = function(req, res) {
                             "locationresponse": servicableareacount[0][0]
                         });
                     }
-                    
+
                 }
                 dbConn.release();
             });
@@ -244,7 +269,7 @@ exports.validateCustomer = function (req, res) {
             console.log(customerData);
             if (err) {
                 res.json({
-                    "status": 401,
+                    "status": 400,
                     "message": "customer Details not found",
                     "token": "",
                     "customerData": []
@@ -255,7 +280,7 @@ exports.validateCustomer = function (req, res) {
                     sendToken(customerData[0][0], res);
                 } else {
                     res.json({
-                        "status": 204,
+                        "status": 400,
                         "message": "OTP not valid",
                         "token": "",
                         "customerData": []
@@ -329,7 +354,7 @@ exports.getCustomer = function (req, res) {
 
 exports.getCustomerAddresses = function (req, res) {
     let sql = `CALL GET_CUSTOMER_ADDRESSESBYID(?,?)`;
-    pool.getConnection(function (err, dbConn) {        
+    pool.getConnection(function (err, dbConn) {
         dbConn.query(sql,
             [req.params.customerId, req.body.city.toLowerCase()], function (err, addressInfo) {
                 if (err) {
@@ -438,7 +463,7 @@ exports.updateOrderStatusByCustomer = function (req, res) {
                         })
                         .catch(function (error) {
                             // console.log("Error sending message:", error);
-                    });
+                        });
                     res.json({
                         status: 200,
                         "message": "order Information updated",
