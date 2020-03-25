@@ -6,6 +6,7 @@ var orderController = require("../controllers/order.controller");
 router.route('/fetchallOrders')
     .post(orderController.fetchAllOrders);
 
+
 router.route('/customerorders')
     .post(orderController.fetchCustomerOrders);
 
@@ -14,6 +15,9 @@ router.route('/customerliveorders')
 
 router.route('/customerliveorders/:orderId')
     .get(orderController.fetchCustomerLiveOrderDetailById);
+
+router.route('/customerorderInfoById/:orderId')
+    .get(orderController.fetchCustomerOrderDetailById);
 
 router.route('/orderinfo/orderbill/merchantconfirmation')
     .post(orderController.merchantBillconfirmation);
@@ -27,5 +31,10 @@ router.route('/:orderId')
 
 router.route('/orderinfo/orderbill/:orderId')
     .get(orderController.fetchOrderBillInformation);
+
+router.route('/customerpaymentmethodscitywise')
+    .post(orderController.fetchCustomerAllPaymentMethodsCityWise);
+
+
 
 module.exports = router;

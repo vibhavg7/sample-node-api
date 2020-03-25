@@ -12,7 +12,7 @@ var pool = mysql.createPool({
 });
 exports.placeOrder = function (req, res) {
 
-    let sql = `CALL PLACE_CUSTOMER_ORDER(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+    let sql = `CALL PLACE_CUSTOMER_ORDER(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
 
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [
@@ -30,7 +30,8 @@ exports.placeOrder = function (req, res) {
             +req.body.delivernow,
             req.body.deliverydate,
             req.body.deliveryslot,
-            req.body.instructions],
+            req.body.instructions,
+            req.body.payment_status],
             function (err, orderData) {
                 if (err) {
                     console.log(err);
@@ -117,6 +118,31 @@ exports.updateOrderBillImage = function (orderId, imageUrl, req, res) {
                         "status": 200,
                         "message": "bill image detail",
                         "orderImage": updatedOrder[0][0]
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
+exports.fetchCustomerAllPaymentMethodsCityWise = function (req, res) {
+    let sql = `CALL GET_CUSTOMER_PAYMENTMETHODSCITYWISE(?)`;
+
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [req.body.city],
+            function (err, paymentMethodsData) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "payment information method not found",
+                    });
+                }
+                else {
+                    res.json({
+                        "message": "payment information",
+                        "status": 200,
+                        "paymentMethods": paymentMethodsData[0]
                     });
                 }
                 dbConn.release();
@@ -237,7 +263,7 @@ exports.updateOrderStatusByMerchant = function (req, res) {
                 }
                 else {
                     let registrationTokens = [];
-                    if(req.body.order_merchant_status == 2) {
+                    if (req.body.order_merchant_status == 2) {
                         dbConn.query("SELECT token FROM grostep.deliveryperson WHERE available = 1 and status = 1 and token is not null", function (err, deliverypersondata) {
                             if (err) {
                                 res.json({
@@ -247,19 +273,19 @@ exports.updateOrderStatusByMerchant = function (req, res) {
                                 });
                             }
                             else {
-    
+
                                 deliverypersondata.forEach((data) => {
                                     registrationTokens.push(data['token']);
                                 });
                                 registrationTokens.push(orderData[0][0]['customer_token']);
-    
+
                                 var payload = {
                                     notification: {
                                         title: "New order recieved",
                                         body: `Hello , ${orderData[0][0]['store_name']} have accepted the new order # ${orderData[0][0]['order_id']}. Click here to view details.`
                                     }
                                 };
-    
+
                                 var options = {
                                     priority: "high",
                                     timeToLive: 60 * 60 * 24
@@ -270,8 +296,8 @@ exports.updateOrderStatusByMerchant = function (req, res) {
                                     })
                                     .catch(function (error) {
                                         console.log("Error sending message:", error);
-                                });
-    
+                                    });
+
                                 res.json({
                                     status: 200,
                                     "message": "order Information updated",
@@ -279,7 +305,7 @@ exports.updateOrderStatusByMerchant = function (req, res) {
                                 });
                             }
                         });
-                    } else if(req.body.order_merchant_status == 3) {
+                    } else if (req.body.order_merchant_status == 3) {
                         let customer_token = orderData[0][0]['customer_token'];
                         let delivery_person_token = orderData[0][0]['delivery_person_token'];
                         registrationTokens.push(delivery_person_token);
@@ -308,7 +334,7 @@ exports.updateOrderStatusByMerchant = function (req, res) {
                             "order": orderData[0][0]['order_id']
                         });
 
-                    } else if(req.body.order_merchant_status == 4) {
+                    } else if (req.body.order_merchant_status == 4) {
                         let customer_token = orderData[0][0]['customer_token'];
                         let delivery_person_token = orderData[0][0]['delivery_person_token'];
                         registrationTokens.push(delivery_person_token);
@@ -484,11 +510,11 @@ exports.merchantBillconfirmation = function (req, res) {
     });
 }
 
-exports.fetchCustomerLiveOrders = function(req, res) {
+exports.fetchCustomerLiveOrders = function (req, res) {
     let customerId = req.body.customerId;
     console.log(customerId);
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("SELECT o.order_id,o.total_amount,o.delivery_fee,o.discount_amount,o.payable_amount,o.status AS 'order_current_status',ost.type AS 'order_current_status_type',o.status AS 'order_current_status',o.total_item_count,o.deliver_now,o.delivery_date,o.delivery_slot,o.order_deliveryperson_status,s.store_name,pm.payment_method_name FROM grostep.orders o inner join stores s on o.store_id = s.store_id inner join payment_method pm on o.payment_mode = pm.payment_method_id inner join grostep.order_status_types ost on o.status = ost.order_type_id where o.customer_id = ? and o.status BETWEEN 1 AND 10;",customerId, function (err,livecustomerorders) {
+        dbConn.query("SELECT o.order_id,o.total_amount,o.delivery_fee,o.discount_amount,o.payable_amount,o.status AS 'order_current_status',ost.type AS 'order_current_status_type',o.status AS 'order_current_status',o.total_item_count,o.deliver_now,o.delivery_date,o.delivery_slot,o.order_deliveryperson_status,s.store_name,pm.payment_method_name FROM grostep.orders o inner join stores s on o.store_id = s.store_id inner join payment_method pm on o.payment_mode = pm.payment_method_id inner join grostep.order_status_types ost on o.status = ost.order_type_id where o.customer_id = ? and o.status BETWEEN 1 AND 10;", customerId, function (err, livecustomerorders) {
             if (err) {
                 res.json({
                     status: 400,
@@ -508,11 +534,117 @@ exports.fetchCustomerLiveOrders = function(req, res) {
     });
 }
 
-exports.fetchCustomerLiveOrderDetailById = function(req, res) {
+exports.fetchCustomerOrderDetailById = function (req, res) {
+    let sql = `CALL GET_CUSTOMER_ORDER_DETAILBYID(?)`;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [+req.params.orderId],
+            function (err, customerOrderDetail) {
+                let orderData = customerOrderDetail[0];
+                let map = new Map();
+                let mainOrderResult = [];
+                let orderProductsResult = [];
+                for (const item of orderData) {
+                    if (!map.has(item.order_id)) {
+                        map.set(item.order_id, true);
+                        mainOrderResult.push({
+                            "customer_id": item.customer_id,
+                            "order_id": item.order_id,
+                            "customer_name": item.customer_name,
+                            "order_amount": item.order_amount,
+                            "discount_amount": item.discount_amount,
+                            "final_amount": item.final_amount,
+                            "order_placing_date": item.order_placing_date,
+                            "payment_mode": item.payment_mode,
+                            "voucher_code": item.voucher_code,
+                            "voucher_amount": item.voucher_amount,
+                            "registered_phone": item.registered_phone,
+                            "email": item.email,
+                            "delivery_address_id": item.delivery_address_id,
+                            "cust_delivery_address": item.cust_delivery_address,
+                            "cust_location": item.cust_location,
+                            "cust_pincode": item.cust_pincode,
+                            "cust_location": item.cust_location,
+                            "delivery_amount": item.delivery_fee,
+                            "cust_lat": item.cust_lat,
+                            "cust_long": item.cust_long,
+                            "address_type": item.address_type,
+                            "landmark": item.landmark,
+                            "delivery_phone_number": item.delivery_phone_number,
+                            "store_name": item.store_name,
+                            "store_phone_number": item.store_phone_number,
+                            "store_address": item.store_address,
+                            "store_location": item.store_location,
+                            "delivery_phone_number": item.delivery_phone_number,
+                            "delivery_phone_number": item.delivery_phone_number,
+                            "order_status": item.order_status,
+                            "order_status_type": item.order_status_type,
+                            "payment_mode_type": item.payment_mode_type,
+                            "payment_status": item.payment_status,
+                            "products": []
+                        })
+                    }
+                }
+                map.clear();
+                for (const item of orderData) {
+                    orderProductsResult.push({
+                        "order_id": item.order_id,
+                        "product_id": item.product_id,
+                        "store_product_mapping_id": item.store_product_mapping_id,
+                        "product_image_url": item.product_image_url,
+                        "store_cost_price": item.store_cost_price,
+                        "store_selling_price": item.store_selling_price,
+                        // "store_selling_price": item.store_selling_price,
+                        "store_discount": item.store_discount,
+                        "product_marked_price": item.product_marked_price,
+                        "product_name": item.product_name,
+                        // "product_marked_price": item.product_marked_price,
+                        "quantity_buyed": item.quantity_buyed,
+                        "weight": item.quantity,
+                        "weight_text": item.weight_text,
+                    });
+                }
+
+                mainOrderResult.forEach((data) => {
+                    var newArray = orderProductsResult
+                        .filter((item) => {
+                            return (item.order_id === data.order_id);
+                        })
+                    data['products'] = (newArray);
+                });
+
+                // console.log(mainOrderResult);
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "Customer orders Information not found",
+                        "customer_orders_info": []
+                    });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "Customer orders Information",
+                        "customer_orders_info": mainOrderResult,
+                    });
+                }
+                dbConn.release();
+            })
+    });
+}
+
+exports.fetchCustomerLiveOrderDetailById = function (req, res) {
     let orderId = req.params.orderId;
     console.log(orderId);
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("SELECT o.order_id,o.status AS 'order_current_status',dp.delivery_person_name,dp.phone,dp.rating,o.bill_image_url FROM grostep.orders o left join deliveryperson dp on o.delivery_person_id = dp.delivery_person_id where o.order_id = ?;",orderId, function (err,livecustomerorderdetail) {
+        dbConn.query(`SELECT o.order_id,o.status AS 'order_current_status',dp.delivery_person_name,dp.phone,dp.rating,
+                      s.latitude AS 'store_lat',s.longitude AS 'store_long',
+                      cda.latitude AS 'customer_lat', cda.longitude AS 'customer_long',
+                      o.bill_image_url FROM grostep.orders o 
+                      left join deliveryperson dp on o.delivery_person_id = dp.delivery_person_id 
+                      LEFT JOIN stores s on o.store_id = s.store_id
+                      LEFT JOIN customer_delivery_address cda on o.delivery_address_id = cda.delivery_address_id
+                      where o.order_id = ?;`, orderId, function (err, livecustomerorderdetail) {
             if (err) {
                 res.json({
                     status: 400,
@@ -566,7 +698,7 @@ exports.fetchOrderDetailsById = function (req, res) {
 
 }
 
-exports.fetchAllOrders = function(req,res) {
+exports.fetchAllOrders = function (req, res) {
     let sql = `CALL GET_STORE_ORDERS(?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy, req.body.order_type],
@@ -594,82 +726,11 @@ exports.fetchAllOrders = function(req,res) {
 
 exports.fetchCustomerOrders = function (req, res) {
     let sql = `CALL GET_CUSTOMER_ORDERS(?,?,?,?)`;
-
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.body.customerId, +req.body.page_number, +req.body.page_size, req.body.filterBy],
             function (err, customerOrders) {
                 let orderData = customerOrders[0];
-                let map = new Map();
-                let mainOrderResult = [];
-                let orderProductsResult = [];
-                for (const item of orderData) {
-                    if (!map.has(item.order_id)) {
-                        map.set(item.order_id, true);
-                        mainOrderResult.push({
-                            "customer_id": item.customer_id,
-                            "order_id": item.order_id,
-                            "customer_name": item.customer_name,
-                            "order_amount": item.order_amount,
-                            "discount_amount": item.discount_amount,
-                            "final_amount": item.final_amount,
-                            "order_placing_date": item.order_placing_date,
-                            "payment_mode": item.payment_mode,
-                            "voucher_code": item.voucher_code,
-                            "voucher_amount": item.voucher_amount,
-                            "registered_phone": item.registered_phone,
-                            "email": item.email,
-                            "delivery_address_id": item.delivery_address_id,
-                            "cust_delivery_address": item.cust_delivery_address,
-                            "cust_location": item.cust_location,
-                            "cust_pincode": item.cust_pincode,
-                            "cust_location": item.cust_location,
-                            "delivery_amount": item.delivery_fee,
-                            "cust_lat": item.cust_lat,
-                            "cust_long": item.cust_long,
-                            "address_type": item.address_type,
-                            "landmark": item.landmark,
-                            "delivery_phone_number": item.delivery_phone_number,
-                            "store_name": item.store_name,
-                            "store_phone_number": item.store_phone_number,
-                            "store_address": item.store_address,
-                            "store_location": item.store_location,
-                            "delivery_phone_number": item.delivery_phone_number,
-                            "delivery_phone_number": item.delivery_phone_number,
-                            "order_status": item.order_status,
-                            "payment_mode_type": item.payment_mode_type,
-                            "products": []
-                        })
-                    }
-                }
-                map.clear();
-                for (const item of orderData) {
-                    orderProductsResult.push({
-                        "order_id": item.order_id,
-                        "product_id": item.product_id,
-                        "store_product_mapping_id": item.store_product_mapping_id,
-                        "product_image_url": item.product_image_url,
-                        "store_cost_price": item.store_cost_price,
-                        "store_selling_price": item.store_selling_price,
-                        // "store_selling_price": item.store_selling_price,
-                        "store_discount": item.store_discount,
-                        "product_marked_price": item.product_marked_price,
-                        "product_name": item.product_name,
-                        // "product_marked_price": item.product_marked_price,
-                        "quantity_buyed": item.quantity_buyed,
-                        "weight": item.quantity,
-                        "weight_text": item.weight_text,
-                    });
-                }
 
-                mainOrderResult.forEach((data) => {
-                    var newArray = orderProductsResult
-                        .filter((item) => {
-                            return (item.order_id === data.order_id);
-                        })
-                    data['products'] = (newArray);
-                });
-
-                // console.log(mainOrderResult);
                 if (err) {
                     console.log("error: ", err);
                     res.json({
@@ -683,7 +744,7 @@ exports.fetchCustomerOrders = function (req, res) {
                     res.json({
                         status: 200,
                         "message": "Customer orders Information",
-                        "customer_orders_info": mainOrderResult,
+                        "customer_orders_info": orderData,
                         "customer_order_count": customerOrders[1]
                     });
                 }
