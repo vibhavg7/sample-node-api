@@ -9,6 +9,9 @@ router.route('/register')
 router.route('/validate')
     .post(customerController.validateCustomer);
 
+router.route('/addCustomerFeedback')
+    .post(customerController.addCustomerFeedback);
+
 router.route('/customerinfo')
     .post(customerController.fetchAllCustomers);
 
