@@ -25,6 +25,9 @@ router.route('/orderinfo/orderbill/merchantconfirmation')
 router.route('/placeorder')
     .post(orderController.placeOrder);
 
+router.route('/cancelOrderByCustomer/:orderId')
+    .put(orderController.cancelOrderByCustomer);
+
 router.route('/:orderId')
     .get(orderController.fetchOrderDetailsById)
     .put(orderController.updateOrder);

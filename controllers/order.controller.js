@@ -98,6 +98,42 @@ exports.placeOrder = function (req, res) {
 
 }
 
+exports.cancelOrderByCustomer = function(req,res) {
+    let sql = `CALL CANCEL_ORDER_BY_CUSTOMER(?,?)`;
+    let orderId = +req.params.orderId;
+    let orderStatus = +req.body.status;
+    if(orderStatus >=5) {
+        res.json({
+            "status": 401,
+            "message": "order not cancelled",
+            "order": []
+        });
+    } else {
+        pool.getConnection(function (err, dbConn) {
+            dbConn.query(sql, [orderId, orderStatus],
+                function (err, updatedOrder) {
+                    if (err) {
+                        console.log("error: ", err);
+                        res.json({
+                            "status": 400,
+                            "message": "order not cancelled",
+                            "order": []
+                        })
+                    }
+                    else {
+                        res.json({
+                            "status": 200,
+                            "message": "order cancelled",
+                            "order": updatedOrder[0]
+                        });
+                    }
+                    dbConn.release();
+                });
+        });
+    }
+
+}
+
 
 exports.updateOrderBillImage = function (orderId, imageUrl, req, res) {
     let sql = `CALL UPDATE_ORDER_IMAGES(?,?)`;
