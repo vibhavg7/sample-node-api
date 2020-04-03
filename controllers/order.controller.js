@@ -594,6 +594,7 @@ exports.fetchCustomerOrderDetailById = function (req, res) {
                             "order_id": item.order_id,
                             "customer_name": item.customer_name,
                             "order_amount": item.order_amount,
+                            "bill_image_url": item.bill_image_url,
                             "discount_amount": item.discount_amount,
                             "final_amount": item.final_amount,
                             "order_placing_date": item.order_placing_date,
