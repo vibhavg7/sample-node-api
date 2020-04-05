@@ -40,63 +40,52 @@ exports.resendOTP = function (req, res) {
     let sql = `CALL RESEND_OTP(?,?)`;
     const otp_number = Math.floor(1000 + Math.random() * 9000);
     let msgid = '';
-    if (isNumeric(req.body.phone) && (req.body.phone).length === 10) {
-        pool.getConnection(function (err, dbConn) {
-            dbConn.query(sql, [+req.params.customerId, otp_number],
-                function (err, customer) {
-                    if (err) {
-                        console.log("error: ", err);
-                        res.json({
-                            "status": 400,
-                            "message": "Customer not created",
-                            "phone": 0,
-                            "customer_id": 0,
-                            "msgid": ''
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [+req.params.customerId, otp_number],
+            function (err, customer) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        "status": 400,
+                        "message": "Customer not created",
+                        "phone": 0,
+                        "customer_id": 0,
+                        "msgid": ''
+                    });
+                }
+                else {
+                    let msg = `Hello your generated otp is :${otp_number}`;
+                    var str = '';
+                    let phone = customer[0][0].phone;
+                    var options = {
+                        host: 'login.aquasms.com',
+                        port: 80,
+                        path: encodeURI('/sendSMS?username=vibhav&message=' + msg + '&sendername=GROSTP&smstype=TRANS&numbers=' + phone + '&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa'),
+                        method: 'GET'
+                    };
+                    var reqGet = http.request(options, function (res1) {
+                        res1.on('data', function (chunk) {
+                            str += chunk;
                         });
-                    }
-                    else {
-                        let msg = `Hello your generated otp is :${otp_number}`;
-                        var str = '';
-                        let phone = customer[0][0].phone;
-                        var options = {
-                            host: 'login.aquasms.com',
-                            port: 80,
-                            path: encodeURI('/sendSMS?username=vibhav&message=' + msg + '&sendername=GROSTP&smstype=TRANS&numbers=' + phone + '&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa'),
-                            method: 'GET'
-                        };
-                        var reqGet = http.request(options, function (res1) {
-                            res1.on('data', function (chunk) {
-                                str += chunk;
+                        res1.on('end', function () {
+                            console.log(JSON.parse(str)[1]['msgid']);
+                            // return str;
+                            return res.json({
+                                "status": 200,
+                                "message": "Customer created",
+                                "phone": customer[0][0].phone,
+                                "msgid": JSON.parse(str)[1]['msgid'],
+                                "customer_id": customer[0][0].customer_id
                             });
-                            res1.on('end', function () {
-                                console.log(JSON.parse(str)[1]['msgid']);
-                                // return str;
-                                return res.json({
-                                    "status": 200,
-                                    "message": "Customer created",
-                                    "phone": customer[0][0].phone,
-                                    "msgid": JSON.parse(str)[1]['msgid'],
-                                    "customer_id": customer[0][0].customer_id
-                                });
-                            });
-                        }).end();
-                        reqGet.on('error', function (e) {
-                            console.error(e);
                         });
-                    }
-                    dbConn.release();
-                });
-        });
-    } else {
-        console.log('Bye');
-        return res.json({
-            "status": 400,
-            "message": "Phone number is incorrect",
-            "phone": req.body.phone,
-            "customer_id": 0,
-            "msgid": ''
-        });
-    }
+                    }).end();
+                    reqGet.on('error', function (e) {
+                        console.error(e);
+                    });
+                }
+                dbConn.release();
+            });
+    });
 }
 
 exports.registerCustomer = function (req, res) {

@@ -7,7 +7,7 @@ router.route('/register')
     .post(customerController.registerCustomer);
 
 router.route('/resendOTP/:customerId')
-    .post(customerController.resendOTP);
+    .get(customerController.resendOTP);
 
 router.route('/validate')
     .post(customerController.validateCustomer);
