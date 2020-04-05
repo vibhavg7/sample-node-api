@@ -6,6 +6,9 @@ var orderController = require("../controllers/order.controller");
 router.route('/register')
     .post(customerController.registerCustomer);
 
+router.route('/resendOTP/:customerId')
+    .post(customerController.resendOTP);
+
 router.route('/validate')
     .post(customerController.validateCustomer);
 

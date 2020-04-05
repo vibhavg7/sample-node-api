@@ -36,11 +36,74 @@ exports.adduserinfo = function (req, res) {
 
 }
 
+exports.resendOTP = function (req, res) {
+    let sql = `CALL RESEND_OTP(?,?)`;
+    const otp_number = Math.floor(1000 + Math.random() * 9000);
+    let msgid = '';
+    if (isNumeric(req.body.phone) && (req.body.phone).length === 10) {
+        pool.getConnection(function (err, dbConn) {
+            dbConn.query(sql, [+req.params.customerId, otp_number],
+                function (err, customer) {
+                    if (err) {
+                        console.log("error: ", err);
+                        res.json({
+                            "status": 400,
+                            "message": "Customer not created",
+                            "phone": 0,
+                            "customer_id": 0,
+                            "msgid": ''
+                        });
+                    }
+                    else {
+                        let msg = `Hello your generated otp is :${otp_number}`;
+                        var str = '';
+                        let phone = customer[0][0].phone;
+                        var options = {
+                            host: 'login.aquasms.com',
+                            port: 80,
+                            path: encodeURI('/sendSMS?username=vibhav&message=' + msg + '&sendername=GROSTP&smstype=TRANS&numbers=' + phone + '&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa'),
+                            method: 'GET'
+                        };
+                        var reqGet = http.request(options, function (res1) {
+                            res1.on('data', function (chunk) {
+                                str += chunk;
+                            });
+                            res1.on('end', function () {
+                                console.log(JSON.parse(str)[1]['msgid']);
+                                // return str;
+                                return res.json({
+                                    "status": 200,
+                                    "message": "Customer created",
+                                    "phone": customer[0][0].phone,
+                                    "msgid": JSON.parse(str)[1]['msgid'],
+                                    "customer_id": customer[0][0].customer_id
+                                });
+                            });
+                        }).end();
+                        reqGet.on('error', function (e) {
+                            console.error(e);
+                        });
+                    }
+                    dbConn.release();
+                });
+        });
+    } else {
+        console.log('Bye');
+        return res.json({
+            "status": 400,
+            "message": "Phone number is incorrect",
+            "phone": req.body.phone,
+            "customer_id": 0,
+            "msgid": ''
+        });
+    }
+}
+
 exports.registerCustomer = function (req, res) {
     let sql = `CALL REGISTER_CUSTOMER(?,?,?)`;
     const otp_number = Math.floor(1000 + Math.random() * 9000);
     let msgid = '';
-    if(isNumeric(req.body.phone) && (req.body.phone).length === 10) {
+    if (isNumeric(req.body.phone) && (req.body.phone).length === 10) {
         pool.getConnection(function (err, dbConn) {
             dbConn.query(sql, [req.body.phone, otp_number, req.body.token], function (err, customer) {
                 if (err) {
@@ -49,7 +112,7 @@ exports.registerCustomer = function (req, res) {
                         "message": "Customer not created",
                         "phone": 0,
                         "customer_id": 0,
-                        "msgid" : ''
+                        "msgid": ''
                     });
                 }
                 else {
@@ -66,7 +129,7 @@ exports.registerCustomer = function (req, res) {
                         res1.on('data', function (chunk) {
                             str += chunk;
                         });
-                        res1.on('end', function(){
+                        res1.on('end', function () {
                             console.log(JSON.parse(str)[1]['msgid']);
                             // return str;
                             return res.json({
@@ -78,7 +141,7 @@ exports.registerCustomer = function (req, res) {
                             });
                         });
                     }).end();
-                    reqGet.on('error', function(e) {
+                    reqGet.on('error', function (e) {
                         console.error(e);
                     });
                 }
@@ -92,14 +155,14 @@ exports.registerCustomer = function (req, res) {
             "message": "Phone number is incorrect",
             "phone": req.body.phone,
             "customer_id": 0,
-            "msgid" : ''
+            "msgid": ''
         });
     }
 }
 
-function isNumeric(num){
+function isNumeric(num) {
     return !isNaN(num)
-  }
+}
 
 exports.updateSelectedAddress = function (req, res) {
     let sql = `CALL UPDATE_DELIVERY_ADDRESS(?,?,?)`;
@@ -208,7 +271,7 @@ exports.authenticateservicelocation = function (req, res) {
     });
 }
 
-exports.addCustomerFeedback = function(req,res) {
+exports.addCustomerFeedback = function (req, res) {
     let sql = `CALL ADD_CUSTOMER_FEEDBACK(?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [req.body.customer_id, req.body.name, req.body.email,
