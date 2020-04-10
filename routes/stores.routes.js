@@ -16,6 +16,9 @@ router.route('/validate')
 router.route('/logoutStore/:storeId')
     .put(storesController.updateStore);
 
+router.route('/storestatus/:storeId')
+    .get(storesController.storeClosingStatus);
+
 router.route('/addstoreproducts')
     .post(storesController.addStoreProducts);
 

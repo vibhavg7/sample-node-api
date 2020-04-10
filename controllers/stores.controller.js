@@ -355,6 +355,28 @@ exports.fetchStoreProductsById = function (req, res) {
     });
 }
 
+exports.storeClosingStatus = function(req,res) {
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("SELECT store_id,closed from grostep.stores where store_id  = ?;", req.params.storeId, function (err, storeInfo) {
+            if (err) {
+                res.json({
+                    status: 400,
+                    "message": "store Information not found",
+                    "ongoingorders": []
+                });
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "store Information",
+                    "storeInfo": storeInfo
+                });
+            }
+            dbConn.release();
+        });
+    });   
+}
+
 
 exports.fetchStoreProductsCategoryWise = function (req, res) {
     let sql = `CALL GET_STORE_PRODUCTS_CATEGORYWISE(?,?)`;

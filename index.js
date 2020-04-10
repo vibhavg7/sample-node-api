@@ -15,6 +15,7 @@ var categoryRoutes = require("./routes/category.routes");
 var storesRoutes = require("./routes/stores.routes");
 var customerRoutes = require("./routes/customer.routes");
 var orderRoutes = require("./routes/order.routes");
+var cartRoutes = require("./routes/cart.routes");
 var bannerRoutes = require("./routes/banner.routes");
 var offerRoutes = require("./routes/offers.routes");
 var deliveryRoutes = require("./routes/delivery.routes");
@@ -48,7 +49,7 @@ app.use('/imageuploadapi', imageuploadRoutes);
 app.use('/employeeapi', employeeRoutes);
 app.use('/bannerapi', bannerRoutes);
 app.use('/deliveryapi', deliveryRoutes);
-
+app.use('/cart', cartRoutes);
 
 // // default route
 // app.get('/', function (req, res) {
