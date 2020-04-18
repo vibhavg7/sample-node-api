@@ -1,6 +1,8 @@
 var mysql = require('mysql');
 var jwt = require('jsonwebtoken');
 var rp = require('request-promise');
+var http = require('http');
+var admin = require("firebase-admin");
 var pool = mysql.createPool({
     connectionLimit: 10,
     host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
@@ -783,6 +785,59 @@ exports.searchStoreAndProductsBasedOnName = function (req, res) {
                         "message": "stores information",
                         "store": stores[0],
                         "products": mainCategoryResult
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
+
+exports.resendOTP = function (req, res) {
+    let sql = `CALL RESEND_STORE_OTP(?,?)`;
+    const otp_number = Math.floor(1000 + Math.random() * 9000);
+    let msgid = '';
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [+req.params.storeId, otp_number],
+            function (err, storeInfo) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        "status": 400,
+                        "message": "store not created",
+                        "phone": 0,
+                        "store_id": 0,
+                        "msgid": ''
+                    });
+                }
+                else {
+                    let msg = `Hello your generated otp is :${otp_number}`;
+                    var str = '';
+                    let phone = storeInfo[0][0].phone_number;
+                    var options = {
+                        host: 'login.aquasms.com',
+                        port: 80,
+                        path: encodeURI('/sendSMS?username=vibhav&message=' + msg + '&sendername=GROSTP&smstype=TRANS&numbers=' + phone + '&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa'),
+                        method: 'GET'
+                    };
+                    var reqGet = http.request(options, function (res1) {
+                        res1.on('data', function (chunk) {
+                            str += chunk;
+                        });
+                        res1.on('end', function () {
+                            console.log(JSON.parse(str)[1]['msgid']);
+                            // return str;
+                            return res.json({
+                                "status": 200,
+                                "message": "Customer created",
+                                "phone": storeInfo[0][0].phone_number,
+                                "msgid": JSON.parse(str)[1]['msgid'],
+                                "store_id": storeInfo[0][0].store_id
+                            });
+                        });
+                    }).end();
+                    reqGet.on('error', function (e) {
+                        console.error(e);
                     });
                 }
                 dbConn.release();

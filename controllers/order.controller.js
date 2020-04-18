@@ -285,10 +285,11 @@ exports.updateOrder = function (req, res) {
 
 exports.updateOrderStatusByMerchant = function (req, res) {
 
-    let sql = `CALL UPDATE_ORDERSTATUS_BY_STORE(?,?,?,?)`;
+    let sql = `CALL UPDATE_ORDERSTATUS_BY_STORE(?,?,?,?,?,?)`;
 
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [+req.body.storeId, +req.params.orderId, req.body.status, req.body.order_merchant_status],
+        dbConn.query(sql, [+req.body.storeId, +req.params.orderId, +req.body.status,
+                            +req.body.order_merchant_status,req.body.bill_number,req.body.bill_amount],
             function (err, orderData) {
                 if (err) {
                     console.log("error: ", err);
@@ -300,7 +301,7 @@ exports.updateOrderStatusByMerchant = function (req, res) {
                 else {
                     let registrationTokens = [];
                     if (req.body.order_merchant_status == 2) {
-                        dbConn.query("SELECT token FROM grostep.deliveryperson WHERE available = 1 and status = 1 and token is not null", function (err, deliverypersondata) {
+                        dbConn.query("SELECT token FROM grostep.deliveryperson WHERE status = 1 and available = 1 and token is not null", function (err, deliverypersondata) {
                             if (err) {
                                 res.json({
                                     status: 400,
@@ -317,7 +318,7 @@ exports.updateOrderStatusByMerchant = function (req, res) {
 
                                 var payload = {
                                     notification: {
-                                        title: "New order recieved",
+                                        title: "Order Accepted",
                                         body: `Hello , ${orderData[0][0]['store_name']} have accepted the new order # ${orderData[0][0]['order_id']}. Click here to view details.`
                                     }
                                 };
@@ -438,6 +439,7 @@ exports.fetchDeliveryPersonOrderCountById = function (req, res) {
 
 
 exports.fetchMerchantOrderCountById = function (req, res) {
+    console.log('Hi');
     let sql = `CALL GET_MERCHANT_ORDERS_COUNT(?)`;
 
     pool.getConnection(function (err, dbConn) {
@@ -451,6 +453,7 @@ exports.fetchMerchantOrderCountById = function (req, res) {
                     });
                 }
                 else {
+                    console.log(orderData[0]);
                     res.json({
                         "message": "orders counts information",
                         "status": 200,
