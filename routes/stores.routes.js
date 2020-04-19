@@ -10,8 +10,8 @@ router.route('/addnewstore')
 router.route('/resendOTP/:storeId')
     .get(storesController.resendOTP);
 
-router.route('/register')
-    .post(storesController.registerMerchant);
+router.route('/login')
+    .post(storesController.loginMerchant);
 
 router.route('/validate')
     .post(storesController.validateMerchant);

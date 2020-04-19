@@ -12,7 +12,7 @@ var pool = mysql.createPool({
 });
 
 
-exports.registerMerchant = function (req, res) {
+exports.loginMerchant = function (req, res) {
     let sql = `CALL REGISTER_MERCHANT(?,?,?)`;
     const otp_number = Math.floor(1000 + Math.random() * 9000);
     let msgid = '';
