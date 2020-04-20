@@ -211,20 +211,23 @@ exports.fetchAllStoresBasedOnZipCode = function (req, res) {
 }
 
 exports.fetchAllOngoingOrders = function (req, res) {
+    let sql = `CALL GET_STORE_PENDINGORDERS(?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("SELECT o.order_id ,o.order_merchant_status,o.order_deliveryperson_status,o.status,o.total_item_count,o.total_amount AS 'order_amount',o.added_date AS 'order_placing_date',s.store_name  FROM grostep.orders o inner join stores s on o.store_id = s.store_id where o.store_id  = ? and o.order_merchant_status BETWEEN 2 AND 3;", req.params.storeId, function (err, ongoingorders) {
+        dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy],function (err, ongoingorders) {
             if (err) {
                 res.json({
                     status: 400,
                     "message": "ongoing orders Information not found",
-                    "ongoingorders": []
+                    "ongoing_orders_info": [],
+                    "ongoing_order_count": []
                 });
             }
             else {
                 res.json({
                     status: 200,
                     "message": "ongoing orders Information",
-                    "ongoingorders": ongoingorders
+                    "ongoing_orders_info": ongoingorders[0],
+                    "ongoing_order_count": ongoingorders[1]
                 });
             }
             dbConn.release();
@@ -509,8 +512,8 @@ exports.fetchStoreOrdersById = function (req, res) {
                     res.json({
                         status: 400,
                         "message": "Store orders Information not found",
-                        "store_orders_info": storeOrders[0],
-                        "store_order_count": storeOrders[1]
+                        "store_orders_info": [],
+                        "store_order_count": []
                     });
                 }
                 else {
