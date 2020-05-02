@@ -56,13 +56,19 @@ router.route('/storeinfo/storeproducts/edit/:productId')
 router.route('/storeinfo/storeorders')
     .post(storesController.fetchStoreOrdersById);
 
+router.route('/storeinfo/storepastorders')
+    .post(storesController.fetchStorePastOrdersById);
+
+router.route('/storeinfo/storenewpickedorders')
+    .post(storesController.fetchStoreNewPickedOrdersById);
+
 router.route('/storeinfo/storeproducts/updatestock/:id')
     .patch(storesController.updateProductStock);
 
 router.route('/storeinfo/storeorderproducts/:orderId')
     .get(storesController.fetchStoreOrderProductsById);
 
-router.route('/merchantorderscount/:storeId')
+router.route('/merchantorderscount/:storeId/:offset')
     .get(orderController.fetchMerchantOrderCountById);
 
 router.route('/fetchAllRunningOrders')

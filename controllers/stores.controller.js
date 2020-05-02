@@ -502,11 +502,51 @@ exports.fetchStoreOrderProductsById = function (req, res) {
     });
 }
 
+exports.fetchStorePastOrdersById = function(req,res) {
+    let offStr = "";
+    let offHrStr = parseInt(req.body.offset/60) > 0 ? -parseInt(req.body.offset/60) : Math.abs(parseInt(req.body.offset/60));
+    let offMinStr = Math.abs(req.body.offset%60);
+    offStr = offHrStr+":"+offMinStr;
+    console.log(offStr.toString());
+    let sql = `CALL GET_STORE_PAST_ORDERS(?,?,?,?,?,?)`;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy,
+                           req.body.order_type, offStr.toString()],
+            function (err, storeOrders) {
+                console.log(sql);
+                console.log(storeOrders[1]);
+                if (err) {
+                    res.json({
+                        status: 400,
+                        "message": "Store orders Information not found",
+                        "store_orders_info": [],
+                        "store_order_count": []
+                    });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "Store orders Information",
+                        "store_orders_info": storeOrders[0],
+                        "store_order_count": storeOrders[1]
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
 exports.fetchStoreOrdersById = function (req, res) {
     // console.log(req.body);
+    // let offStr = "";
+    // let offHrStr = parseInt(req.body.offset/60) > 0 ? -parseInt(req.body.offset/60) : Math.abs(parseInt(req.body.offset/60));
+    // let offMinStr = Math.abs(req.body.offset%60);
+    // offStr = offHrStr+":"+offMinStr;
+    // console.log(offStr.toString());
     let sql = `CALL GET_STORE_ORDERS(?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy, req.body.order_type],
+        dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy,
+                           req.body.order_type],
             function (err, storeOrders) {
                 if (err) {
                     res.json({
@@ -517,6 +557,39 @@ exports.fetchStoreOrdersById = function (req, res) {
                     });
                 }
                 else {
+                    res.json({
+                        status: 200,
+                        "message": "Store orders Information",
+                        "store_orders_info": storeOrders[0],
+                        "store_order_count": storeOrders[1]
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+exports.fetchStoreNewPickedOrdersById = function (req, res) {
+    // console.log(req.body);
+    let offStr = "";
+    let offHrStr = parseInt(req.body.offset/60) > 0 ? -parseInt(req.body.offset/60) : Math.abs(parseInt(req.body.offset/60));
+    let offMinStr = Math.abs(req.body.offset%60);
+    offStr = offHrStr+":"+offMinStr;
+    console.log(offStr.toString());
+    let sql = `CALL GET_STORE_NEW_PICKED_ORDERS(?,?,?,?,?,?)`;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy,
+                           req.body.order_type, offStr.toString()],
+            function (err, storeOrders) {
+                if (err) {
+                    res.json({
+                        status: 400,
+                        "message": "Store orders Information not found",
+                        "store_orders_info": [],
+                        "store_order_count": []
+                    });
+                }
+                else {
+                    console.log(storeOrders[0][0]['order_placing_date']);
                     res.json({
                         status: 200,
                         "message": "Store orders Information",

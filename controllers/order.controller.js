@@ -440,10 +440,15 @@ exports.fetchDeliveryPersonOrderCountById = function (req, res) {
 
 exports.fetchMerchantOrderCountById = function (req, res) {
     console.log('Hi');
-    let sql = `CALL GET_MERCHANT_ORDERS_COUNT(?)`;
+    let offStr = "";
+    let offHrStr = parseInt(req.params.offset/60) > 0 ? -parseInt(req.params.offset/60) : Math.abs(parseInt(req.params.offset/60));
+    let offMinStr = Math.abs(req.params.offset%60);
+    offStr = offHrStr+":"+offMinStr;
+    console.log(offStr.toString());
+    let sql = `CALL GET_MERCHANT_ORDERS_COUNT(?,?)`;
 
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [+req.params.storeId],
+        dbConn.query(sql, [+req.params.storeId, offStr.toString()],
             function (err, orderData) {
                 if (err) {
                     console.log("error: ", err);
