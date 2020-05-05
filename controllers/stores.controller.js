@@ -507,20 +507,21 @@ exports.fetchStorePastOrdersById = function(req,res) {
     let offHrStr = parseInt(req.body.offset/60) > 0 ? -parseInt(req.body.offset/60) : Math.abs(parseInt(req.body.offset/60));
     let offMinStr = Math.abs(req.body.offset%60);
     offStr = offHrStr+":"+offMinStr;
-    console.log(offStr.toString());
+    // console.log(offStr.toString());
     let sql = `CALL GET_STORE_PAST_ORDERS(?,?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy,
                            req.body.order_type, offStr.toString()],
             function (err, storeOrders) {
-                console.log(sql);
-                console.log(storeOrders[1]);
+                // console.log(sql);
+                // console.log(storeOrders[1]);
                 if (err) {
                     res.json({
                         status: 400,
                         "message": "Store orders Information not found",
                         "store_orders_info": [],
-                        "store_order_count": []
+                        "store_order_count": [],
+                        "orders_billing_amount": []
                     });
                 }
                 else {
@@ -528,7 +529,8 @@ exports.fetchStorePastOrdersById = function(req,res) {
                         status: 200,
                         "message": "Store orders Information",
                         "store_orders_info": storeOrders[0],
-                        "store_order_count": storeOrders[1]
+                        "store_order_count": storeOrders[1],
+                        "orders_billing_amount": storeOrders[2]
                     });
                 }
                 dbConn.release();
