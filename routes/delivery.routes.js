@@ -29,7 +29,7 @@ router.route('/editDeliveryAreaBanner/edit/:id')
 
 router.route('/editDeliveryAreaCategory/edit/:id')
     .post(deliveryController.editDeliveryAreaCategory);
-    
+
 
 
 router.route('/addDeliveryAreaCategory')
@@ -41,6 +41,9 @@ router.route('/addDeliveryAreaBanner')
 router.route('/addnewdeliveryperson')
     .post(deliveryController.addNewDeliveryPerson);
 
+router.route('/resendOTP/:deliveryPersonId')
+    .get(deliveryController.resendOTP);
+
 router.route('/register')
     .post(deliveryController.registerDeliveryPerson);
 
@@ -48,7 +51,7 @@ router.route('/deliveryareasinfo')
     .post(deliveryController.fetchAllDeliveryAreas);
 
 router.route('/deliveryareasinfo/:areaId')
-    .get(deliveryController.fetchDeliveryAreaInfoById);    
+    .get(deliveryController.fetchDeliveryAreaInfoById);
 
 router.route('/logoutDeliveryPerson/:deliveryPersonId')
     .put(deliveryController.updateDeliveryPerson);
@@ -66,17 +69,17 @@ router.route('/deliveryratesandfees/:customerId')
 // router.route('/fetchactiveorders')
 //     .get(orderController.fetchDeliveryBoyOrders);
 
-router.route('/deliverypersonorderscount/:deliveryPersonId')
-    .get(orderController.fetchDeliveryPersonOrderCountById);
+router.route('/deliverypersonordersinfo/:deliveryPersonId/:offset')
+    .get(orderController.fetchDeliveryPersonOrdersInfoById);
 
 router.route('/fetchAllNewOrders')
-    .get(deliveryController.fetchAllNewOrders);
+    .post(deliveryController.fetchAllNewOrders);
 
 router.route('/fetchRunningStatusByOrderId')
     .post(deliveryController.fetchRunningStatusByOrderId);
 
 router.route('/fetchAllRunningOrders/:deliveryPersonId')
-    .get(deliveryController.fetchAllRunningOrders);
+    .post(deliveryController.fetchAllRunningOrders);
 
 router.route('/fetchAllDeliveredOrders/:deliveryPersonId')
     .get(deliveryController.fetchAllDeliveredOrders);
@@ -84,6 +87,11 @@ router.route('/fetchAllDeliveredOrders/:deliveryPersonId')
 router.route('/deliveryinfo/:deliveryPersonId')
     .get(deliveryController.fetchDeliveryPersonInfoById)
     .put(deliveryController.updateDeliveryPerson);
+
+
+router.route('/login')
+    .post(deliveryController.loginDeliveryPerson);
+
 
 router.route('/updateorder/:orderId')
     .put(deliveryController.updateOrderStatusByDeliveryPerson);

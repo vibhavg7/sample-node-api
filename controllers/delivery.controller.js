@@ -2,7 +2,7 @@ var mysql = require('mysql');
 var jwt = require('jsonwebtoken');
 var rp = require('request-promise');
 var admin = require("firebase-admin");
-
+var http = require('http');
 var pool = mysql.createPool({
     connectionLimit: 10,
     host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
@@ -12,46 +12,57 @@ var pool = mysql.createPool({
 });
 
 exports.fetchAllNewOrders = function (req, res) {
+    let sql = `CALL GET_DELIVERY_NEWORDERS(?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("SELECT o.order_id,o.total_amount,o.delivery_fee,o.discount_amount,o.payable_amount,o.status AS 'order_current_status',o.total_item_count,o.deliver_now,o.delivery_date,o.delivery_slot,o.instructions,o.order_deliveryperson_status,cda.customer_name,cda.phone AS 'customer_phone_number',cda.flatNumber AS 'customer_flatNumber',cda.landmark AS 'customer_landmark',cda.longitude AS 'customer_longitude',cda.latitude AS 'customer_latitude',cda.pincode AS 'customer_pincode',cda.city AS 'customer_city',cda.state AS 'customer_state',cda.country AS 'customer_country',cda.address AS 'customer_address',cda.address2 AS 'customer_address2',s.store_name,s.phone_number AS 'store_phone_number', s.alternative_number AS 'store_alternative_number',s.address AS 'store_address',s.state AS 'store_state',s.city AS 'store_city',s.country AS 'store_country', s.pin_code As 'store_pincode',s.latitude AS 'store_latitude', s.longitude AS 'store_longitude',pm.payment_method_name FROM grostep.orders o inner join stores s on o.store_id = s.store_id inner join payment_method pm on o.payment_mode = pm.payment_method_id inner join grostep.customer_delivery_address cda on o.delivery_address_id = cda.delivery_address_id where o.delivery_person_id = 0 and o.order_deliveryperson_status = 1 and o.order_merchant_status = 2", function (err, orders) {
-            if (err) {
-                res.json({
-                    status: 400,
-                    "message": "orders Information not found",
-                    "neworders": []
-                });
-            }
-            else {
-                res.json({
-                    status: 200,
-                    "message": "new orders Information",
-                    "neworders": orders
-                });
-            }
-            dbConn.release();
-        });
+        dbConn.query(sql, [+req.body.page_number, +req.body.page_size],
+            function (err, newOrders) {
+                if (err) {
+                    res.json({
+                        status: 400,
+                        "message": "orders Information not found",
+                        "new_orders_info": [],
+                        "new_order_count": []
+                    });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "New orders Information",
+                        "new_orders_info": newOrders[0],
+                        "new_order_count": newOrders[1]
+                    });
+                }
+                dbConn.release();
+            });
     });
 }
 
+// fetchAllNewOrdersCount
+
 exports.fetchAllRunningOrders = function (req, res) {
+    console.log(+req.params.deliveryPersonId + '' + +req.body.page_number + '' + +req.body.page_size);
+    let sql = `CALL GET_DELIVERY_ONGOINGORDERS(?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("SELECT o.order_id,o.total_amount,o.delivery_fee,o.discount_amount,o.payable_amount,o.status AS 'order_current_status',o.total_item_count,o.deliver_now,o.delivery_date,o.delivery_slot,o.instructions,o.order_deliveryperson_status,cda.customer_name,cda.phone AS 'customer_phone_number',cda.flatNumber AS 'customer_flatNumber',cda.landmark AS 'customer_landmark',cda.longitude AS 'customer_longitude',cda.latitude AS 'customer_latitude',cda.pincode AS 'customer_pincode',cda.city AS 'customer_city',cda.state AS 'customer_state',cda.country AS 'customer_country',cda.address AS 'customer_address',cda.address2 AS 'customer_address2',s.store_name,s.phone_number AS 'store_phone_number', s.alternative_number AS 'store_alternative_number',s.address AS 'store_address',s.state AS 'store_state',s.city AS 'store_city',s.country AS 'store_country', s.pin_code As 'store_pincode',s.latitude AS 'store_latitude', s.longitude AS 'store_longitude',pm.payment_method_name FROM grostep.orders o inner join stores s on o.store_id = s.store_id inner join payment_method pm on o.payment_mode = pm.payment_method_id inner join grostep.customer_delivery_address cda on o.delivery_address_id = cda.delivery_address_id where o.delivery_person_id  = ? and o.order_deliveryperson_status BETWEEN 2 AND 6 ",req.params.deliveryPersonId, function (err, runningorders) {
-            if (err) {
-                res.json({
-                    status: 400,
-                    "message": "running orders Information not found",
-                    "neworders": []
-                });
-            }
-            else {
-                res.json({
-                    status: 200,
-                    "message": "running orders Information",
-                    "runningorders": runningorders
-                });
-            }
-            dbConn.release();
-        });
+        dbConn.query(sql, [+req.params.deliveryPersonId,+req.body.page_number, +req.body.page_size],
+            function (err, ongoingOrders) {
+                if (err) {
+                    res.json({
+                        status: 400,
+                        "message": "Ongoing orders Information not found",
+                        "ongoing_orders_info": [],
+                        "ongoing_order_count": []
+                    });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "Ongoing orders Information",
+                        "ongoing_orders_info": ongoingOrders[0],
+                        "ongoing_order_count": ongoingOrders[1]
+                    });
+                }
+                dbConn.release();
+            });
     });
 }
 
@@ -712,5 +723,108 @@ function sendToken(item, res) {
         "message": "delivery person Details",
         "token": token,
         "deliveryPersonData": item
+    });
+}
+
+
+exports.loginDeliveryPerson = function (req, res) {
+    let sql = `CALL REGISTER_DELIVERYPERSON(?,?,?)`;
+    const otp_number = Math.floor(1000 + Math.random() * 9000);
+    let msgid = '';
+    // console.log(req.body);
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [req.body.phone, otp_number, req.body.token], function (err, deliveryPersonData) {
+            if (err) {
+                res.json({
+                    "status": 400,
+                    "message": "delivery person not registred",
+                    "phone": 0,
+                    "delivery_person_id": 0
+                });
+            }
+            else {
+                if (deliveryPersonData[0].length > 0) {
+                    let msg = `Hello Sir your generated otp is :${otp_number}`;
+                    rp(`http://login.aquasms.com/sendSMS?username=vibhav&message=${msg}&sendername=GROSTP&smstype=TRANS&numbers=${req.body.phone}&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa`)
+                        .then(function (res) {
+                            // Process html...
+                            // console.log(res);
+                            msgid = res[0]['msgid'];
+                        })
+                        .catch(function (err) {
+                            // Crawling failed...
+                            console.log(err);
+                        });
+                    res.json({
+                        "status": 200,
+                        "message": "Delivery Person login successfully",
+                        "phone": deliveryPersonData[0][0].phone,
+                        "delivery_person_id": deliveryPersonData[0][0].delivery_person_id
+                    });
+                } else {
+                    res.json({
+                        "status": 400,
+                        "message": "Delivery Person not found",
+                        "phone": 0,
+                        "delivery_person_id": 0
+                    });
+                }
+            }
+            dbConn.release();
+        });
+    });
+}
+
+
+exports.resendOTP = function (req, res) {
+    let sql = `CALL RESEND_DELIVERYPERSON_OTP(?,?)`;
+    const otp_number = Math.floor(1000 + Math.random() * 9000);
+    let msgid = '';
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [+req.params.deliveryPersonId, otp_number],
+            function (err, deliveryPersonInfo) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        "status": 400,
+                        "message": "delivery person not created",
+                        "phone": 0,
+                        "delivery_person_id": 0,
+                        "msgid": ''
+                    });
+                }
+                else {
+                    let msg = `Hello Sir your generated otp is :${otp_number}`;
+                    var str = '';
+                    let phone = deliveryPersonInfo[0][0].phone;
+                    var options = {
+                        host: 'login.aquasms.com',
+                        port: 80,
+                        path: encodeURI('/sendSMS?username=vibhav&message=' + msg + '&sendername=GROSTP&smstype=TRANS&numbers=' + phone + '&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa'),
+                        method: 'GET'
+                    };
+                    var reqGet = http.request(options, function (res1) {
+                        res1.on('data', function (chunk) {
+                            str += chunk;
+                        });
+                        res1.on('end', function () {
+                            console.log('hi');
+                            console.log(JSON.parse(str)[1]['msgid']);
+                            // return str;
+                            return res.json({
+                                "status": 200,
+                                "message": "Delivery person created",
+                                "phone": deliveryPersonInfo[0][0].phone,
+                                "msgid": JSON.parse(str)[1]['msgid'],
+                                "delivery_person_id": deliveryPersonInfo[0][0].delivery_person_id
+                            });
+                        });
+                    }).end();
+                    reqGet.on('error', function (e) {
+                        console.error(e);
+                    });
+                }
+                dbConn.release();
+            });
     });
 }

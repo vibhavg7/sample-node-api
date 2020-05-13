@@ -410,11 +410,16 @@ exports.updateOrderStatusByMerchant = function (req, res) {
 
 }
 
-exports.fetchDeliveryPersonOrderCountById = function (req, res) {
-    let sql = `CALL GET_DELIVERYPERSON_ORDERS_COUNT(?)`;
+exports.fetchDeliveryPersonOrdersInfoById = function (req, res) {
+    let offStr = "";
+    let offHrStr = parseInt(req.params.offset/60) > 0 ? -parseInt(req.params.offset/60) : Math.abs(parseInt(req.params.offset/60));
+    let offMinStr = Math.abs(req.params.offset%60);
+    offStr = offHrStr+":"+offMinStr;
+
+    let sql = `CALL GET_DELIVERYPERSON_ORDERS_COUNT(?,?)`;
 
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [+req.params.deliveryPersonId],
+        dbConn.query(sql, [+req.params.deliveryPersonId, offStr.toString()],
             function (err, orderData) {
                 if (err) {
                     console.log("error: ", err);
@@ -424,12 +429,13 @@ exports.fetchDeliveryPersonOrderCountById = function (req, res) {
                     });
                 }
                 else {
-                    // console.log(orderData);
                     res.json({
                         "message": "orders counts information",
                         "status": 200,
-                        "running_order_count": orderData[0],
-                        "delivered_order_count": orderData[1],
+                        "total_delivered_order_count": orderData[0],
+                        "new_order_count": orderData[1],
+                        "running_order_count": orderData[2],
+                        "delivered_order_count": orderData[3],
                     });
                 }
                 dbConn.release();
