@@ -75,6 +75,9 @@ router.route('/deliverypersonordersinfo/:deliveryPersonId/:offset')
 router.route('/fetchAllNewOrders')
     .post(deliveryController.fetchAllNewOrders);
 
+router.route('/fetchpastorders')
+    .post(deliveryController.fetchpastorders);
+
 router.route('/fetchRunningStatusByOrderId')
     .post(deliveryController.fetchRunningStatusByOrderId);
 
