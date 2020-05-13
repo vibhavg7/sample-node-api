@@ -82,7 +82,7 @@ router.route('/fetchAllRunningOrders/:deliveryPersonId')
     .post(deliveryController.fetchAllRunningOrders);
 
 router.route('/fetchAllDeliveredOrders/:deliveryPersonId')
-    .get(deliveryController.fetchAllDeliveredOrders);
+    .post(deliveryController.fetchAllDeliveredOrders);
 
 router.route('/deliveryinfo/:deliveryPersonId')
     .get(deliveryController.fetchDeliveryPersonInfoById)

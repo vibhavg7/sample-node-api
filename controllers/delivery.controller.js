@@ -89,24 +89,32 @@ exports.fetchRunningStatusByOrderId = function (req, res) {
 }
 
 exports.fetchAllDeliveredOrders = function (req, res) {
+    let offStr = "";
+    let offHrStr = parseInt(req.body.offset/60) > 0 ? -parseInt(req.body.offset/60) : Math.abs(parseInt(req.body.offset/60));
+    let offMinStr = Math.abs(req.body.offset%60);
+    offStr = offHrStr+":"+offMinStr;
+    let sql = `CALL GET_DELIVERY_DELIVEREDORDERS(?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("SELECT o.order_id,o.total_amount,o.delivery_fee,o.discount_amount,o.payable_amount,o.status AS 'order_current_status',o.total_item_count,o.deliver_now,o.delivery_date,o.delivery_slot,o.instructions,o.order_deliveryperson_status,cda.customer_name,cda.phone AS 'customer_phone_number',cda.flatNumber AS 'customer_flatNumber',cda.landmark AS 'customer_landmark',cda.longitude AS 'customer_longitude',cda.latitude AS 'customer_latitude',cda.pincode AS 'customer_pincode',cda.city AS 'customer_city',cda.state AS 'customer_state',cda.country AS 'customer_country',cda.address AS 'customer_address',cda.address2 AS 'customer_address2',s.store_name,s.phone_number AS 'store_phone_number', s.alternative_number AS 'store_alternative_number',s.address AS 'store_address',s.state AS 'store_state',s.city AS 'store_city',s.country AS 'store_country', s.pin_code As 'store_pincode',s.latitude AS 'store_latitude', s.longitude AS 'store_longitude',pm.payment_method_name FROM grostep.orders o inner join stores s on o.store_id = s.store_id inner join payment_method pm on o.payment_mode = pm.payment_method_id inner join grostep.customer_delivery_address cda on o.delivery_address_id = cda.delivery_address_id where o.delivery_person_id  = ? and o.order_deliveryperson_status = 7 ",req.params.deliveryPersonId, function (err, deliveredorders) {
-            if (err) {
-                res.json({
-                    status: 400,
-                    "message": "delivered orders Information not found",
-                    "neworders": []
-                });
-            }
-            else {
-                res.json({
-                    status: 200,
-                    "message": "delivered orders Information",
-                    "deliveredorders": deliveredorders
-                });
-            }
-            dbConn.release();
-        });
+        dbConn.query(sql, [+req.params.deliveryPersonId,+req.body.page_number, +req.body.page_size, offStr.toString()],
+            function (err, deliveredOrders) {
+                if (err) {
+                    res.json({
+                        status: 400,
+                        "message": "Delivered orders Information not found",
+                        "delivered_orders_info": [],
+                        "delivered_order_count": []
+                    });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "Delivered orders Information",
+                        "delivered_orders_info": deliveredOrders[0],
+                        "delivered_order_count": deliveredOrders[1]
+                    });
+                }
+                dbConn.release();
+            });
     });
 }
 
