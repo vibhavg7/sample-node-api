@@ -289,13 +289,13 @@ exports.addCustomerFeedback = function (req, res) {
 
 exports.addDelievryAddress = function (req, res) {
 
-    let sql = `CALL ADD_NEW_DELIVERY_ADDRESS(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+    let sql = `CALL ADD_NEW_DELIVERY_ADDRESS(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [req.body.address, req.body.address2, req.body.city,
         req.body.state, req.body.country, +req.body.pincode,
         req.body.latitude, req.body.longitude, +req.body.address_type,
         req.body.landmark, req.body.phone, +req.body.customer_id,
-        req.body.customer_name, req.body.flatNumber],
+        req.body.customer_name, req.body.flatNumber, req.body.locality],
             function (err, address) {
                 if (err) {
                     console.log("error: ", err);
