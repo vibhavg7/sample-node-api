@@ -184,9 +184,9 @@ function calcTime(offset) {
 }
 
 exports.fetchAllStoresBasedOnZipCode = function (req, res) {
-    let sql = `CALL GET_ALL_STORES_ZIP_CODE(?,?,?)`;
+    let sql = `CALL GET_ALL_STORES_ZIP_CODE(?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [req.body.filterBy, req.body.zipcode, +req.body.categoryId],
+        dbConn.query(sql, [req.body.filterBy, req.body.zipcode, +req.body.categoryId, +req.body.page_number, +req.body.page_size],
             function (err, stores) {
                 if (err) {
                     // console.log("error: ", err);
@@ -384,16 +384,17 @@ exports.storeClosingStatus = function(req,res) {
 
 
 exports.fetchStoreProductsCategoryWise = function (req, res) {
-    let sql = `CALL GET_STORE_PRODUCTS_CATEGORYWISE(?,?)`;
+    let sql = `CALL GET_STORE_PRODUCTS_CATEGORYWISE(?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [+req.body.category_mapping_id, +req.body.store_id], function (err, storeProducts) {
+        dbConn.query(sql, [+req.body.category_mapping_id, +req.body.store_id, +req.body.page_number, +req.body.page_size], function (err, storeProducts) {
             if (err) {
                 console.log("error: ", err);
                 res.json({
                     status: 400,
                     "message": "Store products Information not found",
                     "store_sub_categories_info": [],
-                    "store_products_info": []
+                    "store_products_info": [],
+                    "store_products_count": []
                 });
             }
             else {
@@ -401,7 +402,8 @@ exports.fetchStoreProductsCategoryWise = function (req, res) {
                     status: 200,
                     "message": "Store products Information",
                     "store_sub_categories_info": storeProducts[0],
-                    "store_products_info": storeProducts[1]
+                    "store_products_info": storeProducts[1],
+                    "store_products_count": storeProducts[2]
                 });
             }
             dbConn.release();

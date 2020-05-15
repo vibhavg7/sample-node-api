@@ -432,10 +432,10 @@ exports.getCustomer = function (req, res) {
 }
 
 exports.getCustomerAddresses = function (req, res) {
-    let sql = `CALL GET_CUSTOMER_ADDRESSESBYID(?,?)`;
+    let sql = `CALL GET_CUSTOMER_ADDRESSESBYID(?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql,
-            [req.params.customerId, req.body.city.toLowerCase()], function (err, addressInfo) {
+            [req.params.customerId, req.body.city.toLowerCase(), +req.body.page_number, +req.body.page_size], function (err, addressInfo) {
                 if (err) {
                     console.log("error: ", err);
                 }
@@ -444,6 +444,7 @@ exports.getCustomerAddresses = function (req, res) {
                         status: 200,
                         "message": "customer address Information",
                         "addressInfo": addressInfo[0],
+                        "customer_address_count": addressInfo[1],
                     });
                 }
                 dbConn.release();
