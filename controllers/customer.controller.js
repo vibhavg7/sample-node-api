@@ -431,6 +431,27 @@ exports.getCustomer = function (req, res) {
     });
 }
 
+exports.getCustomerSelectedAddressCityWise = function(req, res) {
+    let sql = `CALL GET_CUSTOMER_SELECTEDADDRESSESCITYWISE(?,?)`;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql,
+            [req.params.customerId, req.body.city], function (err, addressInfo) {
+                if (err) {
+                    console.log("error: ", err);
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "customer address Information",
+                        "addressInfo": addressInfo[0],
+                        "customer_address_count": addressInfo[1],
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
 exports.getCustomerAddresses = function (req, res) {
     let sql = `CALL GET_CUSTOMER_ADDRESSESBYID(?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {

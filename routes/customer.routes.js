@@ -36,10 +36,11 @@ router.route('/customeraddress/:addressId')
     .put(customerController.updateAddress)
     .delete(customerController.deleteAddress);
 
-// router.route('/deleteAddress/:addressId')
-
 router.route('/customeraddressoncart/:customerId')
     .post(customerController.getCustomerAddresses);
+
+router.route('/customerselectedaddresscitywise/:customerId')
+    .post(customerController.getCustomerSelectedAddressCityWise);
 
 
 router.route('/customerinfo/:customerId')
