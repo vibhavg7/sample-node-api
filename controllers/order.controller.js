@@ -560,30 +560,42 @@ exports.merchantBillconfirmation = function (req, res) {
     });
 }
 
-exports.fetchCustomerLiveOrders = function (req, res) {
-    let customerId = req.body.customerId;
-    console.log(customerId);
+exports.fetchCustomerLiveOrders = function (req, res) { 
+    let sql = `CALL GET_CUSTOMER_LIVEORDERS(?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(`SELECT o.order_id,o.total_amount,o.delivery_fee,o.discount_amount,o.payable_amount,
-                o.status AS 'order_current_status',ost.type AS 'order_current_status_type',o.status AS 'order_current_status',
-                o.total_item_count,o.deliver_now,o.delivery_date,o.delivery_slot,o.order_deliveryperson_status,
-                s.store_name,pm.payment_method_name FROM grostep.orders o inner join stores s on o.store_id = s.store_id 
-                inner join payment_method pm on o.payment_mode = pm.payment_method_id 
-                inner join grostep.order_status_types ost on o.status = ost.order_type_id
-                 where o.customer_id = ? and o.status BETWEEN 1 AND 10 ORDER BY o.added_date DESC;`, customerId, function (err, livecustomerorders) {
-                     console.log(livecustomerorders);
+        dbConn.query(sql,
+            [req.body.customerId,+req.body.page_number, +req.body.page_size], function (err, liveOrdersInfo) {
+                if (err) {
+                    console.log("error: ", err);
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "live orders Information",
+                        "liveOrdersInfo": liveOrdersInfo[0],
+                        "customer_liveorders_count": liveOrdersInfo[1]
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
+exports.fetchCustomerLiveOrderCount = function(req,res) {
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("SELECT  COUNT(1) AS 'customer_liveorders_count' FROM grostep.orders WHERE customer_id = ? AND status BETWEEN 1 AND 10", req.params.customerId, function (err, liveOrderData) {
             if (err) {
                 res.json({
                     status: 400,
-                    "message": "customer live orders Information not found",
-                    "livecustomerorders": []
+                    "message": "Live orders Information not found",
+                    "customer_liveorders_count": []
                 });
             }
             else {
                 res.json({
                     status: 200,
-                    "message": "customer live orders Information",
-                    "livecustomerorders": livecustomerorders
+                    "message": "Live orders Information",
+                    "customer_liveorders_count": liveOrderData[0]
                 });
             }
             dbConn.release();

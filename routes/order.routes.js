@@ -13,6 +13,11 @@ router.route('/customerorders')
 router.route('/customerliveorders')
     .post(orderController.fetchCustomerLiveOrders);
 
+router.route('/customerliveordercount/:customerId')
+    .get(orderController.fetchCustomerLiveOrderCount);
+
+
+
 router.route('/customerliveorders/:orderId')
     .get(orderController.fetchCustomerLiveOrderDetailById);
 
