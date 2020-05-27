@@ -3,6 +3,7 @@ var jwt = require('jsonwebtoken');
 var rp = require('request-promise');
 var http = require('http');
 var admin = require("firebase-admin");
+var moment = require('moment');
 var pool = mysql.createPool({
     connectionLimit: 10,
     host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
@@ -128,7 +129,7 @@ exports.fetchAllStores = function (req, res) {
         }
     });
 }
-
+// getStoreDeliverySlots based on current time.
 exports.getStoreDeliverySlots = function (req, res) {
 
     let sql = `CALL GET_STORE_INFO(?)`;
@@ -142,11 +143,13 @@ exports.getStoreDeliverySlots = function (req, res) {
                 });
             }
             else {
-                var arr = [];
+                let arr = [];
+                let utcMoment = moment.utc();
                 const timeoffset = req.body.offset;
-                let current_date = calcTime(timeoffset);
-                let current_hour = current_date.getHours();
-                let current_mins = current_date.getMinutes();
+                utcMoment.add(5, 'hours');
+                utcMoment.add(30, 'minutes');
+                let current_hour = utcMoment.hour();
+                let current_mins = utcMoment.minutes();
                 let store_opening_time = store[0][0].store_opening_time;
                 let store_closing_time = store[0][0].store_closing_time;
                 if (current_hour - store_opening_time > 0 && store_closing_time - current_hour > 0) {
@@ -156,13 +159,19 @@ exports.getStoreDeliverySlots = function (req, res) {
                     }
                     for (let i = start_slot_index, index = 0; current_hour + i < store_closing_time; i++) {
                         let slot = {};
+                        let m1 = moment.utc();
+                        m1.add(5, 'hours');
+                        m1.add(30, 'minutes');
                         slot.slot_id = index++;
                         slot.start_time = current_hour + i;
                         slot.end_time = slot.start_time + 1;
-                        slot.delivery_date = current_date;
+                        slot.delivery_date = m1.add(i, 'hours').format("DD/MM/YYYY");
+                        slot.utc_delivery_date = new Date(moment.utc().add(i, 'hours'));
+                        // new Date(m1.add(i, 'hours'));
                         arr.push(slot);
                     }
                 }
+                console.log(arr);
                 res.json({
                     status: 200,
                     "message": "delivery slots Information",
@@ -174,14 +183,17 @@ exports.getStoreDeliverySlots = function (req, res) {
     });
 }
 
-function calcTime(offset) {
-
-    var d = new Date();
-    var utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-    var nd = new Date(utc + (3600000 * offset));
-    return nd;
-    // return nd.toLocaleString();
-}
+// function calcTime(offset) {
+//     var utcMoment = moment.utc();
+//     utcMoment.add(5, 'hours');
+//     utcMoment.add(30, 'minutes');
+//     var utcDate = new Date(utcMoment.format());
+//     console.log('utcMoment string = ' + utcMoment.format());
+//     console.log(utcMoment.hour());
+//     // console.log(utcDate.getMinutes());
+//     console.log(new Date());
+//     return utcDate;
+// }
 
 exports.fetchAllStoresBasedOnZipCode = function (req, res) {
     let sql = `CALL GET_ALL_STORES_ZIP_CODE(?,?,?,?,?)`;
@@ -213,7 +225,7 @@ exports.fetchAllStoresBasedOnZipCode = function (req, res) {
 exports.fetchAllOngoingOrders = function (req, res) {
     let sql = `CALL GET_STORE_PENDINGORDERS(?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy],function (err, ongoingorders) {
+        dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy], function (err, ongoingorders) {
             if (err) {
                 res.json({
                     status: 400,
@@ -360,7 +372,7 @@ exports.fetchStoreProductsById = function (req, res) {
     });
 }
 
-exports.storeClosingStatus = function(req,res) {
+exports.storeClosingStatus = function (req, res) {
     pool.getConnection(function (err, dbConn) {
         dbConn.query("SELECT store_id,closed from grostep.stores where store_id  = ?;", req.params.storeId, function (err, storeInfo) {
             if (err) {
@@ -379,7 +391,7 @@ exports.storeClosingStatus = function(req,res) {
             }
             dbConn.release();
         });
-    });   
+    });
 }
 
 
@@ -504,16 +516,16 @@ exports.fetchStoreOrderProductsById = function (req, res) {
     });
 }
 
-exports.fetchStorePastOrdersById = function(req,res) {
+exports.fetchStorePastOrdersById = function (req, res) {
     let offStr = "";
-    let offHrStr = parseInt(req.body.offset/60) > 0 ? -parseInt(req.body.offset/60) : Math.abs(parseInt(req.body.offset/60));
-    let offMinStr = Math.abs(req.body.offset%60);
-    offStr = offHrStr+":"+offMinStr;
+    let offHrStr = parseInt(req.body.offset / 60) > 0 ? -parseInt(req.body.offset / 60) : Math.abs(parseInt(req.body.offset / 60));
+    let offMinStr = Math.abs(req.body.offset % 60);
+    offStr = offHrStr + ":" + offMinStr;
     // console.log(offStr.toString());
     let sql = `CALL GET_STORE_PAST_ORDERS(?,?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy,
-                           req.body.order_type, offStr.toString()],
+        req.body.order_type, offStr.toString()],
             function (err, storeOrders) {
                 // console.log(sql);
                 // console.log(storeOrders[1]);
@@ -550,7 +562,7 @@ exports.fetchStoreOrdersById = function (req, res) {
     let sql = `CALL GET_STORE_ORDERS(?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy,
-                           req.body.order_type],
+        req.body.order_type],
             function (err, storeOrders) {
                 if (err) {
                     res.json({
@@ -575,14 +587,14 @@ exports.fetchStoreOrdersById = function (req, res) {
 exports.fetchStoreNewPickedOrdersById = function (req, res) {
     // console.log(req.body);
     let offStr = "";
-    let offHrStr = parseInt(req.body.offset/60) > 0 ? -parseInt(req.body.offset/60) : Math.abs(parseInt(req.body.offset/60));
-    let offMinStr = Math.abs(req.body.offset%60);
-    offStr = offHrStr+":"+offMinStr;
+    let offHrStr = parseInt(req.body.offset / 60) > 0 ? -parseInt(req.body.offset / 60) : Math.abs(parseInt(req.body.offset / 60));
+    let offMinStr = Math.abs(req.body.offset % 60);
+    offStr = offHrStr + ":" + offMinStr;
     console.log(offStr.toString());
     let sql = `CALL GET_STORE_NEW_PICKED_ORDERS(?,?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy,
-                           req.body.order_type, offStr.toString()],
+        req.body.order_type, offStr.toString()],
             function (err, storeOrders) {
                 if (err) {
                     res.json({
@@ -850,7 +862,7 @@ exports.searchStoreAndProductsBasedOnName = function (req, res) {
                         }
                     }
                     map.clear();
-                    
+
                     mainCategoryResult.forEach((data) => {
                         var newArray = storeProductsData
                             .filter((item) => {
@@ -858,7 +870,7 @@ exports.searchStoreAndProductsBasedOnName = function (req, res) {
                             })
                         data['productsData'] = (newArray);
                     });
-    
+
 
                     res.json({
                         "status": 200,

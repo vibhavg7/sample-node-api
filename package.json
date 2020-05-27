@@ -20,6 +20,7 @@
     "firebase-admin": "^8.9.1",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.15",
+    "moment": "^2.26.0",
     "multer": "^1.4.2",
     "multer-s3": "^2.9.0",
     "mysql": "^2.17.1",
