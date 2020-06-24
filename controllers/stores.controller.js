@@ -183,6 +183,30 @@ exports.getStoreDeliverySlots = function (req, res) {
     });
 }
 
+exports.updatestoreclosingstatus = function (req, res) {
+    const updateStore = req.body;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("UPDATE grostep.stores SET ? WHERE store_id = ?", [updateStore, +req.params.storeId], function (err, storeData) {
+            if (err) {
+                console.log("error: ", err);
+                res.json({
+                    status: 400,
+                    "message": "store Information not updated",
+                    "coupon": couponData
+                });
+            }
+            else {
+                res.json({
+                    status: 200,
+                    "message": "store Information updated",
+                    "coupon": storeData
+                });
+            }
+            dbConn.release();
+        });
+    });
+}
+
 // function calcTime(offset) {
 //     var utcMoment = moment.utc();
 //     utcMoment.add(5, 'hours');
@@ -210,17 +234,14 @@ exports.fetchAllStoresBasedOnZipCode = function (req, res) {
                     });
                 }
                 else {
-                    res.json({
-                        "status": 200,
-                        "message": "stores information",
-                        "store": stores[0],
-                        "store_total_count": stores[1][0]
-                    });
+                    filterStores(stores, req, res);
                 }
                 dbConn.release();
             });
     });
 }
+
+
 
 exports.fetchAllOngoingOrders = function (req, res) {
     let sql = `CALL GET_STORE_PENDINGORDERS(?,?,?,?)`;
@@ -618,6 +639,33 @@ exports.fetchStoreNewPickedOrdersById = function (req, res) {
     });
 }
 
+function filterStores(stores, req, res) {
+    // console.log(stores[0]);
+    let utcMoment = moment.utc();
+    const timeoffset = req.body.offset;
+    utcMoment.add(5, 'hours');
+    utcMoment.add(30, 'minutes');
+    let current_hour = utcMoment.hour();
+    let current_mins = utcMoment.minutes();
+    console.log(current_hour); console.log(current_mins);
+    stores[0].forEach(data => {
+        let store_opening_time = data.store_opening_time;
+        let store_closing_time = data.store_closing_time;
+        if ((store_opening_time <= current_hour) && (store_closing_time > current_hour)) {
+            data.closed = 0;
+        } else {
+            data.closed = 1;
+        }
+    });
+    // console.log(stores[0]);
+    res.json({
+        "status": 200,
+        "message": "stores information",
+        "store": stores[0],
+        "store_total_count": stores[1][0]
+    });
+}
+
 exports.fetchStoreById = function (req, res) {
     let sql = `CALL GET_STORE_INFO(?)`;
     pool.getConnection(function (err, dbConn) {
@@ -630,6 +678,20 @@ exports.fetchStoreById = function (req, res) {
                 });
             }
             else {
+                let utcMoment = moment.utc();
+                const timeoffset = req.body.offset;
+                utcMoment.add(5, 'hours');
+                utcMoment.add(30, 'minutes');
+                let current_hour = utcMoment.hour();
+                let current_mins = utcMoment.minutes();
+                let store_opening_time = store[0].store_opening_time;
+                let store_closing_time = store[0].store_closing_time;
+                if ((store_opening_time <= current_hour) && (store_closing_time > current_hour)) {
+                    store[0][0].closed = 0;
+                } else {
+                    store[0][0].closed = 1;
+                }
+                console.log(store[0]);
                 res.json({
                     status: 200,
                     "message": "store Information",

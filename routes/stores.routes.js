@@ -85,6 +85,9 @@ router.route('/storeinfo/:storeId')
     .delete(storesController.deleteStore)
     .put(storesController.updateStore);
 
+router.route('/updatestoreclosingstatus/:storeId')
+    .put(storesController.updatestoreclosingstatus);
+
 
 router.route('/:orderId')
     .put(orderController.updateOrderStatusByMerchant);
