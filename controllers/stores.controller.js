@@ -647,7 +647,6 @@ function filterStores(stores, req, res) {
     utcMoment.add(30, 'minutes');
     let current_hour = utcMoment.hour();
     let current_mins = utcMoment.minutes();
-    console.log(current_hour); console.log(current_mins);
     stores[0].forEach(data => {
         let store_opening_time = data.store_opening_time;
         let store_closing_time = data.store_closing_time;
@@ -916,7 +915,7 @@ exports.searchStoreAndProductsBasedOnName = function (req, res) {
                                 "store_opening_time_clock": item.store_opening_time_clock,
                                 "store_closing_time": item.store_closing_time,
                                 "store_closing_time_clock": item.store_closing_time_clock,
-                                "closed": item.closed,
+                                "closed": closingStatusOfStore(item),
                                 "latitude": item.latitude,
                                 "longitude": item.longitude,
                                 "productsData": []
@@ -944,6 +943,22 @@ exports.searchStoreAndProductsBasedOnName = function (req, res) {
                 dbConn.release();
             });
     });
+}
+
+function closingStatusOfStore(store) {
+    let utcMoment = moment.utc();
+    // const timeoffset = req.body.offset;
+    utcMoment.add(5, 'hours');
+    utcMoment.add(30, 'minutes');
+    let current_hour = utcMoment.hour();
+    let current_mins = utcMoment.minutes();
+    let store_opening_time = store.store_opening_time;
+    let store_closing_time = store.store_closing_time;
+    if ((store_opening_time <= current_hour) && (store_closing_time > current_hour)) {
+        return closed = 0;
+    } else {
+        return closed = 1;
+    }
 }
 
 
