@@ -886,9 +886,9 @@ exports.fetchStoreSubCategoriesInfoById = function (req, res) {
 }
 
 exports.searchStoreAndProductsBasedOnName = function (req, res) {
-    let sql = `CALL SEARCH_STORES_AND_PRODUCTS(?,?,?,?)`;
+    let sql = `CALL SEARCH_STORES_AND_PRODUCTS(?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [req.body.filterBy, req.body.zipcode, +req.body.categoryId, +req.body.storeId],
+        dbConn.query(sql, [req.body.filterBy, req.body.zipcode, +req.body.categoryId, +req.body.storeId, req.body.storedCity.toLowerCase()],
             function (err, stores) {
                 if (err) {
                     console.log("error: ", err);
