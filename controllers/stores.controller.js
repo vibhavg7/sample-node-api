@@ -5,7 +5,7 @@ var http = require('http');
 var admin = require("firebase-admin");
 var moment = require('moment');
 var pool = mysql.createPool({
-    connectionLimit: 10,
+    connectionLimit: 10, 
     host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
     user: 'root',
     password: process.env.dbpassword,
@@ -419,7 +419,8 @@ exports.storeClosingStatus = function (req, res) {
 exports.fetchStoreProductsCategoryWise = function (req, res) {
     let sql = `CALL GET_STORE_PRODUCTS_CATEGORYWISE(?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [+req.body.category_mapping_id, +req.body.store_id, +req.body.page_number, +req.body.page_size], function (err, storeProducts) {
+        dbConn.query(sql, [+req.body.category_mapping_id, +req.body.store_id, +req.body.page_number, +req.body.page_size, +req.body.sub_category_id],
+            function (err, storeProducts) {
             if (err) {
                 console.log("error: ", err);
                 res.json({
@@ -867,8 +868,9 @@ exports.updateStoreImages = function (store_id, imageUrl, req, res) {
 }
 
 exports.fetchStoreSubCategoriesInfoById = function (req, res) {
+    let sql = `CALL GET_STORE_CATEGORIES(?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("select scm.store_category_mapping_id, c.category_id, c.name, c.store_category_id, c.image_url from store_category_mapping scm inner join categories c on scm.store_category_id = c.category_id where scm.store_id = ?;",
+        dbConn.query(sql,
             [req.params.storeId], function (err, storeCategory) {
                 if (err) {
                     console.log("error: ", err);
