@@ -879,7 +879,7 @@ exports.fetchStoreSubCategoriesInfoById = function (req, res) {
                     res.json({
                         status: 200,
                         "message": "Store Categories Information",
-                        "store_categories": storeCategory,
+                        "store_categories": storeCategory[0],
                     });
                 }
                 dbConn.release();
