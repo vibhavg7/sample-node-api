@@ -417,7 +417,7 @@ exports.storeClosingStatus = function (req, res) {
 
 
 exports.fetchStoreProductsCategoryWise = function (req, res) {
-    let sql = `CALL GET_STORE_PRODUCTS_CATEGORYWISE(?,?,?,?)`;
+    let sql = `CALL GET_STORE_PRODUCTS_CATEGORYWISE(?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.body.category_mapping_id, +req.body.store_id, +req.body.page_number, +req.body.page_size, +req.body.sub_category_id],
             function (err, storeProducts) {
