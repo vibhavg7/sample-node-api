@@ -436,8 +436,9 @@ exports.fetchStoreProductsCategoryWise = function (req, res) {
                     status: 200,
                     "message": "Store products Information",
                     "store_sub_categories_info": storeProducts[0],
-                    "store_products_info": storeProducts[1],
-                    "store_products_count": storeProducts[2]
+                    "store_products_count": storeProducts[1],
+                    "store_products_instock__info": storeProducts[2],
+                    "store_products_outofstock__info": storeProducts[3],
                 });
             }
             dbConn.release();
