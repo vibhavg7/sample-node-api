@@ -395,7 +395,7 @@ exports.fetchStoreProductsById = function (req, res) {
 
 exports.storeClosingStatus = function (req, res) {
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("SELECT store_id,closed from grostep.stores where store_id  = ?;", req.params.storeId, function (err, storeInfo) {
+        dbConn.query("SELECT store_id,closed,store_opening_time,store_closing_time from grostep.stores where store_id  = ?;", req.params.storeId, function (err, storeInfo) {
             if (err) {
                 res.json({
                     status: 400,
@@ -404,6 +404,19 @@ exports.storeClosingStatus = function (req, res) {
                 });
             }
             else {
+                let utcMoment = moment.utc();
+                const timeoffset = req.body.offset;
+                utcMoment.add(5, 'hours');
+                utcMoment.add(30, 'minutes');
+                let current_hour = utcMoment.hour();
+                let current_mins = utcMoment.minutes();
+                let store_opening_time = storeInfo[0].store_opening_time;
+                let store_closing_time = storeInfo[0].store_closing_time;
+                if ((store_opening_time <= current_hour) && (store_closing_time > current_hour)) {
+                    storeInfo[0].closed = 0;
+                } else {
+                    storeInfo[0].closed = 1;
+                }
                 res.json({
                     status: 200,
                     "message": "store Information",
