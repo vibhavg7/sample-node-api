@@ -283,6 +283,7 @@ exports.updateOrder = function (req, res) {
     });
 }
 
+
 exports.updateOrderStatusByMerchant = function (req, res) {
 
     let sql = `CALL UPDATE_ORDERSTATUS_BY_STORE(?,?,?,?,?,?)`;
@@ -300,7 +301,7 @@ exports.updateOrderStatusByMerchant = function (req, res) {
                 }
                 else {
                     let registrationTokens = [];
-                    if (req.body.order_merchant_status == 2) {
+                    if (req.body.order_merchant_status == 2 && orderData[0][0]['order_status'] != 12) {
                         dbConn.query("SELECT token FROM grostep.deliveryperson WHERE status = 1 and available = 1 and token is not null", function (err, deliverypersondata) {
                             if (err) {
                                 res.json({
@@ -338,11 +339,12 @@ exports.updateOrderStatusByMerchant = function (req, res) {
                                 res.json({
                                     status: 200,
                                     "message": "order Information updated",
-                                    "order": orderData[0][0]['order_id']
+                                    "order": orderData[0][0]['order_id'],
+                                    "order_status": orderData[0][0]['order_status']
                                 });
                             }
                         });
-                    } else if (req.body.order_merchant_status == 3) {
+                    } else if (req.body.order_merchant_status == 3 && orderData[0][0]['order_status'] != 12) {
                         let customer_token = orderData[0][0]['customer_token'];
                         let delivery_person_token = orderData[0][0]['delivery_person_token'];
                         registrationTokens.push(delivery_person_token);
@@ -368,10 +370,11 @@ exports.updateOrderStatusByMerchant = function (req, res) {
                         res.json({
                             status: 200,
                             "message": "order Information updated",
-                            "order": orderData[0][0]['order_id']
+                            "order": orderData[0][0]['order_id'],
+                            "order_status": orderData[0][0]['order_status']
                         });
 
-                    } else if (req.body.order_merchant_status == 4) {
+                    } else if (req.body.order_merchant_status == 4 && orderData[0][0]['order_status'] != 12) {
                         let customer_token = orderData[0][0]['customer_token'];
                         let delivery_person_token = orderData[0][0]['delivery_person_token'];
                         registrationTokens.push(delivery_person_token);
@@ -397,9 +400,17 @@ exports.updateOrderStatusByMerchant = function (req, res) {
                         res.json({
                             status: 200,
                             "message": "order Information updated",
-                            "order": orderData[0][0]['order_id']
+                            "order": orderData[0][0]['order_id'],
+                            "order_status": orderData[0][0]['order_status']
                         });
 
+                    } else {
+                        res.json({
+                            status: 200,
+                            "message": "order cancelled by customer",
+                            "order": orderData[0][0]['order_id'],
+                            "order_status": orderData[0][0]['order_status']
+                        });
                     }
 
                 }
