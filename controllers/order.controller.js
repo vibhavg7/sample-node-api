@@ -63,19 +63,41 @@ exports.placeOrder = function (req, res) {
                                     token1['store_token'],
                                 ];
 
-                                var payload = {
+                                let message = {
                                     notification: {
                                         title: "New order recieved",
                                         body: `Hello , ${orderData[0][0]['store_name']} you have recieved new order # ${orderData[1][0]['order_id']}. Click here for details.`
-                                    }
-                                };
+                                    },
+                                    android: {
+                                        notification: {
+                                            defaultSound: true,
+                                            notificationCount: 1,
+                                            sound: 'emergency.mp3',
+                                            channelId: 'fcm_emergency_channel',
+                                            icon: `${projectHost()}/android-chrome-192x192.png`,
+                                        },
+                                        ttl: 20000
+                                    },
+                                    webpush: {
+                                        notification: {
+                                            icon: `${projectHost()}/android-chrome-192x192.png`
 
-                                var options = {
-                                    priority: "high",
-                                    timeToLive: 60 * 60 * 24
-                                };
+                                        },
+                                        fcm_options: {
+                                            link: projectHost()
+                                        }
+                                    },
+                                    apns: {
+                                        payload: {
+                                            aps: {
+                                                sound: 'emergency.aiff'
+                                            }
+                                        }
+                                    },
+                                    tokens: registrationTokens
+                                }
 
-                                admin.messaging().sendToDevice(registrationTokens, payload, options)
+                                admin.messaging().sendMulticast(message)
                                     .then(function (response) {
                                         console.log("Successfully sent message:", response);
                                     })
@@ -98,11 +120,15 @@ exports.placeOrder = function (req, res) {
 
 }
 
-exports.cancelOrderByCustomer = function(req,res) {
+function projectHost() {
+    
+}
+
+exports.cancelOrderByCustomer = function (req, res) {
     let sql = `CALL CANCEL_ORDER_BY_CUSTOMER(?,?)`;
     let orderId = +req.params.orderId;
     let orderStatus = +req.body.status;
-    if(orderStatus >=5) {
+    if (orderStatus >= 5) {
         res.json({
             "status": 401,
             "message": "order not cancelled",
@@ -163,10 +189,12 @@ exports.updateOrderBillImage = function (orderId, imageUrl, req, res) {
 
 exports.fetchCustomerAllPaymentMethodsCityWise = function (req, res) {
     let sql = `CALL GET_CUSTOMER_PAYMENTMETHODSCITYWISE(?)`;
-
+console.log(req.body.city);
     pool.getConnection(function (err, dbConn) {
+        console.error(err);
         dbConn.query(sql, [req.body.city],
             function (err, paymentMethodsData) {
+                console.error(err);
                 if (err) {
                     console.log("error: ", err);
                     res.json({
@@ -290,7 +318,7 @@ exports.updateOrderStatusByMerchant = function (req, res) {
 
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.body.storeId, +req.params.orderId, +req.body.status,
-                            +req.body.order_merchant_status,req.body.bill_number,req.body.bill_amount],
+        +req.body.order_merchant_status, req.body.bill_number, req.body.bill_amount],
             function (err, orderData) {
                 if (err) {
                     console.log("error: ", err);
@@ -423,9 +451,9 @@ exports.updateOrderStatusByMerchant = function (req, res) {
 
 exports.fetchDeliveryPersonOrdersInfoById = function (req, res) {
     let offStr = "";
-    let offHrStr = parseInt(req.params.offset/60) > 0 ? -parseInt(req.params.offset/60) : Math.abs(parseInt(req.params.offset/60));
-    let offMinStr = Math.abs(req.params.offset%60);
-    offStr = offHrStr+":"+offMinStr;
+    let offHrStr = parseInt(req.params.offset / 60) > 0 ? -parseInt(req.params.offset / 60) : Math.abs(parseInt(req.params.offset / 60));
+    let offMinStr = Math.abs(req.params.offset % 60);
+    offStr = offHrStr + ":" + offMinStr;
 
     let sql = `CALL GET_DELIVERYPERSON_ORDERS_COUNT(?,?)`;
 
@@ -458,9 +486,9 @@ exports.fetchDeliveryPersonOrdersInfoById = function (req, res) {
 exports.fetchMerchantOrderCountById = function (req, res) {
     console.log('Hi');
     let offStr = "";
-    let offHrStr = parseInt(req.params.offset/60) > 0 ? -parseInt(req.params.offset/60) : Math.abs(parseInt(req.params.offset/60));
-    let offMinStr = Math.abs(req.params.offset%60);
-    offStr = offHrStr+":"+offMinStr;
+    let offHrStr = parseInt(req.params.offset / 60) > 0 ? -parseInt(req.params.offset / 60) : Math.abs(parseInt(req.params.offset / 60));
+    let offMinStr = Math.abs(req.params.offset % 60);
+    offStr = offHrStr + ":" + offMinStr;
     console.log(offStr.toString());
     let sql = `CALL GET_MERCHANT_ORDERS_COUNT(?,?)`;
 
@@ -571,11 +599,11 @@ exports.merchantBillconfirmation = function (req, res) {
     });
 }
 
-exports.fetchCustomerLiveOrders = function (req, res) { 
+exports.fetchCustomerLiveOrders = function (req, res) {
     let sql = `CALL GET_CUSTOMER_LIVEORDERS(?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql,
-            [req.body.customerId,+req.body.page_number, +req.body.page_size], function (err, liveOrdersInfo) {
+            [req.body.customerId, +req.body.page_number, +req.body.page_size], function (err, liveOrdersInfo) {
                 if (err) {
                     console.log("error: ", err);
                 }
@@ -592,7 +620,7 @@ exports.fetchCustomerLiveOrders = function (req, res) {
     });
 }
 
-exports.fetchCustomerLiveOrderCount = function(req,res) {
+exports.fetchCustomerLiveOrderCount = function (req, res) {
     pool.getConnection(function (err, dbConn) {
         dbConn.query("SELECT  COUNT(1) AS 'customer_liveorders_count' FROM grostep.orders WHERE customer_id = ? AND status BETWEEN 1 AND 10", req.params.customerId, function (err, liveOrderData) {
             if (err) {
@@ -727,22 +755,22 @@ exports.fetchCustomerLiveOrderDetailById = function (req, res) {
                       LEFT JOIN stores s on o.store_id = s.store_id
                       LEFT JOIN customer_delivery_address cda on o.delivery_address_id = cda.delivery_address_id
                       where o.order_id = ?;`, orderId, function (err, livecustomerorderdetail) {
-            if (err) {
-                res.json({
-                    status: 400,
-                    "message": "customer live orders Information not found",
-                    "livecustomerorderdetail": {}
-                });
-            }
-            else {
-                res.json({
-                    status: 200,
-                    "message": "customer live orders Information",
-                    "livecustomerorderdetail": livecustomerorderdetail[0]
-                });
-            }
-            dbConn.release();
-        });
+                if (err) {
+                    res.json({
+                        status: 400,
+                        "message": "customer live orders Information not found",
+                        "livecustomerorderdetail": {}
+                    });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "customer live orders Information",
+                        "livecustomerorderdetail": livecustomerorderdetail[0]
+                    });
+                }
+                dbConn.release();
+            });
     });
 }
 
