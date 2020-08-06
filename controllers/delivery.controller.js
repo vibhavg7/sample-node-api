@@ -702,63 +702,77 @@ exports.updateOrderStatusByDeliveryPerson = function (req, res) {
                     let messageTitle = '';
                     let messageBody = '';
 
-                    if(req.body.order_delivery_person_status == 2) {
+                    if(req.body.order_delivery_person_status == 2 && orderData[0][0]['order_status'] != 12) {
                         registrationTokens.push(customer_token);
                         registrationTokens.push(store_token);
                         messageTitle = 'Delivery Person assigned';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} have been sucessfully assigned for the order # ${orderData[0][0]['order_id']}.`;
-                    } else if(req.body.order_delivery_person_status == 3) {
+                        this.sendNotification(messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status']);
+                    } else if(req.body.order_delivery_person_status == 3 && orderData[0][0]['order_status'] != 12) {
                         registrationTokens.push(customer_token); registrationTokens.push(store_token);
                         messageTitle = 'Delivery Person reached store and will start picking items';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} reached store and will start picking items for the order # ${orderData[0][0]['order_id']}.`;
-                    } else if(req.body.order_delivery_person_status == 5) {
+                        this.sendNotification(messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status']);
+                    } else if(req.body.order_delivery_person_status == 5 && orderData[0][0]['order_status'] != 12) {
                         registrationTokens.push(customer_token);
                         messageTitle = 'Delivery Person picked the items';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} picked for the order # ${orderData[0][0]['order_id']}.`;
-                    } else if(req.body.order_delivery_person_status == 4) {
+                        this.sendNotification(messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status']);
+                    } else if(req.body.order_delivery_person_status == 4 && orderData[0][0]['order_status'] != 12) {
                         registrationTokens.push(customer_token);
                         messageTitle = 'Waiting for bill confirmation';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} waiting for bill confirmation for the order # ${orderData[0][0]['order_id']}.`;
-                    } else if(req.body.order_delivery_person_status == 6) {
+                        this.sendNotification(messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status']);
+                    } else if(req.body.order_delivery_person_status == 6 && orderData[0][0]['order_status'] != 12) {
                         registrationTokens.push(customer_token);
                         messageTitle = 'Delivery Person is on the way to deliver';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} reached store and will start picking items for the order # ${orderData[0][0]['order_id']}.`;
-                    } else if(req.body.order_delivery_person_status == 7) {
+                        this.sendNotification(messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status']);
+                    } else if(req.body.order_delivery_person_status == 7 && orderData[0][0]['order_status'] != 12) {
                         registrationTokens.push(customer_token);
                         messageTitle = 'Order Successfully delivered';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} have sucessfully delivered the order # ${orderData[0][0]['order_id']}.`;
+                        this.sendNotification(messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status']);
+                    } else {
+                        res.json({
+                            status: 200,
+                            "message": "order cancelled by customer",
+                            "order": orderData[0][0]['order_id'],
+                            "order_status": orderData[0][0]['order_status']
+                        });
                     }
-
-                    var payload = {
-                        notification: {
-                            title: messageTitle,
-                            body: messageBody
-                            // "This is the body of the notification message."
-                        }
-                    };
-
-                    var options = {
-                        priority: "high",
-                        timeToLive: 60 * 60 * 24
-                    };
-                    admin.messaging().sendToDevice(registrationTokens, payload, options)
-                        .then(function (response) {
-                            // console.log("Successfully sent message:", response);
-                        })
-                        .catch(function (error) {
-                            // console.log("Error sending message:", error);
-                    });
-                    res.json({
-                        status: 200,
-                        "message": "order Information updated",
-                        "order": orderData[0][0]['order_id']
-                    });
                 }
                 dbConn.release();
             });
     });
+}
 
+function sendNotification(messageTitle, messageBody, order_id, order_status) {
+    var payload = {
+        notification: {
+            title: messageTitle,
+            body: messageBody
+            // "This is the body of the notification message."
+        }
+    };
 
+    var options = {
+        priority: "high",
+        timeToLive: 60 * 60 * 24
+    };
+    admin.messaging().sendToDevice(registrationTokens, payload, options)
+        .then(function (response) {
+            console.log("Successfully sent message:", response);
+        })
+        .catch(function (error) {
+            console.log("Error sending message:", error);
+    });
+    res.json({
+        status: 200,
+        "message": "order Information updated",
+        "order": order_id,
+        "order_status": order_status
+    });
 }
 
 function sendToken(item, res) {
