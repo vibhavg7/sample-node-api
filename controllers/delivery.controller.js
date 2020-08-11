@@ -707,32 +707,32 @@ exports.updateOrderStatusByDeliveryPerson = function (req, res) {
                         registrationTokens.push(store_token);
                         messageTitle = 'Delivery Person assigned';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} have been sucessfully assigned for the order # ${orderData[0][0]['order_id']}.`;
-                        sendNotification(registrationTokens,messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status']);
+                        sendNotification(registrationTokens,messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status'],res);
                     } else if(req.body.order_delivery_person_status == 3 && orderData[0][0]['order_status'] != 12) {
                         registrationTokens.push(customer_token); registrationTokens.push(store_token);
                         messageTitle = 'Delivery Person reached store and will start picking items';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} reached store and will start picking items for the order # ${orderData[0][0]['order_id']}.`;
-                        sendNotification(registrationTokens,messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status']);
+                        sendNotification(registrationTokens,messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status'],res);
                     } else if(req.body.order_delivery_person_status == 5 && orderData[0][0]['order_status'] != 12) {
                         registrationTokens.push(customer_token);
                         messageTitle = 'Delivery Person picked the items';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} picked for the order # ${orderData[0][0]['order_id']}.`;
-                        sendNotification(registrationTokens,messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status']);
+                        sendNotification(registrationTokens,messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status'],res);
                     } else if(req.body.order_delivery_person_status == 4 && orderData[0][0]['order_status'] != 12) {
                         registrationTokens.push(customer_token);
                         messageTitle = 'Waiting for bill confirmation';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} waiting for bill confirmation for the order # ${orderData[0][0]['order_id']}.`;
-                        sendNotification(registrationTokens,messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status']);
+                        sendNotification(registrationTokens,messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status'],res);
                     } else if(req.body.order_delivery_person_status == 6 && orderData[0][0]['order_status'] != 12) {
                         registrationTokens.push(customer_token);
                         messageTitle = 'Delivery Person is on the way to deliver';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} reached store and will start picking items for the order # ${orderData[0][0]['order_id']}.`;
-                        sendNotification(registrationTokens,messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status']);
+                        sendNotification(registrationTokens,messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status'],res);
                     } else if(req.body.order_delivery_person_status == 7 && orderData[0][0]['order_status'] != 12) {
                         registrationTokens.push(customer_token);
                         messageTitle = 'Order Successfully delivered';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} have sucessfully delivered the order # ${orderData[0][0]['order_id']}.`;
-                        sendNotification(registrationTokens,messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status']);
+                        sendNotification(registrationTokens,messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status'],res);
                     } else {
                         res.json({
                             status: 200,
@@ -747,7 +747,24 @@ exports.updateOrderStatusByDeliveryPerson = function (req, res) {
     });
 }
 
-function sendNotification(registrationTokens,messageTitle, messageBody, order_id, order_status) {
+function filter_token_array(test_array) {
+    var index = -1,
+        arr_length = test_array ? test_array.length : 0,
+        resIndex = -1,
+        result = [];
+
+    while (++index < arr_length) {
+        var value = test_array[index];
+
+        if (value) {
+            result[++resIndex] = value;
+        }
+    }
+
+    return result;
+}
+
+function sendNotification(registrationTokens,messageTitle, messageBody, order_id, order_status,res) {
     var payload = {
         notification: {
             title: messageTitle,
@@ -760,7 +777,7 @@ function sendNotification(registrationTokens,messageTitle, messageBody, order_id
         priority: "high",
         timeToLive: 60 * 60 * 24
     };
-    admin.messaging().sendToDevice(registrationTokens, payload, options)
+    admin.messaging().sendToDevice(filter_token_array(registrationTokens), payload, options)
         .then(function (response) {
             console.log("Successfully sent message:", response);
         })
