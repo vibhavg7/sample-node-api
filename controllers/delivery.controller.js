@@ -43,7 +43,7 @@ exports.fetchAllRunningOrders = function (req, res) {
     console.log(+req.params.deliveryPersonId + '' + +req.body.page_number + '' + +req.body.page_size);
     let sql = `CALL GET_DELIVERY_ONGOINGORDERS(?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [+req.params.deliveryPersonId,+req.body.page_number, +req.body.page_size],
+        dbConn.query(sql, [+req.params.deliveryPersonId, +req.body.page_number, +req.body.page_size],
             function (err, ongoingOrders) {
                 if (err) {
                     res.json({
@@ -66,19 +66,19 @@ exports.fetchAllRunningOrders = function (req, res) {
     });
 }
 
-exports.fetchpastorders = function(req, res) {
+exports.fetchpastorders = function (req, res) {
     let offStr = "";
-    let offHrStr = parseInt(req.body.offset/60) > 0 ? -parseInt(req.body.offset/60) : Math.abs(parseInt(req.body.offset/60));
-    let offMinStr = Math.abs(req.body.offset%60);
-    offStr = offHrStr+":"+offMinStr;
+    let offHrStr = parseInt(req.body.offset / 60) > 0 ? -parseInt(req.body.offset / 60) : Math.abs(parseInt(req.body.offset / 60));
+    let offMinStr = Math.abs(req.body.offset % 60);
+    offStr = offHrStr + ":" + offMinStr;
     console.log(offStr.toString());
     let sql = `CALL GET_DP_PAST_ORDERS(?,?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.body.deliverypersonid, +req.body.page_number, +req.body.page_size, req.body.filterBy,
-                           req.body.order_type, offStr.toString()],
+        req.body.order_type, offStr.toString()],
             function (err, pastOrders) {
                 // console.log(sql);
-                console.log(pastOrders);                
+                console.log(pastOrders);
                 if (err) {
                     console.log(err);
                     res.json({
@@ -105,7 +105,7 @@ exports.fetchpastorders = function(req, res) {
 
 exports.fetchRunningStatusByOrderId = function (req, res) {
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("SELECT o.order_id,o.order_merchant_status,o.total_amount,o.delivery_fee,o.discount_amount,o.payable_amount,o.status AS 'order_current_status',o.total_item_count,o.deliver_now,o.delivery_date,o.delivery_slot,o.instructions,o.order_deliveryperson_status,cda.customer_name,cda.phone AS 'customer_phone_number',cda.flatNumber AS 'customer_flatNumber',cda.landmark AS 'customer_landmark',cda.longitude AS 'customer_longitude',cda.latitude AS 'customer_latitude',cda.pincode AS 'customer_pincode',cda.city AS 'customer_city',cda.state AS 'customer_state',cda.country AS 'customer_country',cda.address AS 'customer_address',cda.address2 AS 'customer_address2',s.store_name,s.phone_number AS 'store_phone_number', s.alternative_number AS 'store_alternative_number',s.address AS 'store_address',s.state AS 'store_state',s.city AS 'store_city',s.country AS 'store_country', s.pin_code As 'store_pincode',s.latitude AS 'store_latitude', s.longitude AS 'store_longitude',pm.payment_method_name FROM grostep.orders o inner join stores s on o.store_id = s.store_id inner join payment_method pm on o.payment_mode = pm.payment_method_id inner join grostep.customer_delivery_address cda on o.delivery_address_id = cda.delivery_address_id where o.delivery_person_id  = ? and o.order_id = ?  ",[req.body.deliverypersonid, req.body.orderId], function (err, orderdata) {
+        dbConn.query("SELECT o.order_id,o.order_merchant_status,o.total_amount,o.delivery_fee,o.discount_amount,o.payable_amount,o.status AS 'order_current_status',o.total_item_count,o.deliver_now,o.delivery_date,o.delivery_slot,o.instructions,o.order_deliveryperson_status,cda.customer_name,cda.phone AS 'customer_phone_number',cda.flatNumber AS 'customer_flatNumber',cda.landmark AS 'customer_landmark',cda.longitude AS 'customer_longitude',cda.latitude AS 'customer_latitude',cda.pincode AS 'customer_pincode',cda.city AS 'customer_city',cda.state AS 'customer_state',cda.country AS 'customer_country',cda.address AS 'customer_address',cda.address2 AS 'customer_address2',s.store_name,s.phone_number AS 'store_phone_number', s.alternative_number AS 'store_alternative_number',s.address AS 'store_address',s.state AS 'store_state',s.city AS 'store_city',s.country AS 'store_country', s.pin_code As 'store_pincode',s.latitude AS 'store_latitude', s.longitude AS 'store_longitude',pm.payment_method_name FROM grostep.orders o inner join stores s on o.store_id = s.store_id inner join payment_method pm on o.payment_mode = pm.payment_method_id inner join grostep.customer_delivery_address cda on o.delivery_address_id = cda.delivery_address_id where o.delivery_person_id  = ? and o.order_id = ?  ", [req.body.deliverypersonid, req.body.orderId], function (err, orderdata) {
             if (err) {
                 res.json({
                     status: 400,
@@ -127,12 +127,12 @@ exports.fetchRunningStatusByOrderId = function (req, res) {
 
 exports.fetchAllDeliveredOrders = function (req, res) {
     let offStr = "";
-    let offHrStr = parseInt(req.body.offset/60) > 0 ? -parseInt(req.body.offset/60) : Math.abs(parseInt(req.body.offset/60));
-    let offMinStr = Math.abs(req.body.offset%60);
-    offStr = offHrStr+":"+offMinStr;
+    let offHrStr = parseInt(req.body.offset / 60) > 0 ? -parseInt(req.body.offset / 60) : Math.abs(parseInt(req.body.offset / 60));
+    let offMinStr = Math.abs(req.body.offset % 60);
+    offStr = offHrStr + ":" + offMinStr;
     let sql = `CALL GET_DELIVERY_DELIVEREDORDERS(?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [+req.params.deliveryPersonId,+req.body.page_number, +req.body.page_size, offStr.toString()],
+        dbConn.query(sql, [+req.params.deliveryPersonId, +req.body.page_number, +req.body.page_size, offStr.toString()],
             function (err, deliveredOrders) {
                 if (err) {
                     res.json({
@@ -210,7 +210,7 @@ exports.addDeliveryAreaCategory = function (req, res) {
     let category_ranking = req.body.category_ranking;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [areaId, categoryId, status,
-            category_text,category_ranking],
+            category_text, category_ranking],
             function (err, deliveryAreaCategory) {
                 if (err) {
                     console.log("error: ", err);
@@ -349,7 +349,7 @@ exports.fetchDeliveryPersonInfoById = function (req, res) {
     });
 }
 
-exports.fetchAllDeliveryAreas = function(req,res) {
+exports.fetchAllDeliveryAreas = function (req, res) {
     let sql = `CALL GET_ALL_DELIVERYAREAS(?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         if (err) {
@@ -395,31 +395,31 @@ exports.fetchDeliveryAreaInfoById = function (req, res) {
     });
 }
 
-exports.searchCategoryByName = function(req,res) {
+exports.searchCategoryByName = function (req, res) {
     pool.getConnection(function (err, dbConn) {
         dbConn.query(`select mc.store_category_id,mc.store_category_name,mc.image_url from main_categories mc 
                         where LOWER(mc.store_category_name) 
                         LIKE CONCAT('%', ?, '%') and mc.status = 1;`, req.params.queryString.toLowerCase(), function (err, categoryData) {
-            if (err) {
-                res.json({
-                    status: 400,
-                    "message": "delivery Area categoryData not found",
-                    "categoryData": []
-                });
-            }
-            else {
-                res.json({
-                    status: 200,
-                    "message": "delivery categoryData Information",
-                    "categoryData": categoryData
-                });
-            }
-            dbConn.release();
-        });
+                if (err) {
+                    res.json({
+                        status: 400,
+                        "message": "delivery Area categoryData not found",
+                        "categoryData": []
+                    });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "delivery categoryData Information",
+                        "categoryData": categoryData
+                    });
+                }
+                dbConn.release();
+            });
     });
 }
 
-exports.searchBannerByName = function(req,res) {
+exports.searchBannerByName = function (req, res) {
     pool.getConnection(function (err, dbConn) {
         dbConn.query("select bi.banner_id,bi.banner_name,bi.image_url from banner_info bi where banner_name LIKE CONCAT('%', ?, '%') and bi.status = 1;", req.params.queryString, function (err, bannerData) {
             if (err) {
@@ -450,22 +450,22 @@ exports.fetchAllDeliveryAreaCategoriesByAreaId = function (req, res) {
         from servicable_area_categories sac 
         left join main_categories mc on sac.store_category_id = mc.store_category_id
         left join grostep.serviceable_areas sa on sac.serviceable_area_id = sa.serviceable_area_id where sac.serviceable_area_id = ?`, req.body.areaId, function (err, categoryData) {
-            if (err) {
-                res.json({
-                    status: 400,
-                    "message": "delivery Area bannerData not found",
-                    "categoryData": []
-                });
-            }
-            else {
-                res.json({
-                    status: 200,
-                    "message": "delivery categoryData Information",
-                    "categoryData": categoryData
-                });
-            }
-            dbConn.release();
-        });
+                if (err) {
+                    res.json({
+                        status: 400,
+                        "message": "delivery Area bannerData not found",
+                        "categoryData": []
+                    });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "delivery categoryData Information",
+                        "categoryData": categoryData
+                    });
+                }
+                dbConn.release();
+            });
     });
 }
 
@@ -491,7 +491,7 @@ exports.fetchAllDeliveryAreaBannersByAreaId = function (req, res) {
     });
 }
 
-exports.editDeliveryAreaCategory = function(req,res) {
+exports.editDeliveryAreaCategory = function (req, res) {
     const categoryInfo = req.body;
     pool.getConnection(function (err, dbConn) {
         dbConn.query("UPDATE grostep.servicable_area_categories SET ? WHERE id = ?",
@@ -517,7 +517,7 @@ exports.editDeliveryAreaCategory = function(req,res) {
     });
 }
 
-exports.editDeliveryAreaBanner = function(req,res) {
+exports.editDeliveryAreaBanner = function (req, res) {
     const ProductInfo = req.body;
     pool.getConnection(function (err, dbConn) {
         dbConn.query("UPDATE grostep.servicable_area_banners SET ? WHERE id = ?",
@@ -543,7 +543,7 @@ exports.editDeliveryAreaBanner = function(req,res) {
     });
 }
 
-exports.fetchAllDeliveryAreaCategoriesById = function(req,res) {
+exports.fetchAllDeliveryAreaCategoriesById = function (req, res) {
     console.log('Hi');
     pool.getConnection(function (err, dbConn) {
         dbConn.query(`select sac.id,sac.serviceable_area_id,sac.store_category_id,sac.last_updated,sac.category_text,sac.status,
@@ -553,24 +553,24 @@ exports.fetchAllDeliveryAreaCategoriesById = function(req,res) {
                         from servicable_area_categories sac 
                         left join main_categories mc on sac.store_category_id = mc.store_category_id
                         left join grostep.serviceable_areas sa on sac.serviceable_area_id = sa.serviceable_area_id where sac.id = ?`,
-                        req.params.categoryId, 
-                      function (err, categoryData) {
-            if (err) {
-                res.json({
-                    status: 400,
-                    "message": "delivery Area categoryData not found",
-                    "categoryData": []
-                });
-            }
-            else {
-                res.json({
-                    status: 200,
-                    "message": "delivery categoryData Information",
-                    "categoryData": categoryData
-                });
-            }
-            dbConn.release();
-        });
+            req.params.categoryId,
+            function (err, categoryData) {
+                if (err) {
+                    res.json({
+                        status: 400,
+                        "message": "delivery Area categoryData not found",
+                        "categoryData": []
+                    });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "delivery categoryData Information",
+                        "categoryData": categoryData
+                    });
+                }
+                dbConn.release();
+            });
     });
 }
 
@@ -579,24 +579,24 @@ exports.fetchAllDeliveryAreaBannersById = function (req, res) {
         dbConn.query(`select sab.serviceable_area_id,sab.banner_id,sab.last_updated,sab.banner_text,sab.status,
                       sa.city,sa.state,sa.country,sa.city_alternate_name,bi.banner_name,bi.image_url from servicable_area_banners 
                       sab left join grostep.serviceable_areas sa on sab.serviceable_area_id = sa.serviceable_area_id 
-                      left join banner_info bi on sab.banner_id = bi.banner_id where sab.id = ?`, req.params.bannerId, 
-                      function (err, bannerData) {
-            if (err) {
-                res.json({
-                    status: 400,
-                    "message": "delivery Area bannerData not found",
-                    "bannerData": []
-                });
-            }
-            else {
-                res.json({
-                    status: 200,
-                    "message": "delivery bannerData Information",
-                    "bannerData": bannerData
-                });
-            }
-            dbConn.release();
-        });
+                      left join banner_info bi on sab.banner_id = bi.banner_id where sab.id = ?`, req.params.bannerId,
+            function (err, bannerData) {
+                if (err) {
+                    res.json({
+                        status: 400,
+                        "message": "delivery Area bannerData not found",
+                        "bannerData": []
+                    });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "delivery bannerData Information",
+                        "bannerData": bannerData
+                    });
+                }
+                dbConn.release();
+            });
     });
 }
 
@@ -702,37 +702,37 @@ exports.updateOrderStatusByDeliveryPerson = function (req, res) {
                     let messageTitle = '';
                     let messageBody = '';
 
-                    if(req.body.order_delivery_person_status == 2 && orderData[0][0]['order_status'] != 12) {
+                    if (req.body.order_delivery_person_status == 2 && orderData[0][0]['order_status'] != 12) {
                         registrationTokens.push(customer_token);
                         registrationTokens.push(store_token);
                         messageTitle = 'Delivery Person assigned';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} have been sucessfully assigned for the order # ${orderData[0][0]['order_id']}.`;
-                        sendNotification(registrationTokens,messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status'],res);
-                    } else if(req.body.order_delivery_person_status == 3 && orderData[0][0]['order_status'] != 12) {
+                        sendNotification(registrationTokens, messageTitle, messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status'], res);
+                    } else if (req.body.order_delivery_person_status == 3 && orderData[0][0]['order_status'] != 12) {
                         registrationTokens.push(customer_token); registrationTokens.push(store_token);
                         messageTitle = 'Delivery Person reached store and will start picking items';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} reached store and will start picking items for the order # ${orderData[0][0]['order_id']}.`;
-                        sendNotification(registrationTokens,messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status'],res);
-                    } else if(req.body.order_delivery_person_status == 5 && orderData[0][0]['order_status'] != 12) {
+                        sendNotification(registrationTokens, messageTitle, messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status'], res);
+                    } else if (req.body.order_delivery_person_status == 5 && orderData[0][0]['order_status'] != 12) {
                         registrationTokens.push(customer_token);
                         messageTitle = 'Delivery Person picked the items';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} picked for the order # ${orderData[0][0]['order_id']}.`;
-                        sendNotification(registrationTokens,messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status'],res);
-                    } else if(req.body.order_delivery_person_status == 4 && orderData[0][0]['order_status'] != 12) {
+                        sendNotification(registrationTokens, messageTitle, messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status'], res);
+                    } else if (req.body.order_delivery_person_status == 4 && orderData[0][0]['order_status'] != 12) {
                         registrationTokens.push(customer_token);
                         messageTitle = 'Waiting for bill confirmation';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} waiting for bill confirmation for the order # ${orderData[0][0]['order_id']}.`;
-                        sendNotification(registrationTokens,messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status'],res);
-                    } else if(req.body.order_delivery_person_status == 6 && orderData[0][0]['order_status'] != 12) {
+                        sendNotification(registrationTokens, messageTitle, messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status'], res);
+                    } else if (req.body.order_delivery_person_status == 6 && orderData[0][0]['order_status'] != 12) {
                         registrationTokens.push(customer_token);
                         messageTitle = 'Delivery Person is on the way to deliver';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} reached store and will start picking items for the order # ${orderData[0][0]['order_id']}.`;
-                        sendNotification(registrationTokens,messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status'],res);
-                    } else if(req.body.order_delivery_person_status == 7 && orderData[0][0]['order_status'] != 12) {
+                        sendNotification(registrationTokens, messageTitle, messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status'], res);
+                    } else if (req.body.order_delivery_person_status == 7 && orderData[0][0]['order_status'] != 12) {
                         registrationTokens.push(customer_token);
                         messageTitle = 'Order Successfully delivered';
                         messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} have sucessfully delivered the order # ${orderData[0][0]['order_id']}.`;
-                        sendNotification(registrationTokens,messageTitle,messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status'],res);
+                        sendNotification(registrationTokens, messageTitle, messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status'], res);
                     } else {
                         res.json({
                             status: 200,
@@ -748,6 +748,7 @@ exports.updateOrderStatusByDeliveryPerson = function (req, res) {
 }
 
 function filter_token_array(test_array) {
+    console.log(test_array);
     var index = -1,
         arr_length = test_array ? test_array.length : 0,
         resIndex = -1,
@@ -760,11 +761,12 @@ function filter_token_array(test_array) {
             result[++resIndex] = value;
         }
     }
-
+    console.log(result);
     return result;
 }
 
-function sendNotification(registrationTokens,messageTitle, messageBody, order_id, order_status,res) {
+function sendNotification(registrationTokens, messageTitle, messageBody, order_id, order_status, res) {
+    console.log(registrationTokens);
     var payload = {
         notification: {
             title: messageTitle,
@@ -777,13 +779,15 @@ function sendNotification(registrationTokens,messageTitle, messageBody, order_id
         priority: "high",
         timeToLive: 60 * 60 * 24
     };
-    admin.messaging().sendToDevice(filter_token_array(registrationTokens), payload, options)
-        .then(function (response) {
-            console.log("Successfully sent message:", response);
-        })
-        .catch(function (error) {
-            console.log("Error sending message:", error);
-    });
+    if (filter_token_array(registrationTokens).length > 0) {
+        admin.messaging().sendToDevice(filter_token_array(registrationTokens), payload, options)
+            .then(function (response) {
+                console.log("Successfully sent message:", response);
+            })
+            .catch(function (error) {
+                console.log("Error sending message:", error);
+            });
+    }
     res.json({
         status: 200,
         "message": "order Information updated",
