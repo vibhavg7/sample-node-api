@@ -44,67 +44,41 @@ exports.placeOrder = function (req, res) {
                 else {
                     var token1 = orderData[0][0];
                     if (orderData[1][0]['order_id']) {
-                        let keys = ['id', 'quantity', 'orderid']
-                        let values = req.body.products.map((obj) => {
-                            return keys.map((key) => {
-                                if (key == 'orderid') {
-                                    return orderData[1][0]['order_id'];
-                                }
-                                return obj[key];
-                            })
+                        // let keys = ['id', 'quantity', 'orderid']
+                        // let values = req.body.products.map((obj) => {
+                        //     return keys.map((key) => {
+                        //         if (key == 'orderid') {
+                        //             return orderData[1][0]['order_id'];
+                        //         }
+                        //         return obj[key];
+                        //     })
+                        // });
+                        // console.log(values);
+                        let newInsertProductData = [];
+                        req.body.products.forEach((data) => {
+                            let data1 = [];
+                            data1.push(data.id);
+                            data1.push(data.quantity);
+                            data1.push(orderData[1][0]['order_id']);
+                            newInsertProductData.push(data1);
                         });
+                        console.log(newInsertProductData);
                         var sql = "INSERT INTO grostep.order_products_info (store_product_id, quantity,order_id) VALUES ?";
-                        dbConn.query(sql, [values], function (err) {
+                        dbConn.query(sql, [newInsertProductData], function (err) {
                             if (err) {
-                                throw err;
+                                res.json({
+                                    status: 400,
+                                    "message": "order not placed",
+                                    "order_id": 0
+                                });
+                                // throw err;
                             } else {
-
                                 var registrationTokens = [
                                     token1['store_token'],
                                 ];
-                                console.log(registrationTokens);
-
-                                let message = {
-                                    notification: {
-                                        title: "New order recieved",
-                                        body: `Hello , ${orderData[0][0]['store_name']} you have recieved new order # ${orderData[1][0]['order_id']}. Click here for details.`
-                                    },
-                                    android: {
-                                        notification: {
-                                            defaultSound: true,
-                                            notificationCount: 1,
-                                            sound: 'emergency.mp3',
-                                            channelId: 'fcm_emergency_channel',
-                                            icon: `${projectHost()}/android-chrome-192x192.png`,
-                                        },
-                                        ttl: 20000
-                                    },
-                                    webpush: {
-                                        notification: {
-                                            icon: `${projectHost()}/android-chrome-192x192.png`
-
-                                        },
-                                        fcm_options: {
-                                            link: projectHost()
-                                        }
-                                    },
-                                    apns: {
-                                        payload: {
-                                            aps: {
-                                                sound: 'emergency.aiff'
-                                            }
-                                        }
-                                    },
-                                    tokens: registrationTokens
-                                }
-
-                                admin.messaging().sendMulticast(message)
-                                    .then(function (response) {
-                                        console.log("Successfully sent message:", response);
-                                    })
-                                    .catch(function (error) {
-                                        console.log("Error sending message:", error);
-                                    });
+                                let messageTitle = "New order recieved";
+                                let messageBody = `Hello , ${orderData[0][0]['store_name']} you have recieved new order # ${orderData[1][0]['order_id']}. Click here for details.`;
+                                sendMulticastToken(registrationTokens, messageTitle, messageBody);
                                 res.json({
                                     "status": 200,
                                     "message": "order sucessfully placed added",
@@ -344,12 +318,12 @@ exports.updateOrderStatusByMerchant = function (req, res) {
                                 deliverypersondata.forEach((data) => {
                                     deliveryPersonsTokens.push(data['token']);
                                 });
-                                
+
                                 customerToken.push(orderData[0][0]['customer_token']);
                                 let messageBody = `Hello , ${orderData[0][0]['store_name']} have accepted the new order # ${orderData[0][0]['order_id']}. Click here to view details.`;
                                 let messageTitle = 'Order Accepted';
                                 sendTokenToCustomer(customerToken, messageTitle, messageBody);
-                                sendTokenToDeliveryPerson(deliveryPersonsTokens, messageTitle, messageBody);
+                                sendMulticastToken(deliveryPersonsTokens, messageTitle, messageBody);
                                 res.json({
                                     status: 200,
                                     "message": "order Information updated",
@@ -457,7 +431,7 @@ function sendTokenToCustomer(registrationTokens, messageTitle, messageBody) {
 
 }
 
-function sendTokenToDeliveryPerson(registrationTokens, messageTitle, messageBody) {
+function sendMulticastToken(registrationTokens, messageTitle, messageBody) {
     console.log(registrationTokens);
     let message = {
         notification: {
@@ -492,22 +466,15 @@ function sendTokenToDeliveryPerson(registrationTokens, messageTitle, messageBody
         },
         tokens: registrationTokens
     }
-    admin.messaging().sendMulticast(message)
-        .then(function (response) {
-            console.log("Successfully sent message:", response);
-        })
-        .catch(function (error) {
-            console.log("Error sending message:", error);
-        });
-    // if (filter_token_array(registrationTokens).length > 0) {
-    //     admin.messaging().sendMulticast(message)
-    //         .then(function (response) {
-    //             console.log("Successfully sent message:", response);
-    //         })
-    //         .catch(function (error) {
-    //             console.log("Error sending message:", error);
-    //         });
-    // }
+    if (filter_token_array(registrationTokens).length > 0) {
+        admin.messaging().sendMulticast(message)
+            .then(function (response) {
+                console.log("Successfully sent message:", response);
+            })
+            .catch(function (error) {
+                console.log("Error sending message:", error);
+            });
+    }
 }
 
 function filter_token_array(test_array) {
