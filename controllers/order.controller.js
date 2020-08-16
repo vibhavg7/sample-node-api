@@ -62,6 +62,7 @@ exports.placeOrder = function (req, res) {
                                 var registrationTokens = [
                                     token1['store_token'],
                                 ];
+                                console.log(registrationTokens);
 
                                 let message = {
                                     notification: {
@@ -121,7 +122,7 @@ exports.placeOrder = function (req, res) {
 }
 
 function projectHost() {
-    
+
 }
 
 exports.cancelOrderByCustomer = function (req, res) {
@@ -189,7 +190,7 @@ exports.updateOrderBillImage = function (orderId, imageUrl, req, res) {
 
 exports.fetchCustomerAllPaymentMethodsCityWise = function (req, res) {
     let sql = `CALL GET_CUSTOMER_PAYMENTMETHODSCITYWISE(?)`;
-console.log(req.body.city);
+    console.log(req.body.city);
     pool.getConnection(function (err, dbConn) {
         console.error(err);
         dbConn.query(sql, [req.body.city],
@@ -328,7 +329,8 @@ exports.updateOrderStatusByMerchant = function (req, res) {
                     });
                 }
                 else {
-                    let registrationTokens = [];
+                    let deliveryPersonsTokens = [];
+                    let customerToken = [];
                     if (req.body.order_merchant_status == 2 && orderData[0][0]['order_status'] != 12) {
                         dbConn.query("SELECT token FROM grostep.deliveryperson WHERE status = 1 and available = 1 and token is not null", function (err, deliverypersondata) {
                             if (err) {
@@ -339,31 +341,15 @@ exports.updateOrderStatusByMerchant = function (req, res) {
                                 });
                             }
                             else {
-
                                 deliverypersondata.forEach((data) => {
-                                    registrationTokens.push(data['token']);
+                                    deliveryPersonsTokens.push(data['token']);
                                 });
-                                registrationTokens.push(orderData[0][0]['customer_token']);
-
-                                var payload = {
-                                    notification: {
-                                        title: "Order Accepted",
-                                        body: `Hello , ${orderData[0][0]['store_name']} have accepted the new order # ${orderData[0][0]['order_id']}. Click here to view details.`
-                                    }
-                                };
-
-                                var options = {
-                                    priority: "high",
-                                    timeToLive: 60 * 60 * 24
-                                };
-                                admin.messaging().sendToDevice(registrationTokens, payload, options)
-                                    .then(function (response) {
-                                        console.log("Successfully sent message:", response);
-                                    })
-                                    .catch(function (error) {
-                                        console.log("Error sending message:", error);
-                                    });
-
+                                
+                                customerToken.push(orderData[0][0]['customer_token']);
+                                let messageBody = `Hello , ${orderData[0][0]['store_name']} have accepted the new order # ${orderData[0][0]['order_id']}. Click here to view details.`;
+                                let messageTitle = 'Order Accepted';
+                                sendTokenToCustomer(customerToken, messageTitle, messageBody);
+                                sendTokenToDeliveryPerson(deliveryPersonsTokens, messageTitle, messageBody);
                                 res.json({
                                     status: 200,
                                     "message": "order Information updated",
@@ -445,8 +431,101 @@ exports.updateOrderStatusByMerchant = function (req, res) {
                 dbConn.release();
             });
     });
+}
 
+function sendTokenToCustomer(registrationTokens, messageTitle, messageBody) {
+    var payload = {
+        notification: {
+            title: messageTitle,
+            body: messageBody
+        }
+    };
 
+    var options = {
+        priority: "high",
+        timeToLive: 60 * 60 * 24
+    };
+    if (filter_token_array(registrationTokens).length > 0) {
+        admin.messaging().sendToDevice(registrationTokens, payload, options)
+            .then(function (response) {
+                console.log("Successfully sent message:", response);
+            })
+            .catch(function (error) {
+                console.log("Error sending message:", error);
+            });
+    }
+
+}
+
+function sendTokenToDeliveryPerson(registrationTokens, messageTitle, messageBody) {
+    console.log(registrationTokens);
+    let message = {
+        notification: {
+            title: messageTitle,
+            body: messageBody
+        },
+        android: {
+            notification: {
+                defaultSound: true,
+                notificationCount: 1,
+                sound: 'emergency.mp3',
+                channelId: 'fcm_emergency_channel',
+                icon: `${projectHost()}/android-chrome-192x192.png`,
+            },
+            ttl: 20000
+        },
+        webpush: {
+            notification: {
+                icon: `${projectHost()}/android-chrome-192x192.png`
+
+            },
+            fcm_options: {
+                link: projectHost()
+            }
+        },
+        apns: {
+            payload: {
+                aps: {
+                    sound: 'emergency.aiff'
+                }
+            }
+        },
+        tokens: registrationTokens
+    }
+    admin.messaging().sendMulticast(message)
+        .then(function (response) {
+            console.log("Successfully sent message:", response);
+        })
+        .catch(function (error) {
+            console.log("Error sending message:", error);
+        });
+    // if (filter_token_array(registrationTokens).length > 0) {
+    //     admin.messaging().sendMulticast(message)
+    //         .then(function (response) {
+    //             console.log("Successfully sent message:", response);
+    //         })
+    //         .catch(function (error) {
+    //             console.log("Error sending message:", error);
+    //         });
+    // }
+}
+
+function filter_token_array(test_array) {
+    // console.log(test_array);
+    var index = -1,
+        arr_length = test_array ? test_array.length : 0,
+        resIndex = -1,
+        result = [];
+
+    while (++index < arr_length) {
+        var value = test_array[index];
+
+        if (value) {
+            result[++resIndex] = value;
+        }
+    }
+    // console.log(result);
+    return result;
 }
 
 exports.fetchDeliveryPersonOrdersInfoById = function (req, res) {
@@ -484,12 +563,12 @@ exports.fetchDeliveryPersonOrdersInfoById = function (req, res) {
 
 
 exports.fetchMerchantOrderCountById = function (req, res) {
-    console.log('Hi');
+    // console.log('Hi');
     let offStr = "";
     let offHrStr = parseInt(req.params.offset / 60) > 0 ? -parseInt(req.params.offset / 60) : Math.abs(parseInt(req.params.offset / 60));
     let offMinStr = Math.abs(req.params.offset % 60);
     offStr = offHrStr + ":" + offMinStr;
-    console.log(offStr.toString());
+    // console.log(offStr.toString());
     let sql = `CALL GET_MERCHANT_ORDERS_COUNT(?,?)`;
 
     pool.getConnection(function (err, dbConn) {
@@ -503,7 +582,7 @@ exports.fetchMerchantOrderCountById = function (req, res) {
                     });
                 }
                 else {
-                    console.log(orderData[0]);
+                    // console.log(orderData[0]);
                     res.json({
                         "message": "orders counts information",
                         "status": 200,
