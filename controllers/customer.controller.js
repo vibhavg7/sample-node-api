@@ -519,6 +519,31 @@ exports.updateCustomer = function (req, res) {
     });
 }
 
+exports.subscribeUser = function(req,res) {
+    let sql = `CALL ADD_SUBSCRIBED_USER(?)`;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql,
+            [req.body.subscription], function (err, subscriptionData) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "customer Information not added successfully",
+                        "subscriptionData": []
+                    });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "customer Information added successfully",
+                        "subscriptionData": subscriptionData[0]
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
 
 exports.updateOrderStatusByCustomer = function (req, res) {
 

@@ -51,4 +51,7 @@ router.route('/customerinfo/:customerId')
 router.route('/updateOrder/:orderId')
     .put(customerController.updateOrderStatusByCustomer);
 
+router.route('/subscribeUser')
+    .post(customerController.subscribeUser);
+
 module.exports = router;
