@@ -533,10 +533,33 @@ exports.subscribeUser = function(req,res) {
                     });
                 }
                 else {
-                    res.json({
-                        status: 200,
-                        "message": "customer Information added successfully",
-                        "subscriptionData": subscriptionData[0]
+                    const url_link = 'https://bit.ly/317aftF';
+                    let msg = `Click here to download Milkbasket :${url_link}`;
+                    var str = '';
+                    let phone = +req.body.subscription;
+                    var options = {
+                        host: 'login.aquasms.com',
+                        port: 80,
+                        path: encodeURI('/sendSMS?username=vibhav&message=' + msg + '&sendername=GROSTP&smstype=TRANS&numbers=' + phone + '&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa'),
+                        method: 'GET'
+                    };
+                    var reqGet = http.request(options, function (res1) {
+                        res1.on('data', function (chunk) {
+                            str += chunk;
+                        });
+                        res1.on('end', function () {
+                            console.log(JSON.parse(str)[1]['msgid']);
+                            // return str;
+                            return res.json({
+                                "status": 200,
+                                "message": "customer Information added successfully",
+                                "subscriptionData": subscriptionData[0],
+                                "msgid": JSON.parse(str)[1]['msgid']
+                            });
+                        });
+                    }).end();
+                    reqGet.on('error', function (e) {
+                        console.error(e);
                     });
                 }
                 dbConn.release();
