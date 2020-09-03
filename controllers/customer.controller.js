@@ -534,7 +534,7 @@ exports.subscribeUser = function(req,res) {
                 }
                 else {
                     const url_link = 'https://bit.ly/317aftF';
-                    let msg = `Click here to download Milkbasket :${url_link}`;
+                    let msg = `Thank you for subscribing the application. Click here to download Grostep :${url_link}`;
                     var str = '';
                     let phone = +req.body.subscription;
                     var options = {
