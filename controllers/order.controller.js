@@ -103,10 +103,10 @@ exports.cancelOrderByCustomer = function (req, res) {
     let sql = `CALL CANCEL_ORDER_BY_CUSTOMER(?,?)`;
     let orderId = +req.params.orderId;
     let orderStatus = +req.body.status;
-    if (orderStatus >= 5) {
+    if (orderStatus >= 3) {
         res.json({
             "status": 401,
-            "message": "order not cancelled",
+            "message": "order can't be cancelled",
             "order": []
         });
     } else {
@@ -451,7 +451,6 @@ function sendMulticastToken(registrationTokens, messageTitle, messageBody) {
         webpush: {
             notification: {
                 icon: `${projectHost()}/android-chrome-192x192.png`
-
             },
             fcm_options: {
                 link: projectHost()
