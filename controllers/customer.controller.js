@@ -261,17 +261,18 @@ exports.authenticateservicelocation = function (req, res) {
 }
 
 exports.addCustomerFeedback = function (req, res) {
-    let sql = `CALL ADD_CUSTOMER_FEEDBACK(?,?,?,?,?)`;
+    let sql = `CALL ADD_CUSTOMER_FEEDBACK(?,?,?,?,?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [req.body.customer_id, req.body.name, req.body.email,
-        req.body.phone, req.body.message],
+        req.body.phone, req.body.message, +req.body.parentId,
+        +req.body.actionBy, req.body.customerCity, +req.body.ticketMode],
             function (err, feedback) {
                 if (err) {
                     console.log("error: ", err);
                     res.json({
                         "message": "feedback not added",
                         "status": 400,
-                        "banner_id": 0
+                        "feedback_id": 0
                     });
                 }
                 else {
@@ -280,6 +281,60 @@ exports.addCustomerFeedback = function (req, res) {
                         "status": 200,
                         "message": "feedback added",
                         "feedback_id": feedback[0][0]['feedback_id']
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
+exports.getCustomerFeedbacks = function(req, res) {
+    let sql = `CALL GET_ALL_CUSTOMER_FEEDBACKS(?,?,?)`;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [+req.body.page_number, +req.body.page_size, req.body.filterBy],
+            function (err, customerFeedbacks) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "Feedbacks Information not found",
+                        "customer_feedback_info": [],
+                        "customer_feedback_count": []
+                    });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "Feedbacks Information",
+                        "customer_feedback_info": customerFeedbacks[0],
+                        "customer_feedback_count": customerFeedbacks[1]
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
+exports.getFeedbackDetailById = function(req, res) {
+    let sql = `CALL GET_FEEDBACK_DETAIL(?)`;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [+req.params.feedBackId],
+            function (err, customerFeedbacks) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "feedbacks Information not found",
+                        "customer_feedback_info": [],
+                        "customer_feedback_count": []
+                    });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "feedbacks Information",
+                        "customer_feedback_info": customerFeedbacks[0],
+                        "customer_feedback_count": customerFeedbacks[1]
                     });
                 }
                 dbConn.release();

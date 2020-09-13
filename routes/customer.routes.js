@@ -15,6 +15,12 @@ router.route('/validate')
 router.route('/addCustomerFeedback')
     .post(customerController.addCustomerFeedback);
 
+router.route('/customerFeedback/:feedBackId')
+    .get(customerController.getFeedbackDetailById);
+
+router.route('/customerFeedback')
+    .post(customerController.getCustomerFeedbacks);
+
 router.route('/customerinfo')
     .post(customerController.fetchAllCustomers);
 
