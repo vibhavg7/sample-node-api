@@ -10,4 +10,8 @@ router.route('/')
 router.route('/validate')
     .post(employeeController.validateEmployee);
 
+router.route('/dashboards/:employeeId')
+    .get(employeeController.getAllEmployeeDasboards);
+
+
 module.exports = router;
