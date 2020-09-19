@@ -75,9 +75,9 @@ exports.placeOrder = function (req, res) {
                                     "order_id": orderData[1][0]['order_id']
                                 });
                             }
-                            console.log(pool._freeConnections.indexOf(connection)); // -1
+                            console.log(pool._freeConnections.indexOf(dbConn)); // -1
                             dbConn.release();
-                            console.log(pool._freeConnections.indexOf(connection)); // 0
+                            console.log(pool._freeConnections.indexOf(dbConn)); // 0
                         });
                     }
                 }
