@@ -11,9 +11,7 @@ var pool = mysql.createPool({
     database: 'grostep'
 });
 exports.placeOrder = function (req, res) {
-
     let sql = `CALL PLACE_CUSTOMER_ORDER(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
-
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [
             +req.body.customerid,
@@ -43,17 +41,7 @@ exports.placeOrder = function (req, res) {
                 }
                 else {
                     var token1 = orderData[0][0];
-                    if (orderData[1][0]['order_id']) {
-                        // let keys = ['id', 'quantity', 'orderid']
-                        // let values = req.body.products.map((obj) => {
-                        //     return keys.map((key) => {
-                        //         if (key == 'orderid') {
-                        //             return orderData[1][0]['order_id'];
-                        //         }
-                        //         return obj[key];
-                        //     })
-                        // });
-                        // console.log(values);
+                    if (orderData[1][0]['order_id']) {                 
                         let newInsertProductData = [];
                         req.body.products.forEach((data) => {
                             let data1 = [];
@@ -64,7 +52,7 @@ exports.placeOrder = function (req, res) {
                         });
                         console.log(newInsertProductData);
                         var sql = "INSERT INTO grostep.order_products_info (store_product_id, quantity,order_id) VALUES ?";
-                        dbConn.query(sql, [newInsertProductData], function (err) {
+                        dbConn.query(sql, [newInsertProductData], function (err, results) {
                             if (err) {
                                 res.json({
                                     status: 400,
@@ -73,6 +61,7 @@ exports.placeOrder = function (req, res) {
                                 });
                                 // throw err;
                             } else {
+                                console.log(results);
                                 var registrationTokens = [
                                     token1['store_token'],
                                 ];
@@ -85,14 +74,12 @@ exports.placeOrder = function (req, res) {
                                     "order_id": orderData[1][0]['order_id']
                                 });
                             }
+                            dbConn.release();
                         });
                     }
                 }
-                dbConn.release();
             });
     });
-
-
 }
 
 function projectHost() {
@@ -241,38 +228,6 @@ exports.updateOrder = function (req, res) {
                             "order": 0
                         });
                     } else {
-
-                        //logic to send push notification to all available delivery boys and customer notified 
-
-
-                        // var registrationTokens = [
-                        //     // token1['customer_token']
-                        //     token1['store_token'],
-                        // ];
-
-
-                        // var payload = {
-                        //     notification: {
-                        //         title: "New order recieved",
-                        //         body: `Hello , ${orderData[0][0]['store_name']} you have recieved new order # ${orderData[1][0]['order_id']}. Click here for details.`
-                        //         // "This is the body of the notification message."
-                        //     }
-                        // };
-
-                        // var options = {
-                        //     priority: "high",
-                        //     timeToLive: 60 * 60 * 24
-                        // };
-
-                        // admin.messaging().sendToDevice(registrationTokens, payload, options)
-                        //     .then(function (response) {
-                        //         console.log("Successfully sent message:", response);
-                        //     })
-                        //     .catch(function (error) {
-                        //         console.log("Error sending message:", error);
-                        //     });
-
-
                         res.json({
                             status: 200,
                             "message": "order Information updated",
