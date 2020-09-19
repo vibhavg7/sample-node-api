@@ -32,7 +32,7 @@ exports.placeOrder = function (req, res) {
             req.body.payment_status],
             function (err, orderData) {
                 if (err) {
-                    console.log(err);
+                    console.error(err);
                     res.json({
                         status: 400,
                         "message": "order not placed",
@@ -50,10 +50,11 @@ exports.placeOrder = function (req, res) {
                             data1.push(orderData[1][0]['order_id']);
                             newInsertProductData.push(data1);
                         });
-                        console.log(newInsertProductData);
+                        // console.log(newInsertProductData);
                         var sql = "INSERT INTO grostep.order_products_info (store_product_id, quantity,order_id) VALUES ?";
-                        dbConn.query(sql, [newInsertProductData], function (err, results) {
+                        dbConn.query(sql, [newInsertProductData], function (err) {
                             if (err) {
+                                console.error(err);
                                 res.json({
                                     status: 400,
                                     "message": "order not placed",
@@ -61,7 +62,7 @@ exports.placeOrder = function (req, res) {
                                 });
                                 // throw err;
                             } else {
-                                console.log(results);
+                                // console.log(results);
                                 var registrationTokens = [
                                     token1['store_token'],
                                 ];
@@ -74,7 +75,9 @@ exports.placeOrder = function (req, res) {
                                     "order_id": orderData[1][0]['order_id']
                                 });
                             }
+                            console.log(pool._freeConnections.indexOf(connection)); // -1
                             dbConn.release();
+                            console.log(pool._freeConnections.indexOf(connection)); // 0
                         });
                     }
                 }
