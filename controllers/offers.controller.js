@@ -40,24 +40,30 @@ exports.searchActiveCouponByName = function(req,res) {
 }
 
 exports.fetchAllActiveOffers = function (req, res) {
+    const customerId = +req.params.customerId || 0;
+    let sql = `CALL FETCH_CUSTOMER_OFFERS(?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("SELECT * FROM vouchers where status = 1", function (err, vouchers) {
-            if (err) {
-                res.json({
-                    status: 400,
-                    "message": "vouchers Information not found",
-                    "vouchers": vouchers[0]
-                });
-            }
-            else {
-                res.json({
-                    status: 200,
-                    "message": "vouchers Information",
-                    "vouchers": vouchers
-                });
-            }
-            dbConn.release();
-        });
+        dbConn.query(sql, [
+            customerId],
+            function (err, offersData) {
+                // console.log(offersData[0]);
+                if (err) {
+                    console.error(err);
+                    res.json({
+                        status: 400,
+                        "message": "offers not fetched",
+                        "vouchers":[]
+                    });
+                }
+                else {
+                    res.json({
+                        "status": 200,
+                        "message": "offers sucessfully fetched",
+                        "vouchers":offersData[0]
+                    });
+                }
+                dbConn.release();
+            });
     });
 }
 

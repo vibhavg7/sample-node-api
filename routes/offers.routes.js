@@ -3,8 +3,12 @@ var router = express.Router();
 
 var offersController = require("../controllers/offers.controller");
 
+router.route('/customeroffers/:customerId')
+    .get(offersController.fetchAllActiveOffers);
+
 router.route('/customeroffers')
     .get(offersController.fetchAllActiveOffers);
+
 
 router.route('/searchVoucherByName')
     .post(offersController.searchActiveCouponByName);
