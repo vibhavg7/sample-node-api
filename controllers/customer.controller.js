@@ -289,9 +289,9 @@ exports.addCustomerFeedback = function (req, res) {
 }
 
 exports.getCustomerFeedbacks = function(req, res) {
-    let sql = `CALL GET_ALL_CUSTOMER_FEEDBACKS(?,?,?)`;
+    let sql = `CALL GET_ALL_CUSTOMER_FEEDBACKS(?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [+req.body.page_number, +req.body.page_size, req.body.filterBy],
+        dbConn.query(sql, [+req.body.page_number, +req.body.page_size, req.body.filterBy, +req.body.customerId],
             function (err, customerFeedbacks) {
                 if (err) {
                     console.log("error: ", err);
