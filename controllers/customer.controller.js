@@ -316,27 +316,23 @@ exports.getCustomerFeedbacks = function(req, res) {
 }
 
 exports.getFeedbackDetailById = function(req, res) {
-    let sql = `CALL GET_FEEDBACK_DETAIL(?,?,?,?)`;
+    let sql = `CALL GET_FEEDBACK_DETAIL(?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [+req.body.page_number, +req.body.page_size, req.body.filterBy,+req.params.feedBackId],
-            function (err, customerFeedbacks) {
+        dbConn.query(sql, [+req.params.feedBackId],
+            function (err, customerFeedback) {
                 if (err) {
                     console.log("error: ", err);
                     res.json({
                         status: 400,
                         "message": "feedbacks Information not found",
-                        "customer_feedback_info": [],
-                        "customer_feedback_messages": [],
-                        "customer_feedback_messages_count": []
+                        "customer_feedback_info": []
                     });
                 }
                 else {
                     res.json({
                         status: 200,
                         "message": "feedbacks Information",
-                        "customer_feedback_info": customerFeedbacks[0],
-                        "customer_feedback_messages": customerFeedbacks[1],
-                        "customer_feedback_messages_count": customerFeedbacks[2]
+                        "customer_feedback_info": customerFeedback[0]
                     });
                 }
                 dbConn.release();
