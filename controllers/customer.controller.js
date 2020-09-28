@@ -261,11 +261,11 @@ exports.authenticateservicelocation = function (req, res) {
 }
 
 exports.addCustomerFeedback = function (req, res) {
-    let sql = `CALL ADD_CUSTOMER_FEEDBACK(?,?,?,?,?,?,?,?,?,?)`;
+    let sql = `CALL ADD_CUSTOMER_FEEDBACK(?,?,?,?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.body.customer_id, req.body.name, req.body.email,
-        +req.body.phone, req.body.message, +req.body.feedbackId,
-        +req.body.actionBy, req.body.customerCity, +req.body.ticketMode, +req.body.messageId],
+        +req.body.phone, req.body.message,
+        +req.body.actionBy, req.body.customerCity, +req.body.ticketMode],
             function (err, feedback) {
                 if (err) {
                     console.log("error: ", err);
@@ -276,7 +276,6 @@ exports.addCustomerFeedback = function (req, res) {
                     });
                 }
                 else {
-                    console.log(JSON.stringify(feedback));
                     res.json({
                         "status": 200,
                         "message": "feedback added",
