@@ -265,7 +265,8 @@ exports.addCustomerFeedback = function (req, res) {
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.body.customer_id, req.body.name, req.body.email,
         +req.body.phone, req.body.message,
-        +req.body.actionBy, req.body.customerCity, +req.body.ticketMode, +req.body.status, +req,body.feedbackId],
+        +req.body.actionBy, req.body.customerCity, 
+        +req.body.ticketMode, +req.body.status, +req.body.feedbackId],
             function (err, feedback) {
                 if (err) {
                     console.log("error: ", err);
