@@ -1,5 +1,5 @@
 var mysql = require('mysql');
-
+var moment = require('moment');
 var pool = mysql.createPool({
     connectionLimit: 10,
     host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
@@ -69,7 +69,7 @@ exports.fetchAllActiveOffers = function (req, res) {
 
 exports.fetchCouponInfoById = function (req, res) {
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("SELECT * FROM vouchers WHERE voucher_id = ? ", req.params.couponId, function (err, couponData) {
+        dbConn.query("SELECT * FROM vouchers WHERE voucher_id = ? ", +req.params.couponId, function (err, couponData) {
             if (err) {
                 res.json({
                     status: 400,
@@ -113,7 +113,10 @@ exports.deleteCoupon = function (req, res) {
 }
 
 exports.updateCoupon = function (req, res) {
+    let utcMoment = moment.utc();
+    req.body.voucher_last_updated = new Date(utcMoment);
     const updateCoupon = req.body;
+    console.log(updateCoupon);
     pool.getConnection(function (err, dbConn) {
         dbConn.query("UPDATE grostep.vouchers SET ? WHERE voucher_id = ?", [updateCoupon, +req.params.couponId], function (err, couponData) {
             if (err) {
@@ -139,19 +142,27 @@ exports.updateCoupon = function (req, res) {
 
 exports.addNewCoupon = function (req, res) {
     const newProduct = req.body;
-    let sql = `CALL ADD_NEW_COUPON(?,?,?,?,?,?,?)`;
+    let sql = `CALL ADD_NEW_COUPON(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
 
+    let calculationType = +req.body.calculationType;
+    let expirydatetime = req.body.expirydatetime;
+    let voucherMaxUsageCount = +req.body.voucherMaxUsageCount;
     let voucherCode = req.body.voucherCode;
-    let voucherAmount = +req.body.voucherAmount;
-    let expirydatetime = null;
-    let voucherCartAmount = +req.body.voucherCartAmount;
-    let voucherType = +req.body.voucherType;
-    let description = req.body.description;
+    let voucherDescription = req.body.voucherDescription;
+    let voucherMaxLimit = +req.body.voucherMaxLimit;
+    let voucherMaxLimitUser = +req.body.voucherMaxLimitUser;
+    let voucherMinCartAmount = +req.body.voucherMinCartAmount;
+    let voucherValue = +req.body.voucherValue;
+    let createdBy = req.body.createdBy;
+    let customerId = req.body.customerId;
+    let city = 4;
+    let voucherType = 0;
     let status = +req.body.status;
 
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [voucherCode, voucherAmount, expirydatetime, 
-            voucherCartAmount, voucherType, description, status],
+        dbConn.query(sql, [voucherCode, voucherValue, expirydatetime, 
+            voucherMinCartAmount, voucherType, voucherDescription, status,createdBy, customerId, city,
+            voucherMaxUsageCount, voucherMaxLimit, voucherMaxLimitUser, calculationType],
             function (err, coupon) {
                 if (err) {
                     console.log("error: ", err);
