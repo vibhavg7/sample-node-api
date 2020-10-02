@@ -88,6 +88,65 @@ exports.resendOTP = function (req, res) {
     });
 }
 
+exports.updateCustomerFromAdminPanel = function (req, res) {
+    const updateCustomer = req.body;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("UPDATE grostep.customer SET ? WHERE customer_id = ?", [updateCustomer, +req.params.customerId], function (err, customer) {
+            if (err) {
+                console.log("error: ", err);
+                res.json({
+                    status: 400,
+                    "message": "customer Information not updated",
+                    "customer": customer
+                });
+
+            }
+            else {
+                console.log(JSON.stringify(customer));
+                res.json({
+                    status: 200,
+                    "message": "customer Information updated",
+                    "customer": customer
+                });
+            }
+            dbConn.release();
+        });
+    });
+}
+
+exports.registerCustomerFromAdminPanel = function (req, res) {
+    var sql = `INSERT INTO customer 
+            (
+                customer_name, customer_dob, phone, status,personal_info_added
+            )
+            VALUES
+            (
+                ?, ?, ?, ?, ?
+            )`;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [req.body.customerName, req.body.customerDOB, req.body.customerPhone,
+        +req.body.status, 1],
+            function (err, customerData) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "customer not added",
+                        "customer_id": 0
+                    });
+                }
+                else {
+                    res.json({
+                        "status": 200,
+                        "message": "Customer registered",
+                        "product": customerData[0]
+                    });
+                }
+                dbConn.release();
+            })
+    });
+}
+
 exports.registerCustomer = function (req, res) {
     let sql = `CALL REGISTER_CUSTOMER(?,?,?)`;
     const otp_number = Math.floor(1000 + Math.random() * 9000);
@@ -265,7 +324,7 @@ exports.addCustomerFeedback = function (req, res) {
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.body.customer_id, req.body.name, req.body.email,
         +req.body.phone, req.body.message,
-        +req.body.actionBy, req.body.customerCity, 
+        +req.body.actionBy, req.body.customerCity,
         +req.body.ticketMode, +req.body.status, +req.body.feedbackId],
             function (err, feedback) {
                 if (err) {
@@ -288,7 +347,7 @@ exports.addCustomerFeedback = function (req, res) {
     });
 }
 
-exports.getCustomerFeedbacks = function(req, res) {
+exports.getCustomerFeedbacks = function (req, res) {
     let sql = `CALL GET_ALL_CUSTOMER_FEEDBACKS(?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.body.page_number, +req.body.page_size, req.body.filterBy, +req.body.customerId],
@@ -315,7 +374,7 @@ exports.getCustomerFeedbacks = function(req, res) {
     });
 }
 
-exports.getFeedbackDetailById = function(req, res) {
+exports.getFeedbackDetailById = function (req, res) {
     let sql = `CALL GET_FEEDBACK_DETAIL(?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.params.feedBackId],
@@ -484,7 +543,7 @@ exports.getCustomer = function (req, res) {
     });
 }
 
-exports.getCustomerSelectedAddressCityWise = function(req, res) {
+exports.getCustomerSelectedAddressCityWise = function (req, res) {
     let sql = `CALL GET_CUSTOMER_SELECTEDADDRESSESCITYWISE(?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql,
@@ -572,7 +631,7 @@ exports.updateCustomer = function (req, res) {
     });
 }
 
-exports.subscribeUser = function(req,res) {
+exports.subscribeUser = function (req, res) {
     let sql = `CALL ADD_SUBSCRIBED_USER(?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql,
