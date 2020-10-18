@@ -2,7 +2,6 @@ var mysql = require('mysql');
 var rp = require('request-promise');
 var admin = require("firebase-admin");
 
-
 var pool = mysql.createPool({
     connectionLimit: 10,
     host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
@@ -11,6 +10,12 @@ var pool = mysql.createPool({
     database: 'grostep'
 });
 exports.placeOrder = function (req, res) {
+    if (+req.body.deliveryfee == 0) {
+        req.body.deliveryfee = 15;
+    }
+    if (+req.body.payableamount == 0) {
+        req.body.payableamount = (+req.body.totalamount) + (+req.body.deliveryfee) - (+req.body.discountamount);        
+    }
     let sql = `CALL PLACE_CUSTOMER_ORDER(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [
