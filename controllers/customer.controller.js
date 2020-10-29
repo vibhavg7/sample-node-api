@@ -631,6 +631,38 @@ exports.updateCustomer = function (req, res) {
     });
 }
 
+
+exports.getSubcriptions = function(req,res) {
+    let sql = `CALL GET_ALL_SUBSCRIPTION(?,?,?)`;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [+req.body.pageNumber, +req.body.pageSize, req.body.filterBy],
+            function (err, subscriptionsInfo) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "Subscription Information not found",
+                        "subscriptions_info": [],
+                        "subscriptions_count": []
+                    });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "Subscription Information",
+                        "subscriptions_info": subscriptionsInfo[0],
+                        "subscriptions_count": subscriptionsInfo[1]
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
+exports.getSubscriptionDetailById = function(req,res) {
+    
+}
+
 exports.subscribeUser = function (req, res) {
     let sql = `CALL ADD_SUBSCRIBED_USER(?)`;
     pool.getConnection(function (err, dbConn) {

@@ -66,4 +66,11 @@ router.route('/updateOrder/:orderId')
 router.route('/subscribeUser')
     .post(customerController.subscribeUser);
 
+
+router.route('/subscriptioninfo')
+    .post(customerController.getSubcriptions);
+
+router.route('/subscriptioninfo/:subscriptionId')
+    .post(customerController.getSubscriptionDetailById);
+
 module.exports = router;
