@@ -1,7 +1,7 @@
 var mysql = require('mysql');
 var rp = require('request-promise');
 var admin = require("firebase-admin");
-
+var http = require('http');
 var pool = mysql.createPool({
     connectionLimit: 10,
     host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
@@ -46,6 +46,7 @@ exports.placeOrder = function (req, res) {
                 }
                 else {
                     var token1 = orderData[0][0];
+                    var employeeData = orderData[2];
                     if (orderData[1][0]['order_id']) {                 
                         let newInsertProductData = [];
                         req.body.products.forEach((data) => {
@@ -55,7 +56,6 @@ exports.placeOrder = function (req, res) {
                             data1.push(orderData[1][0]['order_id']);
                             newInsertProductData.push(data1);
                         });
-                        // console.log(newInsertProductData);
                         var sql = "INSERT INTO grostep.order_products_info (store_product_id, quantity,order_id) VALUES ?";
                         dbConn.query(sql, [newInsertProductData], function (err) {
                             if (err) {
@@ -65,30 +65,73 @@ exports.placeOrder = function (req, res) {
                                     "message": "order not placed",
                                     "order_id": 0
                                 });
-                                // throw err;
                             } else {
-                                // console.log(results);
                                 var registrationTokens = [
                                     token1['store_token'],
+                                    token1['customer_token']
                                 ];
-                                let messageTitle = "New order recieved";
-                                let messageBody = `Hello , ${orderData[0][0]['store_name']} you have recieved new order # ${orderData[1][0]['order_id']}. Click here for details.`;
+                                var OrderPhoneNumbers = [] ;
+                                employeeData.forEach((data) => {
+                                    OrderPhoneNumbers.push(+data['phone_number']);
+                                });
+                                OrderPhoneNumbers.push(+orderData[0][0]['customer_phone_number']);
+                                OrderPhoneNumbers.push(orderData[0][0]['store_phone_number']);
+                                let messageTitle = "New order placed";
+                                let messageBody = `Hello, Thanks for ordering from Grostep. ${titleCase(orderData[0][0]['store_name'])} have recieved new order # ${orderData[1][0]['order_id']}. Click here for details.`;
                                 sendMulticastToken(registrationTokens, messageTitle, messageBody);
+                                let phone = filter_token_array(OrderPhoneNumbers).toString();
+                                let msg = `Hello, Thanks for ordering from Grostep. ${titleCase(orderData[0][0]['store_name'])} have recieved new order ${orderData[1][0]['order_id']}. View the mobile app for details.`;
+                                var str = '';
+                                var options = {
+                                    host: 'login.aquasms.com',
+                                    port: 80,
+                                    path: encodeURI('/sendSMS?username=vibhav&message=' + msg + '&sendername=GROSTP&smstype=TRANS&numbers=' + phone + '&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa'),
+                                    method: 'GET'
+                                };
+                                var reqGet = http.request(options, function (res1) {
+                                    res1.on('data', function (chunk) {
+                                        str += chunk;
+                                    });
+                                    res1.on('end', function () {
+                                        console.log(JSON.parse(str)[1]['msgid']);            
+                                        // res.json({
+                                        //     "status": 200,
+                                        //     "message": "order message sent"
+                                        //     // "msgid": JSON.parse(str)[1]['msgid']
+                                        // });
+                                    });
+                                }).end();
+                                reqGet.on('error', function (e) {
+                                    console.error(e);
+                                });
                                 res.json({
                                     "status": 200,
                                     "message": "order sucessfully placed added",
                                     "order_id": orderData[1][0]['order_id']
                                 });
                             }
-                            console.log(pool._freeConnections.indexOf(dbConn)); // -1
+                            // console.log(pool._freeConnections.indexOf(dbConn)); // -1
                             dbConn.release();
-                            console.log(pool._freeConnections.indexOf(dbConn)); // 0
+                            // console.log(pool._freeConnections.indexOf(dbConn)); // 0
                         });
                     }
                 }
             });
     });
 }
+
+
+function titleCase(str) {
+    var splitStr = str.toLowerCase().split(' ');
+    for (var i = 0; i < splitStr.length; i++) {
+        // You do not need to check if i is larger than splitStr length, as your for does that for you
+        // Assign it back to the array
+        splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);     
+    }
+    // Directly return the joined string
+    return splitStr.join(' '); 
+ }
+
 
 function projectHost() {
 
@@ -395,7 +438,7 @@ function sendTokenToCustomer(registrationTokens, messageTitle, messageBody) {
 }
 
 function sendMulticastToken(registrationTokens, messageTitle, messageBody) {
-    console.log(registrationTokens);
+    // console.log(registrationTokens);
     let message = {
         notification: {
             title: messageTitle,
@@ -431,7 +474,7 @@ function sendMulticastToken(registrationTokens, messageTitle, messageBody) {
     if (filter_token_array(registrationTokens).length > 0) {
         admin.messaging().sendMulticast(message)
             .then(function (response) {
-                console.log("Successfully sent message:", response);
+                // console.log("Successfully sent message:", response);
             })
             .catch(function (error) {
                 console.log("Error sending message:", error);
