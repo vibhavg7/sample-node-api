@@ -92,6 +92,9 @@ router.route('/deliveryinfo/:deliveryPersonId')
     .put(deliveryController.updateDeliveryPerson);
 
 
+router.route('/deliveryinfo/deliverypersonpastorders')
+    .post(deliveryController.fetchDeliveryPersonAllPastOrders);
+
 router.route('/login')
     .post(deliveryController.loginDeliveryPerson);
 

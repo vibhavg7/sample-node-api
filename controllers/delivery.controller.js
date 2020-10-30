@@ -40,12 +40,13 @@ exports.fetchAllNewOrders = function (req, res) {
 // fetchAllNewOrdersCount
 
 exports.fetchAllRunningOrders = function (req, res) {
-    console.log(+req.params.deliveryPersonId + '' + +req.body.page_number + '' + +req.body.page_size);
+    // console.log(+req.params.deliveryPersonId + '' + +req.body.page_number + '' + +req.body.page_size);
     let sql = `CALL GET_DELIVERY_ONGOINGORDERS(?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.params.deliveryPersonId, +req.body.page_number, +req.body.page_size],
             function (err, ongoingOrders) {
                 if (err) {
+                    console.log(err);
                     res.json({
                         status: 400,
                         "message": "Ongoing orders Information not found",
@@ -59,6 +60,36 @@ exports.fetchAllRunningOrders = function (req, res) {
                         "message": "Ongoing orders Information",
                         "ongoing_orders_info": ongoingOrders[0],
                         "ongoing_order_count": ongoingOrders[1]
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
+exports.fetchDeliveryPersonAllPastOrders = function(req, res) {
+
+    let sql = `CALL FETCH_DELIVERYPERSON_ALL_PAST_ORDERS(?,?,?)`;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [+req.body.deliveryPersonId, +req.body.page_number, +req.body.page_size],
+            function (err, pastOrders) {
+                // console.log(sql);
+                console.log(pastOrders);
+                if (err) {
+                    console.log(err);
+                    res.json({
+                        status: 400,
+                        "message": "DP past orders Information not found",
+                        "deliveryperson_pastorders_info": [],
+                        "deliveryperson_pastorders_count": []
+                    });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "DP past orders Information",
+                        "deliveryperson_pastorders_info": pastOrders[0],
+                        "deliveryperson_pastorders_count": pastOrders[1]
                     });
                 }
                 dbConn.release();

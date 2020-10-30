@@ -78,7 +78,7 @@ exports.placeOrder = function (req, res) {
                                 OrderPhoneNumbers.push(orderData[0][0]['store_phone_number']);
                                 let messageTitle = "New order placed";
                                 let messageBody = `Hello, Thanks for ordering from Grostep. ${titleCase(orderData[0][0]['store_name'])} have recieved new order # ${orderData[1][0]['order_id']}. Click here for details.`;
-                                sendMulticastToken(registrationTokens, messageTitle, messageBody);
+                                sendMulticastToken(filter_token_array(registrationTokens), messageTitle, messageBody);
                                 let phone = filter_token_array(OrderPhoneNumbers).toString();
                                 let msg = `Hello, Thanks for ordering from Grostep. ${titleCase(orderData[0][0]['store_name'])} have recieved new order ${orderData[1][0]['order_id']}. View the mobile app for details.`;
                                 var str = '';
