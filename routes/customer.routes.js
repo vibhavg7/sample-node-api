@@ -73,4 +73,7 @@ router.route('/subscriptioninfo')
 router.route('/subscriptioninfo/:subscriptionId')
     .post(customerController.getSubscriptionDetailById);
 
+router.route('/sendUserNotificationFromAdminPanel')
+    .post(customerController.sendUserNotificationFromAdminPanel);
+
 module.exports = router;

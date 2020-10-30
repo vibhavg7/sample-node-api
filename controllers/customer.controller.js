@@ -632,7 +632,7 @@ exports.updateCustomer = function (req, res) {
 }
 
 
-exports.getSubcriptions = function(req,res) {
+exports.getSubcriptions = function (req, res) {
     let sql = `CALL GET_ALL_SUBSCRIPTION(?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.body.pageNumber, +req.body.pageSize, req.body.filterBy],
@@ -659,8 +659,143 @@ exports.getSubcriptions = function(req,res) {
     });
 }
 
-exports.getSubscriptionDetailById = function(req,res) {
-    
+exports.getSubscriptionDetailById = function (req, res) {
+
+}
+
+
+exports.sendUserNotificationFromAdminPanel = function (req, res) {
+    let notificationType = +req.body.notificationType; // 1-> push notification 2 -> SMS
+    let customerIds = filter_token_array(req.body.customerIds);
+    let messageTitle = req.body.messageTitle;
+    let messageBody = req.body.messageBody;
+    var queryData = [customerIds];
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("select customer_id,customer_name,phone,token from customer where customer_id in  (?);",
+        queryData, function (err, customerInfo) {
+                if (err) {
+                    console.log("error: ", err);
+                }
+                else {
+                    if (notificationType === 1) {
+                        const registrationTokens = [];
+                        customerInfo.forEach(customer => {
+                            registrationTokens.push(customer.token);
+                        });
+                        sendMulticastToken(filter_token_array(registrationTokens), messageTitle, messageBody, res);
+                    } else if (notificationType === 2) {
+                        const registeredPhones = [];
+                        customerInfo.forEach(customer => {
+                            registeredPhones.push(customer.phone);
+                        });
+                        let phone = filter_token_array(registeredPhones).toString();
+                        let msg = messageBody;
+                        console.log(msg);
+                        var str = '';
+                        var options = {
+                            host: 'login.aquasms.com',
+                            port: 80,
+                            path: encodeURI('/sendSMS?username=vibhav&message=' + msg + '&sendername=GROSTP&smstype=TRANS&numbers=' + phone + '&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa'),
+                            method: 'GET'
+                        };
+                        var reqGet = http.request(options, function (res1) {
+                            res1.on('data', function (chunk) {
+                                str += chunk;
+                            });
+                            res1.on('end', function () {
+                                console.log(JSON.parse(str)[1]['msgid']);            
+                                res.json({
+                                    "status": 200,
+                                    "message": "message sent"
+                                    // "msgid": JSON.parse(str)[1]['msgid']
+                                });
+                            });
+                        }).end();
+                        reqGet.on('error', function (e) {
+                            console.error(e);
+                        });
+                    }
+                    // res.json({
+                    //     status: 200,
+                    //     "message": "customer Information",
+                    //     "customerInfo": customerInfo,
+                    // });
+                }
+                dbConn.release();
+            });
+    });
+}
+
+function projectHost() {
+
+}
+
+function sendMulticastToken(registrationTokens, messageTitle, messageBody, res) {
+    // console.log(registrationTokens);
+    let message = {
+        notification: {
+            title: messageTitle,
+            body: messageBody
+        },
+        android: {
+            notification: {
+                defaultSound: true,
+                notificationCount: 1,
+                sound: 'emergency.mp3',
+                channelId: 'fcm_emergency_channel',
+                icon: `${projectHost()}/android-chrome-192x192.png`,
+            },
+            ttl: 20000
+        },
+        webpush: {
+            notification: {
+                icon: `${projectHost()}/android-chrome-192x192.png`
+            },
+            fcm_options: {
+                link: projectHost()
+            }
+        },
+        apns: {
+            payload: {
+                aps: {
+                    sound: 'emergency.aiff'
+                }
+            }
+        },
+        tokens: registrationTokens
+    }
+    if (filter_token_array(registrationTokens).length > 0) {
+        admin.messaging().sendMulticast(message)
+            .then(function (response) {
+                // console.log("Successfully sent message:", response);
+                res.json({
+                    "status": 200,
+                    "message": "message sent"
+                    // "msgid": JSON.parse(str)[1]['msgid']
+                });
+            })
+            .catch(function (error) {
+                console.log("Error sending message:", error);
+            });
+    }
+}
+
+function filter_token_array(test_array) {
+    // console.log(test_array);
+    var index = -1,
+        arr_length = test_array ? test_array.length : 0,
+        resIndex = -1,
+        result = [];
+
+    while (++index < arr_length) {
+        var value = test_array[index];
+
+        if (value) {
+            result[++resIndex] = value;
+        }
+    }
+    // console.log(result);
+    return result;
 }
 
 exports.subscribeUser = function (req, res) {
