@@ -757,7 +757,7 @@ exports.updateOrderStatusByDeliveryPerson = function (req, res) {
                     } else if (req.body.order_delivery_person_status == 6 && orderData[0][0]['order_status'] != 12) {
                         registrationTokens.push(customer_token);
                         messageTitle = 'Delivery Person is on the way to deliver';
-                        messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} reached store and will start picking items for the order # ${orderData[0][0]['order_id']}.`;
+                        messageBody = `Hello ,Mr. ${orderData[0][0]['delivery_person_name']} having rating ${orderData[0][0]['rating']} is on the way to deliver the order # ${orderData[0][0]['order_id']}.`;
                         sendNotification(registrationTokens, messageTitle, messageBody, orderData[0][0]['order_id'], orderData[0][0]['order_status'], res);
                     } else if (req.body.order_delivery_person_status == 7 && orderData[0][0]['order_status'] != 12) {
                         registrationTokens.push(customer_token);
