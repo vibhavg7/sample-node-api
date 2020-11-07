@@ -30,6 +30,7 @@ const uploadImage = multer({
       cb(null, {fieldName: 'TESTING_META_DETA!'});
     },
     key: function (req, file, cb) {
+      console.log(new Date().toISOString() + '-' + file.originalname);
       cb(null, new Date().toISOString() + '-' + file.originalname)
     }
   })
