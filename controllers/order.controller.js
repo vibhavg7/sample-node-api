@@ -741,6 +741,7 @@ exports.fetchCustomerOrderDetailById = function (req, res) {
                             "order_status_type": item.order_status_type,
                             "payment_mode_type": item.payment_mode_type,
                             "payment_status": item.payment_status,
+                            "is_order_edit": item.is_order_edit,
                             "products": []
                         })
                     }
