@@ -714,10 +714,16 @@ exports.validateDeliveryPerson = function (req, res) {
 
 exports.updateOrderStatusByDeliveryPerson = function (req, res) {
 
-    let sql = `CALL UPDATE_ORDERSTATUS_BY_DELIVERYPERSON(?,?,?,?)`;
+    let sql = `CALL UPDATE_ORDERSTATUS_BY_DELIVERYPERSON(?,?,?,?,?,?)`;
 
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [+req.body.deliverypersonid, +req.params.orderId, req.body.status, req.body.order_delivery_person_status],
+        dbConn.query(sql, [
+            +req.body.deliverypersonid,
+            +req.params.orderId,
+            +req.body.status,
+            +req.body.order_delivery_person_status,
+            +req.body.bill_number,
+            +req.body.bill_amount],
             function (err, orderData) {
                 if (err) {
                     console.log("error: ", err);
