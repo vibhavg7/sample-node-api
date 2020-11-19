@@ -782,7 +782,7 @@ exports.addNewStore = function (req, res) {
 exports.addStoreProducts = function (req, res) {
     const newProduct = req.body;
 
-    let sql = `CALL ADD_STORE_NEW_PRODUCT(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+    let sql = `CALL ADD_STORE_NEW_PRODUCT(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
 
     let product_id = +req.body.product_id;
     let store_id = +req.body.store_id;
@@ -795,14 +795,15 @@ exports.addStoreProducts = function (req, res) {
     let store_updated_quantity = +req.body.store_updated_quantity;
     let store_additional_quantity = +req.body.store_additional_quantity;
     let status = +req.body.status;
-    let stock = + req.body.stock;
+    let stock = +req.body.stock;
+    let product_caping = +req.body.caping;
 
     let parent_category_id = + req.body.parent_category_id;
     let category_id = + req.body.category_id;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [product_id, store_id, store_marked_price, store_cost_price, store_selling_price,
-            store_margin, store_discount, store_initial_quantity, store_updated_quantity,
-            store_additional_quantity, status, stock, parent_category_id, category_id],
+            store_margin, store_discount, store_initial_quantity, store_updated_quantity,store_additional_quantity, 
+            status, stock, parent_category_id, category_id, product_caping],
             function (err, store) {
                 if (err) {
                     console.log(err);
