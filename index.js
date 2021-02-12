@@ -49,7 +49,7 @@ app.use('/imageuploadapi', imageuploadRoutes);
 app.use('/employeeapi', employeeRoutes);
 app.use('/bannerapi', bannerRoutes);
 app.use('/deliveryapi', deliveryRoutes);
-app.use('/cart', cartRoutes);
+app.use('/cartapi', cartRoutes);
 
 // // default route
 // app.get('/', function (req, res) {
