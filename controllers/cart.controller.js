@@ -143,12 +143,14 @@ exports.syncCartItems = function (req, res) {
                     })
                 }
                 else {
-                    let savedCustomerCart = customerCart;
+                    let savedCustomerCart = customerCart[0];
                     let cart_id = 0;
+                    // console.log(savedCustomerCart);
                     if (typeof savedCustomerCart !== 'undefined' && savedCustomerCart[0].length > 0) {
-                        cart_id = savedCustomerCart[0][0].cart_id;
+                        console.log('Hey');
+                        cart_id = savedCustomerCart[0].cart_id;
                         if ((typeof cartData !== 'undefined' && cartData.length > 0)) {
-                            savedCustomerCart[0].forEach((data) => {
+                            savedCustomerCart.forEach((data) => {
                                 let index = cartData.findIndex(x => +x.store_product_mapping_id === +data.store_product_mapping_id);
                                 if (index != -1) {
                                     cartData[index].quantity = +cartData[index].quantity + (+data.quantity);
@@ -235,6 +237,7 @@ exports.syncCartItems = function (req, res) {
                             })
                         }
                     } else {
+                        console.log('bye');
                         if ((typeof cartData !== 'undefined' && cartData.length > 0)) {
                             // only apply insert operation in the cart table
                             var sql = `INSERT INTO customer_cart 
