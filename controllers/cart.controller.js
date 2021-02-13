@@ -130,7 +130,6 @@ exports.syncCartItems = function (req, res) {
     let outputCartData = [];
     let inputStoreId = req.body.cartData.length > 0 ? cartData[0].store_id : 0;
     let sql = `CALL FETCH_CUSTOMER_CART(?,?)`;
-    // console.log(inputStoreId);
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [customer_id, inputStoreId],
             function (err, customerCart) {
@@ -146,13 +145,12 @@ exports.syncCartItems = function (req, res) {
                     let savedCustomerCart = customerCart[0];
                     let cart_id = 0;
                     if (typeof savedCustomerCart !== 'undefined' && savedCustomerCart.length > 0) {
-                        console.log('Hey');
                         cart_id = savedCustomerCart[0].cart_id;
                         if ((typeof cartData !== 'undefined' && cartData.length > 0)) {
                             savedCustomerCart.forEach((data) => {
-                                let index = cartData.findIndex(x => +x.store_product_mapping_id === data.store_product_mapping_id);
+                                let index = cartData.findIndex(x => +x.store_product_mapping_id === +data.store_product_mapping_id);
                                 if (index != -1) {
-                                    cartData[index].quantity += (data.quantity);
+                                    cartData[index].quantity = +cartData[index].quantity + (+data.quantity);
                                 } else {
                                     let obj = {};
                                     obj.store_product_mapping_id = +data.store_product_mapping_id;
@@ -160,13 +158,16 @@ exports.syncCartItems = function (req, res) {
                                     cartData.push(obj);
                                 }
                             });
-                            // console.log(cartData);
                             if (cartData.length > 0) {
-                                pool.getConnection(function (err, dbConn) {
                                     dbConn.query("DELETE FROM customer_cart_items WHERE shopping_cart_id = ?; ", cart_id,
                                         function (err, customerCartData) {
                                             if (err) {
                                                 console.log("error: ", err);
+                                                res.json({
+                                                    "status": 400,
+                                                    "message": "Unable to delete customer cart items",
+                                                    "cart_id": 0
+                                                })
                                             }
                                             else {
                                                 let deleted = false;
@@ -177,12 +178,11 @@ exports.syncCartItems = function (req, res) {
                                                 let newInsertProductData = [];
                                                 cartData.forEach((data) => {
                                                     let data1 = [];
-                                                    data1.push(data.store_product_mapping_id);
-                                                    data1.push(data.quantity);
+                                                    data1.push(+data.store_product_mapping_id);
+                                                    data1.push(+data.quantity);
                                                     data1.push(insertedCartId);
                                                     newInsertProductData.push(data1);
                                                 });
-                                                console.log(newInsertProductData);
                                                 var sql = "INSERT INTO grostep.customer_cart_items (store_product_mapping_id, quantity,shopping_cart_id) VALUES ?";
                                                 dbConn.query(sql, [newInsertProductData], function (err) {
                                                     if (err) {
@@ -194,7 +194,6 @@ exports.syncCartItems = function (req, res) {
                                                         });
                                                     } else {
                                                         let sql = `CALL FETCH_CUSTOMER_CART(?,?)`;
-                                                        pool.getConnection(function (err, dbConn) {
                                                             dbConn.query(sql, [customer_id, 0],
                                                                 function (err, customerCart) {
                                                                     if (err) {
@@ -208,17 +207,15 @@ exports.syncCartItems = function (req, res) {
                                                                     else {
                                                                         sendCartData(customerCart, res);
                                                                     }
-                                                                })
-                                                        })
+                                                                });
+                                                                dbConn.release();
                                                     }
                                                 });
                                             }
-                                        })
-                                })
+                                        });
                             }
                         } else {
                             let sql = `CALL FETCH_CUSTOMER_CART(?,?)`;
-                            pool.getConnection(function (err, dbConn) {
                                 dbConn.query(sql, [customer_id, 0],
                                     function (err, customerCart) {
                                         if (err) {
@@ -233,10 +230,9 @@ exports.syncCartItems = function (req, res) {
                                             sendCartData(customerCart, res);
                                         }
                                     })
-                            })
+                                    dbConn.release();
                         }
                     } else {
-                        console.log('bye');
                         if ((typeof cartData !== 'undefined' && cartData.length > 0)) {
                             // only apply insert operation in the cart table
                             var sql = `INSERT INTO customer_cart 
@@ -247,7 +243,6 @@ exports.syncCartItems = function (req, res) {
                                                         (
                                                             ?, ?, ?
                                                         )`;
-                            pool.getConnection(function (err, dbConn) {
                                 dbConn.query(sql, [customer_id, inputStoreId, 1],
                                     function (err, customerCartData) {
                                         if (err) {
@@ -269,8 +264,6 @@ exports.syncCartItems = function (req, res) {
                                                 newInsertProductData.push(data1);
                                             });
 
-                                            console.log(newInsertProductData);
-
                                             var sql = "INSERT INTO grostep.customer_cart_items (store_product_mapping_id, quantity,shopping_cart_id) VALUES ?";
                                             dbConn.query(sql, [newInsertProductData], function (err) {
                                                 if (err) {
@@ -282,7 +275,6 @@ exports.syncCartItems = function (req, res) {
                                                     });
                                                 } else {
                                                     let sql = `CALL FETCH_CUSTOMER_CART(?,?)`;
-                                                    pool.getConnection(function (err, dbConn) {
                                                         dbConn.query(sql, [customer_id, 0],
                                                             function (err, customerCart) {
                                                                 if (err) {
@@ -297,15 +289,14 @@ exports.syncCartItems = function (req, res) {
                                                                     sendCartData(customerCart, res);
                                                                     // sendToken(customerData[0][0], customerCart, res);
                                                                 }
-                                                            })
-                                                    })
+                                                                dbConn.release();
+                                                            });
                                                 }
                                             })
 
                                         }
                                     }
-                                )
-                            })
+                                );
                         } else {
                             res.json({
                                 "status": 200,
@@ -317,7 +308,6 @@ exports.syncCartItems = function (req, res) {
                 }
             }
         )
-        dbConn.release();
     });
 }
 
