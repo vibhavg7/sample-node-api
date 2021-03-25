@@ -24,7 +24,12 @@ exports.reverseGeocode = function (req, res, next) {
 
     var BASE_URL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=";
 
+
+
+
     var url = BASE_URL + latlng + "&key=" + API_KEY + "&sensor=" + true;
+
+    console.log(url);
 
     request(url, function (error, response, body) {
         if (!error && response.statusCode === 200) {
