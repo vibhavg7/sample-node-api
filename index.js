@@ -18,8 +18,11 @@ var orderRoutes = require("./routes/order.routes");
 var cartRoutes = require("./routes/cart.routes");
 var bannerRoutes = require("./routes/banner.routes");
 var offerRoutes = require("./routes/offers.routes");
+// var offerV2Routes = require("./routes/v2/offers.routes");
 var deliveryRoutes = require("./routes/delivery.routes");
 var imageuploadRoutes = require("./routes/image.upload.routes");
+var mapRoutes = require("./routes/map.routes");
+
 
 var employeeRoutes = require("./routes/employee.routes");
 
@@ -43,13 +46,18 @@ app.use('/productsapi', productRoutes);
 app.use('/categoryapi', categoryRoutes);
 app.use('/storesapi', storesRoutes);
 app.use('/customerapi', customerRoutes);
-app.use('/vouchersapi', offerRoutes);
 app.use('/ordersapi', orderRoutes);
 app.use('/imageuploadapi', imageuploadRoutes);
 app.use('/employeeapi', employeeRoutes);
 app.use('/bannerapi', bannerRoutes);
 app.use('/deliveryapi', deliveryRoutes);
 app.use('/cartapi', cartRoutes);
+app.use('/mapsapi', mapRoutes);
+
+
+app.use('/vouchersapi', offerRoutes);
+// app.use('/v2/vouchersapi', offerV2Routes);
+
 
 // // default route
 // app.get('/', function (req, res) {
