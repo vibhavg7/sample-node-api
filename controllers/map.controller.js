@@ -19,19 +19,10 @@ exports.autosuggest = function (req, res, next) {
 
 exports.reverseGeocode = function (req, res, next) {
 
-    console.log(process.env);
-    var API_KEY = process.env['API_KEY'];
+    var API_KEY = process.env.HTTP_PROXY;
     var latlng = req.query.lat + ',' + req.query.lng;
-
     var BASE_URL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=";
-
-
-
-
     var url = BASE_URL + latlng + "&key=" + API_KEY + "&sensor=" + true;
-
-    console.log(url);
-
     request(url, function (error, response, body) {
         if (!error && response.statusCode === 200) {
             res.json({
