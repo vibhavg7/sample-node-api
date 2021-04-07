@@ -709,7 +709,8 @@ exports.fetchStoreById = function (req, res) {
                 res.json({
                     status: 200,
                     "message": "store Information",
-                    "store": store[0]
+                    "store": store[0],
+                    "store_categories": store[1]
                 });
             }
             dbConn.release();
