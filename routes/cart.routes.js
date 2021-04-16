@@ -4,8 +4,8 @@ var router = express.Router();
 var cartController = require("../controllers/cart.controller");
 
 
-router.route('/validatecartitems')
-    .post(cartController.validateCartItems);
+router.route('/validateStoreCartProducts')
+    .post(cartController.validateStoreCartProducts);
 
 router.route('/addNewProductsToCart')
     .post(cartController.addNewProductsToCart);
@@ -25,5 +25,11 @@ router.route('/deleteProductFromCustomerCart/:customerId')
 router.route('/')
     .post(cartController.syncCartItems);
 
+
+router.route('/cart')
+    .post(cartController.createNewCustomerCart);
+
+router.route('/cart/:cart_id')
+    .put(cartController.updateCustomerCartById);
 
 module.exports = router;

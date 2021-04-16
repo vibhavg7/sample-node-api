@@ -226,8 +226,6 @@ exports.updateSelectedAddress = function (req, res) {
                     });
                 }
                 else {
-                    console.log('Hey');
-                    // console.log(JSON.stringify(address));
                     res.json({
                         status: 200,
                         "message": "address updated",
@@ -401,13 +399,13 @@ exports.getFeedbackDetailById = function (req, res) {
 
 exports.addDelievryAddress = function (req, res) {
 
-    let sql = `CALL ADD_NEW_DELIVERY_ADDRESS(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+    let sql = `CALL ADD_NEW_DELIVERY_ADDRESS(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [req.body.address, req.body.address2, req.body.city,
-        req.body.state, req.body.country, +req.body.pincode,
-        req.body.latitude, req.body.longitude, +req.body.address_type,
-        req.body.landmark, req.body.phone, +req.body.customer_id,
-        req.body.customer_name, req.body.flatNumber, req.body.locality],
+        dbConn.query(sql, [req.body.address, req.body.address2, req.body.city,req.body.state,
+        req.body.country, +req.body.pincode,req.body.latitude, req.body.longitude, 
+        +req.body.address_type,req.body.landmark, req.body.phone, +req.body.customer_id,
+        req.body.customer_name, req.body.flatNumber, req.body.locality, req.body.stateShortName,
+        req.body.countryShortName],
             function (err, address) {
                 if (err) {
                     console.log("error: ", err);

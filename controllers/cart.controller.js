@@ -2,6 +2,7 @@ var mysql = require('mysql');
 var jwt = require('jsonwebtoken');
 var rp = require('request-promise');
 var async = require("async");
+var moment = require('moment');
 var pool = mysql.createPool({
     connectionLimit: 10,
     host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
@@ -122,6 +123,46 @@ exports.deleteProductFromCustomerCart = function (req, res) {
     });
 }
 
+exports.validateStoreCartProducts = function (req, res) {
+    let cartData = [...req.body.cartData];
+    // let customer_id = +req.body.customer_id;
+    let storeId = +req.body.storeId;
+    let sql = `CALL VALIDATE_CUSTOMER_CART_ITEMS(?,?)`;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql,
+            [cartData.toString(),storeId ], function (err, customerCartItems) {
+                if (err) {
+                    console.log("error: ", err);
+                }
+                else {
+                    let storeInfo = customerCartItems[0];
+                    let cartData = customerCartItems[1];
+                    let utcMoment = moment.utc();
+                    const timeoffset = req.body.offset;
+                    utcMoment.add(5, 'hours');
+                    utcMoment.add(30, 'minutes');
+                    let current_hour = utcMoment.hour();
+                    let current_mins = utcMoment.minutes();
+                    let store_opening_time = storeInfo[0].store_opening_time;
+                    let store_closing_time = storeInfo[0].store_closing_time;
+                    if ((store_opening_time <= current_hour) && (store_closing_time > current_hour)) {
+                        storeInfo[0].closed = 0;
+                    } else {
+                        storeInfo[0].closed = 1;
+                    }
+                    console.log(current_hour);
+                    res.json({
+                        status: 200,
+                        "message": "cart products",
+                        "storeData": storeInfo,
+                        "cartData": cartData
+                    });
+                }
+                dbConn.release();
+            });
+    });
+}
+
 
 exports.syncCartItems = function (req, res) {
     let customer_id = +req.body.customer_id;
@@ -159,78 +200,78 @@ exports.syncCartItems = function (req, res) {
                                 }
                             });
                             if (cartData.length > 0) {
-                                    dbConn.query("DELETE FROM customer_cart_items WHERE shopping_cart_id = ?; ", cart_id,
-                                        function (err, customerCartData) {
-                                            if (err) {
-                                                console.log("error: ", err);
-                                                res.json({
-                                                    "status": 400,
-                                                    "message": "Unable to delete customer cart items",
-                                                    "cart_id": 0
-                                                })
-                                            }
-                                            else {
-                                                let deleted = false;
-
-                                                deleted = true;
-
-                                                let insertedCartId = cart_id;
-                                                let newInsertProductData = [];
-                                                cartData.forEach((data) => {
-                                                    let data1 = [];
-                                                    data1.push(+data.store_product_mapping_id);
-                                                    data1.push(+data.quantity);
-                                                    data1.push(insertedCartId);
-                                                    newInsertProductData.push(data1);
-                                                });
-                                                var sql = "INSERT INTO grostep.customer_cart_items (store_product_mapping_id, quantity,shopping_cart_id) VALUES ?";
-                                                dbConn.query(sql, [newInsertProductData], function (err) {
-                                                    if (err) {
-                                                        console.error(err);
-                                                        res.json({
-                                                            status: 400,
-                                                            "message": "products not added to cart",
-                                                            "cart_id": 0
-                                                        });
-                                                    } else {
-                                                        let sql = `CALL FETCH_CUSTOMER_CART(?,?)`;
-                                                            dbConn.query(sql, [customer_id, 0],
-                                                                function (err, customerCart) {
-                                                                    if (err) {
-                                                                        console.log("error: ", err);
-                                                                        res.json({
-                                                                            "status": 400,
-                                                                            "message": "Unable to fetch customer cart",
-                                                                            "product_id": 0
-                                                                        })
-                                                                    }
-                                                                    else {
-                                                                        sendCartData(customerCart, res);
-                                                                    }
-                                                                });
-                                                                dbConn.release();
-                                                    }
-                                                });
-                                            }
-                                        });
-                            }
-                        } else {
-                            let sql = `CALL FETCH_CUSTOMER_CART(?,?)`;
-                                dbConn.query(sql, [customer_id, 0],
-                                    function (err, customerCart) {
+                                dbConn.query("DELETE FROM customer_cart_items WHERE shopping_cart_id = ?; ", cart_id,
+                                    function (err, customerCartData) {
                                         if (err) {
                                             console.log("error: ", err);
                                             res.json({
                                                 "status": 400,
-                                                "message": "Unable to fetch customer cart",
-                                                "product_id": 0
+                                                "message": "Unable to delete customer cart items",
+                                                "cart_id": 0
                                             })
                                         }
                                         else {
-                                            sendCartData(customerCart, res);
+                                            let deleted = false;
+
+                                            deleted = true;
+
+                                            let insertedCartId = cart_id;
+                                            let newInsertProductData = [];
+                                            cartData.forEach((data) => {
+                                                let data1 = [];
+                                                data1.push(+data.store_product_mapping_id);
+                                                data1.push(+data.quantity);
+                                                data1.push(insertedCartId);
+                                                newInsertProductData.push(data1);
+                                            });
+                                            var sql = "INSERT INTO grostep.customer_cart_items (store_product_mapping_id, quantity,shopping_cart_id) VALUES ?";
+                                            dbConn.query(sql, [newInsertProductData], function (err) {
+                                                if (err) {
+                                                    console.error(err);
+                                                    res.json({
+                                                        status: 400,
+                                                        "message": "products not added to cart",
+                                                        "cart_id": 0
+                                                    });
+                                                } else {
+                                                    let sql = `CALL FETCH_CUSTOMER_CART(?,?)`;
+                                                    dbConn.query(sql, [customer_id, 0],
+                                                        function (err, customerCart) {
+                                                            if (err) {
+                                                                console.log("error: ", err);
+                                                                res.json({
+                                                                    "status": 400,
+                                                                    "message": "Unable to fetch customer cart",
+                                                                    "product_id": 0
+                                                                })
+                                                            }
+                                                            else {
+                                                                sendCartData(customerCart, res);
+                                                            }
+                                                        });
+                                                    dbConn.release();
+                                                }
+                                            });
                                         }
-                                    })
-                                    dbConn.release();
+                                    });
+                            }
+                        } else {
+                            let sql = `CALL FETCH_CUSTOMER_CART(?,?)`;
+                            dbConn.query(sql, [customer_id, 0],
+                                function (err, customerCart) {
+                                    if (err) {
+                                        console.log("error: ", err);
+                                        res.json({
+                                            "status": 400,
+                                            "message": "Unable to fetch customer cart",
+                                            "product_id": 0
+                                        })
+                                    }
+                                    else {
+                                        sendCartData(customerCart, res);
+                                    }
+                                })
+                            dbConn.release();
                         }
                     } else {
                         if ((typeof cartData !== 'undefined' && cartData.length > 0)) {
@@ -243,60 +284,60 @@ exports.syncCartItems = function (req, res) {
                                                         (
                                                             ?, ?, ?
                                                         )`;
-                                dbConn.query(sql, [customer_id, inputStoreId, 1],
-                                    function (err, customerCartData) {
-                                        if (err) {
-                                            console.log("error: ", err);
-                                            res.json({
-                                                status: 400,
-                                                "message": "customer cart not added",
-                                                "cart_id": 0
-                                            });
-                                        }
-                                        else {
-                                            let insertedCartId = customerCartData.insertId;
-                                            let newInsertProductData = [];
-                                            cartData.forEach((data) => {
-                                                let data1 = [];
-                                                data1.push(+data.store_product_mapping_id);
-                                                data1.push(+data.quantity);
-                                                data1.push(+insertedCartId);
-                                                newInsertProductData.push(data1);
-                                            });
-
-                                            var sql = "INSERT INTO grostep.customer_cart_items (store_product_mapping_id, quantity,shopping_cart_id) VALUES ?";
-                                            dbConn.query(sql, [newInsertProductData], function (err) {
-                                                if (err) {
-                                                    console.error(err);
-                                                    res.json({
-                                                        status: 400,
-                                                        "message": "products not added to cart",
-                                                        "cart_id": 0
-                                                    });
-                                                } else {
-                                                    let sql = `CALL FETCH_CUSTOMER_CART(?,?)`;
-                                                        dbConn.query(sql, [customer_id, 0],
-                                                            function (err, customerCart) {
-                                                                if (err) {
-                                                                    console.log("error: ", err);
-                                                                    res.json({
-                                                                        "status": 400,
-                                                                        "message": "Unable to fetch customer cart",
-                                                                        "product_id": 0
-                                                                    })
-                                                                }
-                                                                else {
-                                                                    sendCartData(customerCart, res);
-                                                                    // sendToken(customerData[0][0], customerCart, res);
-                                                                }
-                                                                dbConn.release();
-                                                            });
-                                                }
-                                            })
-
-                                        }
+                            dbConn.query(sql, [customer_id, inputStoreId, 1],
+                                function (err, customerCartData) {
+                                    if (err) {
+                                        console.log("error: ", err);
+                                        res.json({
+                                            status: 400,
+                                            "message": "customer cart not added",
+                                            "cart_id": 0
+                                        });
                                     }
-                                );
+                                    else {
+                                        let insertedCartId = customerCartData.insertId;
+                                        let newInsertProductData = [];
+                                        cartData.forEach((data) => {
+                                            let data1 = [];
+                                            data1.push(+data.store_product_mapping_id);
+                                            data1.push(+data.quantity);
+                                            data1.push(+insertedCartId);
+                                            newInsertProductData.push(data1);
+                                        });
+
+                                        var sql = "INSERT INTO grostep.customer_cart_items (store_product_mapping_id, quantity,shopping_cart_id) VALUES ?";
+                                        dbConn.query(sql, [newInsertProductData], function (err) {
+                                            if (err) {
+                                                console.error(err);
+                                                res.json({
+                                                    status: 400,
+                                                    "message": "products not added to cart",
+                                                    "cart_id": 0
+                                                });
+                                            } else {
+                                                let sql = `CALL FETCH_CUSTOMER_CART(?,?)`;
+                                                dbConn.query(sql, [customer_id, 0],
+                                                    function (err, customerCart) {
+                                                        if (err) {
+                                                            console.log("error: ", err);
+                                                            res.json({
+                                                                "status": 400,
+                                                                "message": "Unable to fetch customer cart",
+                                                                "product_id": 0
+                                                            })
+                                                        }
+                                                        else {
+                                                            sendCartData(customerCart, res);
+                                                            // sendToken(customerData[0][0], customerCart, res);
+                                                        }
+                                                        dbConn.release();
+                                                    });
+                                            }
+                                        })
+
+                                    }
+                                }
+                            );
                         } else {
                             res.json({
                                 "status": 200,
@@ -410,49 +451,195 @@ exports.addNewProductsToCart = function (req, res) {
 
 }
 
-exports.validateCartItems = function (req, res) {
-    let data = req.body;
-    let updatedArray = [];
-    var Select = 'SELECT store_product_mapping_id,stock ';
-    var From = 'From `stores_products_mapping` ';
-    var Where = 'WHERE store_product_mapping_id = ?';
-    var sql = Select + From + Where;
-    async.forEachOf(data, function (dataElement, i, inner_callback) {
-        dataElement['available'] = 0;
-        var inserts = [dataElement['store_product_id']];
-        var ssql = mysql.format(sql, inserts);
-        pool.getConnection(function (err, dbConn) {
-            dbConn.query(ssql, function (err, rows, fields) {
-                if (!err) {
-                    dataElement['available'] = rows[0].stock;
-                    updatedArray.push(dataElement);
-                    inner_callback(null);
-                } else {
-                    console.log("Error while performing Query");
-                    inner_callback(err);
-                };
-            });
-        });
 
-    }, function (err) {
-        if (err) {
-            //handle the error if the query throws an error
-            res.json({
-                "status": 400,
-                "message": "no cart information",
-                "cartInfo": []
+exports.createNewCustomerCart = function (req, res) {
+    let customer_id = +req.body.customer_id;
+    let cartData = [...req.body.items];
+    let inputStoreId = req.body.items.length > 0 ? cartData[0].store_id : 0;
+    var sql = `INSERT INTO customer_cart 
+            (
+                customer_id, store_id, status
+            )
+            VALUES
+            (
+                ?, ?, ?
+            )`;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query(sql, [customer_id, inputStoreId, 1],
+            function (err, customerCartData) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "customer cart not added",
+                        "cart_id": 0
+                    });
+                }
+                else {
+                    let insertedCartId = customerCartData.insertId;
+                    let newInsertProductData = [];
+                    cartData.forEach((data) => {
+                        let data1 = [];
+                        data1.push(+data.store_product_mapping_id);
+                        data1.push(+data.quantity);
+                        data1.push(+insertedCartId);
+                        newInsertProductData.push(data1);
+                    });
+                    var sql = "INSERT INTO grostep.customer_cart_items (store_product_mapping_id, quantity,shopping_cart_id) VALUES ?";
+                    dbConn.query(sql, [newInsertProductData], function (err) {
+                        if (err) {
+                            console.error(err);
+                            res.json({
+                                status: 400,
+                                "message": "products not added to cart",
+                                "cart_id": 0
+                            });
+                        } else {
+                            let sql = `CALL FETCH_CART_DETAIL(?)`;
+                            dbConn.query(sql, [insertedCartId],
+                                function (err, customerCart) {
+                                    if (err) {
+                                        console.log("error: ", err);
+                                        res.json({
+                                            "status": 400,
+                                            "message": "Unable to fetch cart detail",
+                                        })
+                                    }
+                                    else {
+                                        let cartProducts = [];
+                                        customerCart[0].forEach(cartInfo => {
+                                            let obj = {};
+                                            obj.cart_id = cartInfo.cart_id;
+                                            obj.cart_item_id = cartInfo.cart_item_id;
+                                            obj.store_product_mapping_id = cartInfo.store_product_mapping_id;
+                                            obj.quantity = cartInfo.quantity;
+                                            // obj.product_id = cartInfo.product_id;
+                                            obj.store_selling_price = cartInfo.store_selling_price;
+                                            obj.stock = cartInfo.stock;
+                                            obj.store_name = cartInfo.store_name;
+                                            obj.store_id = cartInfo.store_id;
+                                            obj.store_latitude = cartInfo.store_latitude;
+                                            obj.store_longitude = cartInfo.store_longitude;
+                                            obj.store_city = cartInfo.store_city;
+                                            obj.product_marked_price = cartInfo.product_marked_price;
+                                            obj.store_product_caping = cartInfo.store_product_caping;
+                                            obj.store_product_status = cartInfo.store_product_status;
+                                            obj.stock = cartInfo.stock;
+                                            // obj.product_discount = cartInfo.store_discount;
+                                            obj.product_name = cartInfo.product_name;
+                                            obj.image_url = cartInfo.image_url;
+                                            obj.weight = cartInfo.weight;
+                                            obj.weight_text = cartInfo.weight_text;
+                                            cartProducts.push(obj);
+                                        });
+                                        res.json({
+                                            "status": 200,
+                                            "message": "customer cart Details",
+                                            "cart_id" : insertedCartId,
+                                            "customerCart": cartProducts
+                                        });
+                                        // sendCartData(customerCart,insertedCartId, res);
+                                    }
+                                });
+                        }
+                    });
+                }
+                dbConn.release();
             });
-        } else {
-            //whatever you wanna do after all the iterations are done
-            res.json({
-                "status": 200,
-                "message": "cart information",
-                "cartInfo": updatedArray
-            });
-            console.log(updatedArray);
-        }
     });
 }
+
+exports.updateCustomerCartById = function(req,res) {
+    let customer_id = +req.body.customer_id;
+    let cart_id = +req.params.cart_id;
+    let cartData = [...req.body.items];
+    let inputStoreId = req.body.items.length > 0 ? cartData[0].store_id : 0;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("DELETE FROM customer_cart_items WHERE shopping_cart_id = ?; ", cart_id,
+            function (err, customerCartData) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        "status": 400,
+                        "message": "Unable to delete customer cart items",
+                        "cart_id": cart_id
+                    })
+                }
+                else {
+                    let insertedCartId = cart_id;
+                    let newInsertProductData = [];
+                    cartData.forEach((data) => {
+                        let data1 = [];
+                        data1.push(+data.store_product_mapping_id);
+                        data1.push(+data.quantity);
+                        data1.push(insertedCartId);
+                        newInsertProductData.push(data1);
+                    });
+                    var sql = "INSERT INTO grostep.customer_cart_items (store_product_mapping_id, quantity,shopping_cart_id) VALUES ?";
+                    dbConn.query(sql, [newInsertProductData], function (err) {
+                        if (err) {
+                            console.error(err);
+                            res.json({
+                                status: 400,
+                                "message": "products not added to cart",
+                                "cart_id": 0
+                            });
+                        } else {
+
+                            let sql = `CALL FETCH_CART_DETAIL(?)`;
+                            dbConn.query(sql, [insertedCartId],
+                                function (err, customerCart) {
+                                    if (err) {
+                                        console.log("error: ", err);
+                                        res.json({
+                                            "status": 400,
+                                            "message": "Unable to fetch cart detail",
+                                        })
+                                    }
+                                    else {
+                                        let cartProducts = [];
+                                        customerCart[0].forEach(cartInfo => {
+                                            let obj = {};
+                                            obj.cart_id = cartInfo.cart_id;
+                                            obj.cart_item_id = cartInfo.cart_item_id;
+                                            obj.store_product_mapping_id = cartInfo.store_product_mapping_id;
+                                            obj.quantity = cartInfo.quantity;
+                                            // obj.product_id = cartInfo.product_id;
+                                            obj.store_selling_price = cartInfo.store_selling_price;
+                                            obj.stock = cartInfo.stock;
+                                            obj.store_name = cartInfo.store_name;
+                                            obj.store_id = cartInfo.store_id;
+                                            obj.store_latitude = cartInfo.store_latitude;
+                                            obj.store_longitude = cartInfo.store_longitude;
+                                            obj.store_city = cartInfo.store_city;
+                                            obj.product_marked_price = cartInfo.product_marked_price;
+                                            obj.store_product_caping = cartInfo.store_product_caping;
+                                            obj.store_product_status = cartInfo.store_product_status;
+                                            obj.stock = cartInfo.stock;
+                                            // obj.product_discount = cartInfo.store_discount;
+                                            obj.product_name = cartInfo.product_name;
+                                            obj.image_url = cartInfo.image_url;
+                                            obj.weight = cartInfo.weight;
+                                            obj.weight_text = cartInfo.weight_text;
+                                            cartProducts.push(obj);
+                                        });
+                                        res.json({
+                                            "status": 200,
+                                            "message": "customer cart Details",
+                                            "cart_id" : cart_id,
+                                            "customerCart": cartProducts
+                                        });
+                                        // sendCartData(customerCart,insertedCartId, res);
+                                    }
+                                });
+                        }
+                    });
+                }
+                dbConn.release();
+            });
+        });
+}
+
 
 
 
@@ -461,9 +648,10 @@ function sendCartData(customerCart, res) {
     let cartProducts = [];
     customerCart[0].forEach(cartInfo => {
         let obj = {};
+        obj.cart_id = cartInfo.cart_id;
         obj.cart_item_id = cartInfo.cart_item_id;
         obj.store_product_mapping_id = cartInfo.store_product_mapping_id;
-        obj.quantity_purchased = cartInfo.quantity;
+        obj.quantity = cartInfo.quantity;
         // obj.product_id = cartInfo.product_id;
         obj.store_selling_price = cartInfo.store_selling_price;
         obj.stock = cartInfo.stock;
@@ -473,6 +661,7 @@ function sendCartData(customerCart, res) {
         obj.product_marked_price = cartInfo.product_marked_price;
         obj.store_product_caping = cartInfo.store_product_caping;
         obj.store_product_status = cartInfo.store_product_status;
+        obj.stock = cartInfo.stock;
         // obj.product_discount = cartInfo.store_discount;
         obj.product_name = cartInfo.product_name;
         obj.image_url = cartInfo.image_url;

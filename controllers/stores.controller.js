@@ -220,9 +220,16 @@ exports.updatestoreclosingstatus = function (req, res) {
 // }
 
 exports.fetchAllStoresBasedOnZipCode = function (req, res) {
+    let storeCity;
+    if (req.body.zipcode) {
+        storeCity = req.body.zipcode;
+    }
+    if (req.body.city) {
+        storeCity = req.body.city;
+    }
     let sql = `CALL GET_ALL_STORES_ZIP_CODE(?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [req.body.filterBy, req.body.zipcode, +req.body.categoryId, +req.body.page_number, +req.body.page_size],
+        dbConn.query(sql, [req.body.filterBy, storeCity, +req.body.categoryId, +req.body.page_number, +req.body.page_size],
             function (err, stores) {
                 if (err) {
                     // console.log("error: ", err);
