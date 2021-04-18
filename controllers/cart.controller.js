@@ -455,17 +455,18 @@ exports.addNewProductsToCart = function (req, res) {
 exports.createNewCustomerCart = function (req, res) {
     let customer_id = +req.body.customer_id;
     let cartData = [...req.body.items];
+    let deliveryInstructions = req.body.deliveryInstructions;
     let inputStoreId = req.body.items.length > 0 ? cartData[0].store_id : 0;
     var sql = `INSERT INTO customer_cart 
             (
-                customer_id, store_id, status
+                customer_id, store_id, status, instructions
             )
             VALUES
             (
-                ?, ?, ?
+                ?, ?, ?, ?
             )`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [customer_id, inputStoreId, 1],
+        dbConn.query(sql, [customer_id, inputStoreId, 1, deliveryInstructions],
             function (err, customerCartData) {
                 if (err) {
                     console.log("error: ", err);
@@ -513,7 +514,7 @@ exports.createNewCustomerCart = function (req, res) {
                                             obj.cart_item_id = cartInfo.cart_item_id;
                                             obj.store_product_mapping_id = cartInfo.store_product_mapping_id;
                                             obj.quantity = cartInfo.quantity;
-                                            // obj.product_id = cartInfo.product_id;
+                                            obj.instructions = cartInfo.instructions;
                                             obj.store_selling_price = cartInfo.store_selling_price;
                                             obj.stock = cartInfo.stock;
                                             obj.store_name = cartInfo.store_name;
@@ -554,8 +555,10 @@ exports.updateCustomerCartById = function(req,res) {
     let cart_id = +req.params.cart_id;
     let cartData = [...req.body.items];
     let inputStoreId = req.body.items.length > 0 ? cartData[0].store_id : 0;
+    let deliveryInstructions =  req.body.deliveryInstructions;
+    let sql = `CALL UPDATE_CUSTOMER_CART(?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("DELETE FROM customer_cart_items WHERE shopping_cart_id = ?; ", cart_id,
+        dbConn.query(sql, [cart_id, deliveryInstructions],
             function (err, customerCartData) {
                 if (err) {
                     console.log("error: ", err);
@@ -585,7 +588,6 @@ exports.updateCustomerCartById = function(req,res) {
                                 "cart_id": 0
                             });
                         } else {
-
                             let sql = `CALL FETCH_CART_DETAIL(?)`;
                             dbConn.query(sql, [insertedCartId],
                                 function (err, customerCart) {
@@ -604,7 +606,7 @@ exports.updateCustomerCartById = function(req,res) {
                                             obj.cart_item_id = cartInfo.cart_item_id;
                                             obj.store_product_mapping_id = cartInfo.store_product_mapping_id;
                                             obj.quantity = cartInfo.quantity;
-                                            // obj.product_id = cartInfo.product_id;
+                                            obj.instructions = cartInfo.instructions;
                                             obj.store_selling_price = cartInfo.store_selling_price;
                                             obj.stock = cartInfo.stock;
                                             obj.store_name = cartInfo.store_name;
