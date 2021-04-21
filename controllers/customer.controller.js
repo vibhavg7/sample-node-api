@@ -54,7 +54,8 @@ exports.resendOTP = function (req, res) {
                     });
                 }
                 else {
-                    let msg = `Hello your generated otp is :${otp_number}`;
+                    // Dear Customer, use OTP code ${otp_number} to verify your account. Grostep, We Shop For You 
+                    let msg = `Dear Customer, use OTP code ${otp_number} to verify your account. Grostep, We Shop For You`;
                     var str = '';
                     let phone = customer[0][0].phone;
                     var options = {
@@ -810,8 +811,9 @@ exports.subscribeUser = function (req, res) {
                     });
                 }
                 else {
+                    // Thank you for subscribing the application. Click here to download Grostep :{#var#} . 
                     const url_link = 'https://bit.ly/317aftF';
-                    let msg = `Thank you for subscribing the application. Click here to download Grostep :${url_link}`;
+                    let msg = `Thank you for subscribing the application. Click here to download Grostep :${url_link} .`;
                     var str = '';
                     let phone = +req.body.subscription;
                     var options = {

@@ -130,7 +130,7 @@ exports.validateStoreCartProducts = function (req, res) {
     let sql = `CALL VALIDATE_CUSTOMER_CART_ITEMS(?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql,
-            [cartData.toString(),storeId ], function (err, customerCartItems) {
+            [cartData.toString(), storeId], function (err, customerCartItems) {
                 if (err) {
                     console.log("error: ", err);
                 }
@@ -457,16 +457,21 @@ exports.createNewCustomerCart = function (req, res) {
     let cartData = [...req.body.items];
     let deliveryInstructions = req.body.deliveryInstructions;
     let inputStoreId = req.body.items.length > 0 ? cartData[0].store_id : 0;
+
+    let orderTotal = cartData.reduce((sum, current) => {
+        return sum + (current.store_selling_price * current.quantity);
+    }, 0);
+
     var sql = `INSERT INTO customer_cart 
             (
-                customer_id, store_id, status, instructions
+                customer_id, store_id, status, instructions, order_amount
             )
             VALUES
             (
-                ?, ?, ?, ?
+                ?, ?, ?, ?, ?
             )`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [customer_id, inputStoreId, 1, deliveryInstructions],
+        dbConn.query(sql, [customer_id, inputStoreId, 1, deliveryInstructions, orderTotal],
             function (err, customerCartData) {
                 if (err) {
                     console.log("error: ", err);
@@ -507,39 +512,7 @@ exports.createNewCustomerCart = function (req, res) {
                                         })
                                     }
                                     else {
-                                        let cartProducts = [];
-                                        customerCart[0].forEach(cartInfo => {
-                                            let obj = {};
-                                            obj.cart_id = cartInfo.cart_id;
-                                            obj.cart_item_id = cartInfo.cart_item_id;
-                                            obj.store_product_mapping_id = cartInfo.store_product_mapping_id;
-                                            obj.quantity = cartInfo.quantity;
-                                            obj.instructions = cartInfo.instructions;
-                                            obj.store_selling_price = cartInfo.store_selling_price;
-                                            obj.stock = cartInfo.stock;
-                                            obj.store_name = cartInfo.store_name;
-                                            obj.store_id = cartInfo.store_id;
-                                            obj.store_latitude = cartInfo.store_latitude;
-                                            obj.store_longitude = cartInfo.store_longitude;
-                                            obj.store_city = cartInfo.store_city;
-                                            obj.product_marked_price = cartInfo.product_marked_price;
-                                            obj.store_product_caping = cartInfo.store_product_caping;
-                                            obj.store_product_status = cartInfo.store_product_status;
-                                            obj.stock = cartInfo.stock;
-                                            // obj.product_discount = cartInfo.store_discount;
-                                            obj.product_name = cartInfo.product_name;
-                                            obj.image_url = cartInfo.image_url;
-                                            obj.weight = cartInfo.weight;
-                                            obj.weight_text = cartInfo.weight_text;
-                                            cartProducts.push(obj);
-                                        });
-                                        res.json({
-                                            "status": 200,
-                                            "message": "customer cart Details",
-                                            "cart_id" : insertedCartId,
-                                            "customerCart": cartProducts
-                                        });
-                                        // sendCartData(customerCart,insertedCartId, res);
+                                        cartInformation(customerCart, res);
                                     }
                                 });
                         }
@@ -550,12 +523,66 @@ exports.createNewCustomerCart = function (req, res) {
     });
 }
 
-exports.updateCustomerCartById = function(req,res) {
+function cartInformation(customerCart, res) {
+    let cartProducts = [];
+    let cartInfo = {};
+    let slot = {};
+    let cartId;
+    slot.delivery_type = customerCart[0][0].delivery_type;
+    slot.delivery_slot = customerCart[0][0].delivery_slot;
+    cartInfo.cart_id = customerCart[0][0].cart_id;
+    cartInfo.customer_id = customerCart[0][0].customer_id;
+    cartInfo.instructions = customerCart[0][0].instructions;
+    cartInfo.store_id = customerCart[0][0].store_id;
+    cartInfo.customer_delivery_address_id = customerCart[0][0].customer_delivery_address_id;
+
+    cartInfo.slot = slot;
+    cartInfo.delivery_cost = customerCart[0][0].delivery_cost;
+    cartInfo.order_amount = customerCart[0][0].order_amount;
+    cartInfo.total = customerCart[0][0].total;
+    cartId = customerCart[0][0].cart_id;
+
+    customerCart[1].forEach(cartInfo => {
+        let obj = {};
+        obj.cart_id = cartInfo.cart_id;
+        obj.cart_item_id = cartInfo.cart_item_id;
+        obj.store_product_mapping_id = cartInfo.store_product_mapping_id;
+        obj.quantity = cartInfo.quantity;
+        // obj.instructions = cartInfo.instructions;
+        obj.store_selling_price = cartInfo.store_selling_price;
+        obj.stock = cartInfo.stock;
+        obj.store_name = cartInfo.store_name;
+        obj.store_id = cartInfo.store_id;
+        obj.store_latitude = cartInfo.store_latitude;
+        obj.store_longitude = cartInfo.store_longitude;
+        obj.store_city = cartInfo.store_city;
+        obj.product_marked_price = cartInfo.product_marked_price;
+        obj.store_product_caping = cartInfo.store_product_caping;
+        obj.store_product_status = cartInfo.store_product_status;
+        obj.stock = cartInfo.stock;
+        // obj.product_discount = cartInfo.store_discount;
+        obj.product_name = cartInfo.product_name;
+        obj.image_url = cartInfo.image_url;
+        obj.weight = cartInfo.weight;
+        obj.weight_text = cartInfo.weight_text;
+        cartProducts.push(obj);
+    });
+    res.json({
+        "status": 200,
+        "message": "customer cart Details",
+        "cart_id" : cartId,
+        "cartInfo": cartInfo,
+        "customerCart": cartProducts
+    });
+
+}
+
+exports.updateCustomerCartById = function (req, res) {
     let customer_id = +req.body.customer_id;
     let cart_id = +req.params.cart_id;
     let cartData = [...req.body.items];
     let inputStoreId = req.body.items.length > 0 ? cartData[0].store_id : 0;
-    let deliveryInstructions =  req.body.deliveryInstructions;
+    let deliveryInstructions = req.body.deliveryInstructions;
     let sql = `CALL UPDATE_CUSTOMER_CART(?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [cart_id, deliveryInstructions],
@@ -599,39 +626,7 @@ exports.updateCustomerCartById = function(req,res) {
                                         })
                                     }
                                     else {
-                                        let cartProducts = [];
-                                        customerCart[0].forEach(cartInfo => {
-                                            let obj = {};
-                                            obj.cart_id = cartInfo.cart_id;
-                                            obj.cart_item_id = cartInfo.cart_item_id;
-                                            obj.store_product_mapping_id = cartInfo.store_product_mapping_id;
-                                            obj.quantity = cartInfo.quantity;
-                                            obj.instructions = cartInfo.instructions;
-                                            obj.store_selling_price = cartInfo.store_selling_price;
-                                            obj.stock = cartInfo.stock;
-                                            obj.store_name = cartInfo.store_name;
-                                            obj.store_id = cartInfo.store_id;
-                                            obj.store_latitude = cartInfo.store_latitude;
-                                            obj.store_longitude = cartInfo.store_longitude;
-                                            obj.store_city = cartInfo.store_city;
-                                            obj.product_marked_price = cartInfo.product_marked_price;
-                                            obj.store_product_caping = cartInfo.store_product_caping;
-                                            obj.store_product_status = cartInfo.store_product_status;
-                                            obj.stock = cartInfo.stock;
-                                            // obj.product_discount = cartInfo.store_discount;
-                                            obj.product_name = cartInfo.product_name;
-                                            obj.image_url = cartInfo.image_url;
-                                            obj.weight = cartInfo.weight;
-                                            obj.weight_text = cartInfo.weight_text;
-                                            cartProducts.push(obj);
-                                        });
-                                        res.json({
-                                            "status": 200,
-                                            "message": "customer cart Details",
-                                            "cart_id" : cart_id,
-                                            "customerCart": cartProducts
-                                        });
-                                        // sendCartData(customerCart,insertedCartId, res);
+                                        cartInformation(customerCart, res);
                                     }
                                 });
                         }
@@ -639,7 +634,7 @@ exports.updateCustomerCartById = function(req,res) {
                 }
                 dbConn.release();
             });
-        });
+    });
 }
 
 
