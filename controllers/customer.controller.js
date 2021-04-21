@@ -165,7 +165,8 @@ exports.registerCustomer = function (req, res) {
                     });
                 }
                 else {
-                    let msg = `Hello your generated otp is :${otp_number}`;
+                    // Dear Customer, use OTP code ${otp_number} to verify your account. Grostep, We Shop For You
+                    let msg = `Dear Customer, use OTP code ${otp_number} to verify your account. Grostep, We Shop For You`;
                     var str = '';
                     let phone = +req.body.phone;
                     var options = {
