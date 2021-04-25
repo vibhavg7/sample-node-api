@@ -30,7 +30,7 @@ exports.loginMerchant = function (req, res) {
             }
             else {
                 if (merchant[0].length > 0) {
-                    let msg = `Hello merchant your generated otp is :${otp_number}`;
+                    let msg = `Dear Merchant, use OTP code ${otp_number} to verify your account. Grostep, We Shop For You`;
                     rp(`http://login.aquasms.com/sendSMS?username=vibhav&message=${msg}&sendername=GROSTP&smstype=TRANS&numbers=${req.body.phone}&apikey=2edaddf6-a3fa-40c5-a40d-3ce980b240fa`)
                         .then(function (res) {
                             // Process html...
@@ -910,6 +910,45 @@ exports.fetchStoreSubCategoriesInfoById = function (req, res) {
     });
 }
 
+
+exports.updateStoreProduct = function(req, res) {
+    const updatedStoreProduct = {};
+    // updatedStoreProduct.store_cost_price = '';
+    updatedStoreProduct.store_selling_price = +req.body.store_selling_price;
+    updatedStoreProduct.store_discount = +req.body.store_discount;
+    updatedStoreProduct.status = +req.body.status;
+    updatedStoreProduct.product_marked_price  = +req.body.product_marked_price;
+    updatedStoreProduct.stock = +req.body.stock;
+    updatedStoreProduct.store_product_caping = +req.body.store_product_caping;
+    pool.getConnection(function (err, dbConn) {
+        dbConn.query("UPDATE stores_products_mapping SET ? WHERE store_product_mapping_id = ?",
+            [updatedStoreProduct, req.params.id], function (err, updatedStoreProduct) {
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        "message": "error updating store product",
+                        "status": 400,
+                        // "product": updatedStoreProduct,
+                        "product_id": req.params.id
+                    });
+                }
+                else {
+                    // let updated = false;
+                    // if (updatedStoreProduct.affectedRows == 1) {
+                    //     updated = true;
+                    // }
+                    res.json({
+                        "message": "store product updated successfully",
+                        "status": 200,
+                        // "product": updatedStoreProduct,
+                        "product_id": req.params.id
+                    });
+                }
+                dbConn.release();
+            });
+    });   
+}
+
 exports.searchStoreAndProductsBasedOnName = function (req, res) {
     let sql = `CALL SEARCH_STORES_AND_PRODUCTS(?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
@@ -1005,7 +1044,7 @@ exports.resendOTP = function (req, res) {
                     });
                 }
                 else {
-                    let msg = `Hello your generated otp is :${otp_number}`;
+                    let msg = `Dear Merchant, use OTP code ${otp_number} to verify your account. Grostep, We Shop For You`;
                     var str = '';
                     let phone = storeInfo[0][0].phone_number;
                     var options = {

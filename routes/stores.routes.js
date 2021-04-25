@@ -16,8 +16,8 @@ router.route('/login')
 router.route('/validate')
     .post(storesController.validateMerchant);
 
-router.route('/logoutStore/:storeId')
-    .put(storesController.updateStore);
+// router.route('/logoutStore/:storeId')
+//     .put(storesController.updateStore);
 
 router.route('/storestatus/:storeId')
     .get(storesController.storeClosingStatus);
@@ -40,15 +40,16 @@ router.route('/storeinfo/zipCode')
 router.route('/storeinfo/searchStoreAndProductsBasedOnName')
     .post(storesController.searchStoreAndProductsBasedOnName);
 
+router.route('/storeinfo/storeproducts/:id')
+    .get(storesController.fetchStoreProductInfoById)
+    .put(storesController.updateStoreProduct)
+    .delete(storesController.deleteStoreProduct);
+
 router.route('/storeinfo/storeproducts')
     .post(storesController.fetchStoreProductsById);
 
 router.route('/storeinfo/storeproductscategorywise')
     .post(storesController.fetchStoreProductsCategoryWise);
-
-router.route('/storeinfo/storeproducts/:id')
-    .get(storesController.fetchStoreProductInfoById)
-    .delete(storesController.deleteStoreProduct);
 
 router.route('/storeinfo/storeproducts/edit/:productId')
     .post(storesController.editStoreProductInfoById);
