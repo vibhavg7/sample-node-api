@@ -76,11 +76,11 @@ exports.placeOrder = function (req, res) {
                                 });
                                 OrderPhoneNumbers.push(+orderData[0][0]['customer_phone_number']);
                                 OrderPhoneNumbers.push(orderData[0][0]['store_phone_number']);
-                                let messageTitle = "New order placed";
-                                let messageBody = `Hello, Thanks for ordering from Grostep. ${titleCase(orderData[0][0]['store_name'])} have recieved new order # ${orderData[1][0]['order_id']}. Click here for details.`;
+                                let messageTitle = "New order placed";                                
+                                let messageBody = `Hello, Thanks for ordering from Grostep. Store ${titleCase(orderData[0][0]['store_name'])} have received new order # ${orderData[1][0]['order_id']}. Track order for details.  Grostep, We Shop For You.`;
                                 sendMulticastToken(filter_token_array(registrationTokens), messageTitle, messageBody);
                                 let phone = filter_token_array(OrderPhoneNumbers).toString();
-                                let msg = `Hello, Thanks for ordering from Grostep. ${titleCase(orderData[0][0]['store_name'])} have recieved new order ${orderData[1][0]['order_id']}. View the mobile app for details.`;
+                                let msg = `Hello, Thanks for ordering from Grostep. Store ${titleCase(orderData[0][0]['store_name'])} have received new order # ${orderData[1][0]['order_id']}. Track order for details.  Grostep, We Shop For You.`;
                                 var str = '';
                                 var options = {
                                     host: 'login.aquasms.com',
