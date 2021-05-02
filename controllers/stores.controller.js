@@ -199,7 +199,7 @@ exports.updatestoreclosingstatus = function (req, res) {
                 res.json({
                     status: 200,
                     "message": "store Information updated",
-                    "coupon": storeData
+                    "storeData": storeData
                 });
             }
             dbConn.release();
@@ -250,7 +250,7 @@ exports.fetchAllStoresBasedOnZipCode = function (req, res) {
 
 
 
-exports.fetchAllOngoingOrders = function (req, res) {
+exports.fetchAllRunningOrders = function (req, res) {
     let sql = `CALL GET_STORE_PENDINGORDERS(?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy], function (err, ongoingorders) {
@@ -375,9 +375,11 @@ exports.fetchStoreProductInfoById = function (req, res) {
 }
 
 exports.fetchStoreProductsById = function (req, res) {
-    let sql = `CALL GET_STORE_PRODUCTS_ADMIN(?,?,?,?)`;
+    let sql = `CALL GET_STORE_PRODUCTS_ADMIN(?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy], function (err, store) {
+        console.log(+req.body.multiplePages);
+        dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy, +req.body.multiplePages]
+            , function (err, store) {
             if (err) {
                 console.log("error: ", err);
                 res.json({
@@ -628,18 +630,19 @@ exports.fetchStoreOrdersById = function (req, res) {
     });
 }
 exports.fetchStoreNewPickedOrdersById = function (req, res) {
-    // console.log(req.body);
     let offStr = "";
     let offHrStr = parseInt(req.body.offset / 60) > 0 ? -parseInt(req.body.offset / 60) : Math.abs(parseInt(req.body.offset / 60));
     let offMinStr = Math.abs(req.body.offset % 60);
     offStr = offHrStr + ":" + offMinStr;
-    console.log(offStr.toString());
-    let sql = `CALL GET_STORE_NEW_PICKED_ORDERS(?,?,?,?,?,?)`;
+    // console.log(offStr.toString());
+    console.log(+req.body.multiplePages);
+    let sql = `CALL GET_STORE_NEW_PICKED_ORDERS(?,?,?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy,
-        req.body.order_type, offStr.toString()],
+        req.body.order_type, offStr.toString(), +req.body.multiplePages],
             function (err, storeOrders) {
                 if (err) {
+                    console.log(err);
                     res.json({
                         status: 400,
                         "message": "Store orders Information not found",

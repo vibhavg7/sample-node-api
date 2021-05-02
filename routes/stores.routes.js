@@ -60,9 +60,6 @@ router.route('/storeinfo/storeorders')
 router.route('/storeinfo/storepastorders')
     .post(storesController.fetchStorePastOrdersById);
 
-router.route('/storeinfo/storenewpickedorders')
-    .post(storesController.fetchStoreNewPickedOrdersById);
-
 router.route('/storeinfo/storeproducts/updatestock/:id')
     .patch(storesController.updateProductStock);
 
@@ -72,8 +69,17 @@ router.route('/storeinfo/storeorderproducts/:orderId')
 router.route('/merchantorderscount/:storeId/:offset')
     .get(orderController.fetchMerchantOrderCountById);
 
+
+
+
+router.route('/storeinfo/storenewpickedorders')
+    .post(storesController.fetchStoreNewPickedOrdersById);
+
 router.route('/fetchAllRunningOrders')
-    .post(storesController.fetchAllOngoingOrders);
+    .post(storesController.fetchAllRunningOrders);
+
+
+
 
 router.route('/fetchAllPickedOrders/:storeId')
     .get(storesController.fetchAllBilledOrders);

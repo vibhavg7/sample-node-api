@@ -561,7 +561,8 @@ exports.fetchMerchantOrderCountById = function (req, res) {
                         "new_order_count": orderData[0],
                         "pending_order_count": orderData[1],
                         "pending_billing_order_count": orderData[2],
-                        "picked_order_count": orderData[3]
+                        "picked_order_count": orderData[3],
+                        "is_store_not_closed": orderData[4][0].store_closing_status == 1 ? false: true
                     });
                 }
                 dbConn.release();
