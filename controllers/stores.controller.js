@@ -413,19 +413,19 @@ exports.storeClosingStatus = function (req, res) {
                 });
             }
             else {
-                let utcMoment = moment.utc();
-                const timeoffset = req.body.offset;
-                utcMoment.add(5, 'hours');
-                utcMoment.add(30, 'minutes');
-                let current_hour = utcMoment.hour();
-                let current_mins = utcMoment.minutes();
-                let store_opening_time = storeInfo[0].store_opening_time;
-                let store_closing_time = storeInfo[0].store_closing_time;
-                if ((store_opening_time <= current_hour) && (store_closing_time > current_hour)) {
-                    storeInfo[0].closed = 0;
-                } else {
-                    storeInfo[0].closed = 1;
-                }
+                // let utcMoment = moment.utc();
+                // const timeoffset = req.body.offset;
+                // utcMoment.add(5, 'hours');
+                // utcMoment.add(30, 'minutes');
+                // let current_hour = utcMoment.hour();
+                // let current_mins = utcMoment.minutes();
+                // let store_opening_time = storeInfo[0].store_opening_time;
+                // let store_closing_time = storeInfo[0].store_closing_time;
+                // if ((store_opening_time <= current_hour) && (store_closing_time > current_hour)) {
+                //     storeInfo[0].closed = 0;
+                // } else {
+                //     storeInfo[0].closed = 1;
+                // }
                 res.json({
                     status: 200,
                     "message": "store Information",
