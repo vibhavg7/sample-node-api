@@ -666,21 +666,21 @@ exports.fetchStoreNewPickedOrdersById = function (req, res) {
 
 function filterStores(stores, req, res) {
     // console.log(stores[0]);
-    let utcMoment = moment.utc();
-    const timeoffset = req.body.offset;
-    utcMoment.add(5, 'hours');
-    utcMoment.add(30, 'minutes');
-    let current_hour = utcMoment.hour();
-    let current_mins = utcMoment.minutes();
-    stores[0].forEach(data => {
-        let store_opening_time = data.store_opening_time;
-        let store_closing_time = data.store_closing_time;
-        if ((store_opening_time <= current_hour) && (store_closing_time > current_hour)) {
-            data.closed = 0;
-        } else {
-            data.closed = 1;
-        }
-    });
+    // let utcMoment = moment.utc();
+    // const timeoffset = req.body.offset;
+    // utcMoment.add(5, 'hours');
+    // utcMoment.add(30, 'minutes');
+    // let current_hour = utcMoment.hour();
+    // let current_mins = utcMoment.minutes();
+    // stores[0].forEach(data => {
+    //     let store_opening_time = data.store_opening_time;
+    //     let store_closing_time = data.store_closing_time;
+    //     if ((store_opening_time <= current_hour) && (store_closing_time > current_hour)) {
+    //         data.closed = 0;
+    //     } else {
+    //         data.closed = 1;
+    //     }
+    // });
     // console.log(stores[0]);
     res.json({
         "status": 200,
