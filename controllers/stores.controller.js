@@ -702,19 +702,19 @@ exports.fetchStoreById = function (req, res) {
                 });
             }
             else {
-                let utcMoment = moment.utc();
-                const timeoffset = req.body.offset;
-                utcMoment.add(5, 'hours');
-                utcMoment.add(30, 'minutes');
-                let current_hour = utcMoment.hour();
-                let current_mins = utcMoment.minutes();
-                let store_opening_time = store[0][0].store_opening_time;
-                let store_closing_time = store[0][0].store_closing_time;
-                if ((store_opening_time <= current_hour) && (store_closing_time > current_hour)) {
-                    store[0][0].closed = 0;
-                } else {
-                    store[0][0].closed = 1;
-                }
+                // let utcMoment = moment.utc();
+                // const timeoffset = req.body.offset;
+                // utcMoment.add(5, 'hours');
+                // utcMoment.add(30, 'minutes');
+                // let current_hour = utcMoment.hour();
+                // let current_mins = utcMoment.minutes();
+                // let store_opening_time = store[0][0].store_opening_time;
+                // let store_closing_time = store[0][0].store_closing_time;
+                // if ((store_opening_time <= current_hour) && (store_closing_time > current_hour)) {
+                //     store[0][0].closed = 0;
+                // } else {
+                //     store[0][0].closed = 1;
+                // }
                 // console.log(store[0]);
                 res.json({
                     status: 200,
