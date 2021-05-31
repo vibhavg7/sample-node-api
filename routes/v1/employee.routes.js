@@ -5,7 +5,7 @@ var employeeController = require("../../controllers/v1/employee.controller");
 
 router.post('/', employeeController.getEmployees);
 
-router.route('/login').post(employeeController.validateEmployee);
+router.route('/validate').post(employeeController.validateEmployee);
 
 router.get('/dashboards/:employeeId', employeeController.getAllEmployeeDasboards);
 
