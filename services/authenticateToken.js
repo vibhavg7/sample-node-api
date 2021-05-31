@@ -3,8 +3,8 @@ var jwt = require('jsonwebtoken');
 var pool = require('../utils/manageDB');
 const authenticateToken = function (req, res, next) {
     const authHeader = req.headers['authorization'];
-    const app_client = req.headers['app_client'];
-    console.log(req.headers['app_client']);
+    const app_client = req.headers['appclient'];
+    console.log(req.headers['appclient']);
     const token = authHeader && authHeader.split(' ')[1];
     let sql = "";
     if (token == null) {
@@ -17,7 +17,7 @@ const authenticateToken = function (req, res, next) {
         }
         try {
             console.log(user);
-            console.log(req.headers['app_client']);
+            console.log(req.headers['appclient']);
             console.log(app_client);
             switch (app_client) {
                 case "adminpanel":
