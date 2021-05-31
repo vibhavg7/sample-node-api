@@ -1,15 +1,8 @@
-var mysql = require('mysql');
 var jwt = require('jsonwebtoken');
 var rp = require('request-promise');
 var admin = require("firebase-admin");
 var http = require('http');
-var pool = mysql.createPool({
-    connectionLimit: 10,
-    host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
-    user: 'root',
-    password: process.env.dbpassword,
-    database: 'grostep'
-});
+var pool = require('../../utils/manageDB');
 
 exports.fetchAllCustomers = function (req, res) {
 

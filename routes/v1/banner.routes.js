@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-var bannerController = require("../controllers/banner.controller");
+var bannerController = require("../../controllers/v1/banner.controller");
 
 router.route('/addnewbanner')
     .post(bannerController.addNewBanner);

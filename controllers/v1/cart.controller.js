@@ -1,16 +1,29 @@
-var mysql = require('mysql');
 var jwt = require('jsonwebtoken');
 var rp = require('request-promise');
 var async = require("async");
 var moment = require('moment');
-var pool = mysql.createPool({
-    connectionLimit: 10,
-    host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
-    user: 'root',
-    password: process.env.dbpassword,
-    database: 'grostep'
-});
+var pool = require('../../utils/manageDB');
+var jwt = require('jsonwebtoken');
+var createError = require('http-errors');
 
+
+exports.fetchAllCartData = async function(req, res, next) {
+    let sql = `CALL GET_ALL_CARTS(?,?)`;
+    try {
+        const cartData = await pool.query(sql, [+req.body.page_number, +req.body.page_size, req.body.filterBy]);
+        res.json({
+            status: 200,
+            "message": "cart Information",
+            "carts_info": cartData[0],
+            "cart_total_count": cartData[1]
+        });
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
+}
 
 // exports.updateProductToCart = function (req, res) {
 
@@ -161,6 +174,70 @@ exports.validateStoreCartProducts = function (req, res) {
                 dbConn.release();
             });
     });
+}
+
+
+exports.fetchCustomerCarts = async function (req, res, next) {
+    let sql = `CALL GET_CUSTOMER_CARTS(?,?)`;
+    try {
+        const customerCarts = await pool.query(sql, [+req.body.customerId, req.body.filterBy]);
+        let uniqueArr = [];
+
+        let customerCarts1 = customerCarts[0];
+
+        for (let i = 0; i < customerCarts1.length; i++) {
+            let customerCartData = customerCarts1[i];
+            if (uniqueArr.filter(value => value.cart_id == customerCartData.cart_id).length == 0) {
+                let itemArr = customerCarts1.filter(val => val.cart_id == customerCartData.cart_id)
+                    .map(obj => (
+                        {
+                            "store_product_mapping_id": obj.store_product_mapping_id,
+                            "quantity": obj.quantity,
+                            "image_url": obj.image_url,
+                            "weight": obj.weight,
+                            "weight_text": obj.weight_text,
+                            "product_name": obj.product_name,
+                            "store_selling_price": obj.store_selling_price,
+                            "stock": obj.stock,
+                            "store_product_status": obj.store_product_status,
+                            "store_discount": obj.store_discount
+                        }));
+                let newItem = {};
+                newItem.cart_id = customerCartData.cart_id;
+                newItem.customer_id = customerCartData.customer_id;
+                newItem.instructions = customerCartData.instructions;
+                newItem.store_id = customerCartData.store_id;
+                newItem.store_name = customerCartData.store_name;
+                newItem.store_phone_number = customerCartData.store_phone_number;
+                newItem.added_date = customerCartData.added_date;
+                newItem.last_updated = customerCartData.last_updated;
+                newItem.customer_name = customerCartData.customer_name;
+                newItem.customer_phone_number = customerCartData.customer_phone_number;
+                newItem.order_amount = customerCartData.order_amount;
+                newItem.delivery_slot = customerCartData.delivery_slot;
+                newItem.delivery_type = customerCartData.delivery_type;
+                newItem.discount_amount = customerCartData.voucher_amount;
+                newItem.delivery_cost = customerCartData.delivery_cost;
+                newItem.voucher_code = customerCartData.voucher_code;
+                newItem.total = customerCartData.total;
+                newItem.status = customerCartData.status;
+                // newItem.cart_products = [];
+                newItem.cart_products_info = (itemArr);
+                uniqueArr.push(newItem);
+            }
+        }
+        res.json({
+            status: 200,
+            "message": "Customer carts Information",
+            "customer_carts_info": uniqueArr,
+            "customer_carts_count": customerCarts[1]
+        });
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
 }
 
 
@@ -457,7 +534,7 @@ exports.createNewCustomerCart = function (req, res) {
     let cartData = [...req.body.items];
     let deliveryInstructions = req.body.deliveryInstructions;
     let inputStoreId = req.body.items.length > 0 ? cartData[0].store_id : 0;
-    let delivery_address_id =  +req.body.delivery_address_id;
+    let delivery_address_id = +req.body.delivery_address_id;
     let orderTotal = cartData.reduce((sum, current) => {
         return sum + (current.store_selling_price * current.quantity);
     }, 0);
@@ -570,7 +647,7 @@ function cartInformation(customerCart, res) {
     res.json({
         "status": 200,
         "message": "customer cart Details",
-        "cart_id" : cartId,
+        "cart_id": cartId,
         "cartInfo": cartInfo,
         "customerCart": cartProducts
     });
@@ -583,7 +660,7 @@ exports.updateCustomerCartById = function (req, res) {
     let cartData = [...req.body.items];
     let inputStoreId = req.body.items.length > 0 ? cartData[0].store_id : 0;
     let deliveryInstructions = req.body.deliveryInstructions;
-    let delivery_address_id =  +req.body.delivery_address_id;
+    let delivery_address_id = +req.body.delivery_address_id;
     let sql = `CALL UPDATE_CUSTOMER_CART(?,?, ?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [cart_id, deliveryInstructions, delivery_address_id],
@@ -673,3 +750,22 @@ function sendCartData(customerCart, res) {
         "customerCart": cartProducts
     });
 }
+
+
+// exports.fetchCustomerCarts = async function (req, res, next) {
+//     let sql = `CALL GET_CUSTOMER_CARTS(?,?)`;
+//     try {
+//         const customerCarts = await pool.query(sql, [+req.body.customerId, req.body.filterBy]);
+//         res.json({
+//             status: 200,
+//             "message": "Customer carts Information",
+//             "customer_carts_info": customerCarts[0],
+//             "customer_carts_count": customerCarts[1]
+//         });
+//     }
+//     catch (err) {
+//         next(createError(401, err));
+//     } finally {
+//         // pool.end();
+//     }
+// }

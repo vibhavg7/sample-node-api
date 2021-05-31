@@ -1,12 +1,4 @@
-var mysql = require('mysql');
-
-var pool = mysql.createPool({
-    connectionLimit: 10, 
-    host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
-    user: 'root',
-    password: process.env.dbpassword,
-    database: 'grostep'
-});
+var pool = require('../../utils/manageDB');
 
 exports.getAllBannersBasedOnCity = function (req, res) {
     const newStoreCategory = req.body;

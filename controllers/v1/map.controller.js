@@ -1,16 +1,8 @@
-var mysql = require('mysql');
 var jwt = require('jsonwebtoken');
 var rp = require('request-promise');
 var async = require("async");
 var request = require('request');
-var pool = mysql.createPool({
-    connectionLimit: 10,
-    host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
-    user: 'root',
-    password: process.env.dbpassword,
-    database: 'grostep'
-});
-
+var pool = require('../../utils/manageDB');
 
 exports.autosuggest = function (req, res, next) {
 

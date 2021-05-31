@@ -1,12 +1,12 @@
 var express = require('express');
 var router = express.Router();
-var uploadImage = require("../services/file-upload");
+var uploadImage = require("../../services/file-upload");
 const singleUpload = uploadImage.single('image');
-var productsController = require("../controllers/products.controller");
-var ordersController = require("../controllers/order.controller");
-var categoryController = require("../controllers/category.controller");
-var storesController = require("../controllers/stores.controller");
-var bannerController = require("../controllers/banner.controller");
+var productsController = require("../../controllers/v1/products.controller");
+var ordersController = require("../../controllers/v1/order.controller");
+var categoryController = require("../../controllers/v1/category.controller");
+var storesController = require("../../controllers/v1/stores.controller");
+var bannerController = require("../../controllers/v1/banner.controller");
 
 router.post('/products/:productId', function (req, res, next) {
     singleUpload(req, res, function (err) {

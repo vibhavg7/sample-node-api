@@ -1,16 +1,11 @@
-var mysql = require('mysql');
+
 var jwt = require('jsonwebtoken');
 var rp = require('request-promise');
 var http = require('http');
 var admin = require("firebase-admin");
 var moment = require('moment');
-var pool = mysql.createPool({
-    connectionLimit: 10, 
-    host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
-    user: 'root',
-    password: process.env.dbpassword,
-    database: 'grostep'
-});
+
+var pool = require('../../utils/manageDB');
 
 
 exports.loginMerchant = function (req, res) {
@@ -380,25 +375,25 @@ exports.fetchStoreProductsById = function (req, res) {
         console.log(+req.body.multiplePages);
         dbConn.query(sql, [+req.body.storeId, +req.body.page_number, +req.body.page_size, req.body.filterBy, +req.body.multiplePages]
             , function (err, store) {
-            if (err) {
-                console.log("error: ", err);
-                res.json({
-                    status: 400,
-                    "message": "Store products Information not found",
-                    "store_products_info": store[0],
-                    "store_products_count": store[1]
-                });
-            }
-            else {
-                res.json({
-                    status: 200,
-                    "message": "Store products Information",
-                    "store_products_info": store[0],
-                    "store_products_count": store[1]
-                });
-            }
-            dbConn.release();
-        });
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "Store products Information not found",
+                        "store_products_info": store[0],
+                        "store_products_count": store[1]
+                    });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "Store products Information",
+                        "store_products_info": store[0],
+                        "store_products_count": store[1]
+                    });
+                }
+                dbConn.release();
+            });
     });
 }
 
@@ -443,28 +438,28 @@ exports.fetchStoreProductsCategoryWise = function (req, res) {
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.body.category_mapping_id, +req.body.store_id, +req.body.page_number, +req.body.page_size, +req.body.sub_category_id],
             function (err, storeProducts) {
-            if (err) {
-                console.log("error: ", err);
-                res.json({
-                    status: 400,
-                    "message": "Store products Information not found",
-                    "store_sub_categories_info": [],
-                    "store_products_info": [],
-                    "store_products_count": []
-                });
-            }
-            else {
-                res.json({
-                    status: 200,
-                    "message": "Store products Information",
-                    "store_sub_categories_info": storeProducts[0],
-                    "store_products_count": storeProducts[1],
-                    "store_products_instock__info": storeProducts[2],
-                    "store_products_outofstock__info": storeProducts[3],
-                });
-            }
-            dbConn.release();
-        });
+                if (err) {
+                    console.log("error: ", err);
+                    res.json({
+                        status: 400,
+                        "message": "Store products Information not found",
+                        "store_sub_categories_info": [],
+                        "store_products_info": [],
+                        "store_products_count": []
+                    });
+                }
+                else {
+                    res.json({
+                        status: 200,
+                        "message": "Store products Information",
+                        "store_sub_categories_info": storeProducts[0],
+                        "store_products_count": storeProducts[1],
+                        "store_products_instock__info": storeProducts[2],
+                        "store_products_outofstock__info": storeProducts[3],
+                    });
+                }
+                dbConn.release();
+            });
     });
 }
 
@@ -618,10 +613,75 @@ exports.fetchStoreOrdersById = function (req, res) {
                     });
                 }
                 else {
+                    let uniqueArr = [];
+
+                    let storeOrders1 = storeOrders[0];
+
+                    for (let i = 0; i < storeOrders1.length; i++) {
+                        let storeOrder = storeOrders1[i];
+                        if (uniqueArr.filter(value => value.order_id == storeOrder.order_id).length == 0) {
+                            let itemArr = storeOrders1.filter(val => val.order_id == storeOrder.order_id)
+                                .map(obj => (
+                                {   
+                                    "store_product_mapping_id": obj.store_product_mapping_id,
+                                    "quantity": obj.quantity,
+                                    "image_url": obj.image_url,
+                                    "weight_type_id": obj.weight_type_id,
+                                    "weight_text": obj.weight_text,
+                                    "product_id": obj.product_id,
+                                    "product_name": obj.product_name,
+                                    "product_weight": obj.product_weight,
+                                    "buying_date": obj.order_placing_date,
+                                    "merchant_bill_amount": obj.merchant_bill_amount,
+                                    "store_selling_price": obj.store_selling_price
+                                }));
+                            let newItem = {};
+                            newItem.order_id = storeOrder.order_id;
+                            newItem.address_type = storeOrder.address_type;
+                            newItem.cust_delivery_address = storeOrder.cust_delivery_address;
+                            newItem.cust_lat = storeOrder.cust_lat;
+                            newItem.cust_location = storeOrder.cust_location;
+                            newItem.cust_long = storeOrder.cust_long;
+                            newItem.cust_pincode = storeOrder.cust_pincode;
+                            newItem.customer_id = storeOrder.customer_id;
+                            newItem.delivery_address_id = storeOrder.delivery_address_id;
+                            newItem.delivery_phone_number = storeOrder.delivery_phone_number;
+                            newItem.discount_amount = storeOrder.discount_amount;
+                            newItem.final_amount = storeOrder.final_amount;
+                            newItem.merchant_bill_amount = storeOrder.merchant_bill_amount;
+                            newItem.order_amount = storeOrder.order_amount;
+                            newItem.order_delivery_fee = storeOrder.order_delivery_fee;
+                            
+                            newItem.order_placing_date = storeOrder.order_placing_date;
+                            newItem.order_status = storeOrder.order_status;
+                            newItem.payment_mode = storeOrder.payment_mode;
+                            newItem.payment_mode_type = storeOrder.payment_mode_type;
+                            newItem.registered_phone = storeOrder.registered_phone;
+                            newItem.status = storeOrder.status;
+                            newItem.store_address = storeOrder.store_address;
+                            newItem.store_email = storeOrder.store_email;
+                            newItem.store_lat = storeOrder.store_lat;
+                            newItem.store_long = storeOrder.store_long;
+                            newItem.store_location = storeOrder.store_location;
+                            newItem.store_name = storeOrder.store_name;
+                            newItem.store_phone_number = storeOrder.store_phone_number;
+                            newItem.store_pincode = storeOrder.store_pincode;
+                            newItem.total_item_count = storeOrder.total_item_count;
+                            newItem.voucher_amount = storeOrder.voucher_amount;
+                            newItem.voucher_code = storeOrder.voucher_code;
+                            newItem.voucher_type = storeOrder.voucher_type;
+
+                            /*   console.log(itemArr); */
+                            newItem.order_products = [];
+                            newItem.order_products_info = (itemArr);
+                            uniqueArr.push(newItem);
+                        }
+                    }
+
                     res.json({
                         status: 200,
                         "message": "Store orders Information",
-                        "store_orders_info": storeOrders[0],
+                        "store_orders_info": uniqueArr,
                         "store_order_count": storeOrders[1]
                     });
                 }
@@ -813,7 +873,7 @@ exports.addStoreProducts = function (req, res) {
     let category_id = + req.body.category_id;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [product_id, store_id, store_marked_price, store_cost_price, store_selling_price,
-            store_margin, store_discount, store_initial_quantity, store_updated_quantity,store_additional_quantity, 
+            store_margin, store_discount, store_initial_quantity, store_updated_quantity, store_additional_quantity,
             status, stock, parent_category_id, category_id, product_caping],
             function (err, store) {
                 if (err) {
@@ -914,13 +974,13 @@ exports.fetchStoreSubCategoriesInfoById = function (req, res) {
 }
 
 
-exports.updateStoreProduct = function(req, res) {
+exports.updateStoreProduct = function (req, res) {
     const updatedStoreProduct = {};
     // updatedStoreProduct.store_cost_price = '';
     updatedStoreProduct.store_selling_price = +req.body.store_selling_price;
     updatedStoreProduct.store_discount = +req.body.store_discount;
     updatedStoreProduct.status = +req.body.status;
-    updatedStoreProduct.product_marked_price  = +req.body.product_marked_price;
+    updatedStoreProduct.product_marked_price = +req.body.product_marked_price;
     updatedStoreProduct.stock = +req.body.stock;
     updatedStoreProduct.store_product_caping = +req.body.store_product_caping;
     pool.getConnection(function (err, dbConn) {
@@ -949,7 +1009,7 @@ exports.updateStoreProduct = function(req, res) {
                 }
                 dbConn.release();
             });
-    });   
+    });
 }
 
 exports.searchStoreAndProductsBasedOnName = function (req, res) {

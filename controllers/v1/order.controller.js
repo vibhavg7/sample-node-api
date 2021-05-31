@@ -1,14 +1,11 @@
-var mysql = require('mysql');
 var rp = require('request-promise');
 var admin = require("firebase-admin");
 var http = require('http');
-var pool = mysql.createPool({
-    connectionLimit: 10,
-    host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
-    user: 'root',
-    password: process.env.dbpassword,
-    database: 'grostep'
-});
+var pool = require('../../utils/manageDB');
+var jwt = require('jsonwebtoken');
+var createError = require('http-errors');
+
+
 exports.placeOrder = function (req, res) {
     if (+req.body.deliveryfee == 0) {
         req.body.deliveryfee = 15;
@@ -887,31 +884,22 @@ exports.fetchAllOrders = function (req, res) {
     });
 }
 
-exports.fetchCustomerOrders = function (req, res) {
-    let sql = `CALL GET_CUSTOMER_ORDERS(?,?,?,?)`;
-    pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [+req.body.customerId, +req.body.page_number, +req.body.page_size, req.body.filterBy],
-            function (err, customerOrders) {
-                let orderData = customerOrders[0];
 
-                if (err) {
-                    console.log("error: ", err);
-                    res.json({
-                        status: 400,
-                        "message": "Customer orders Information not found",
-                        "customer_orders_info": [],
-                        "customer_order_count": []
-                    });
-                }
-                else {
-                    res.json({
-                        status: 200,
-                        "message": "Customer orders Information",
-                        "customer_orders_info": orderData,
-                        "customer_order_count": customerOrders[1]
-                    });
-                }
-                dbConn.release();
-            });
-    });
+
+exports.fetchCustomerOrders = async function (req, res, next) {
+    let sql = `CALL GET_CUSTOMER_ORDERS(?,?,?,?)`;
+    try {
+        const customerOrders = await pool.query(sql, [+req.body.customerId, +req.body.page_number, +req.body.page_size, req.body.filterBy]);
+        res.json({
+            status: 200,
+            "message": "Customer orders Information",
+            "customer_orders_info": customerOrders[0],
+            "customer_order_count": customerOrders[1]
+        });
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
 }

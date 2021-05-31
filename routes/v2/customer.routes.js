@@ -1,13 +1,17 @@
 var express = require('express');
 var router = express.Router();
 
-var customerController = require("../controllers/customer.controller");
-var orderController = require("../controllers/order.controller");
+var customerController = require("../../controllers/v1/customer.controller");
+var orderController = require("../../controllers/v1/order.controller");
+var cartController = require("../../controllers/v1/cart.controller");
+
+var authenticateToken = require('../../services/authenticateToken');
+
 router.route('/register')
     .post(customerController.registerCustomer);
 
 router.route('/registerCustomerFromAdminPanel')
-    .post(customerController.registerCustomerFromAdminPanel);
+    .post(authenticateToken, customerController.registerCustomerFromAdminPanel);
 
 router.route('/updateCustomerFromAdminPanel/:customerId')
     .put(customerController.updateCustomerFromAdminPanel);
@@ -19,19 +23,19 @@ router.route('/validate')
     .post(customerController.validateCustomer);
 
 router.route('/addCustomerFeedback')
-    .post(customerController.addCustomerFeedback);
+    .post(authenticateToken, customerController.addCustomerFeedback);
 
 router.route('/customerFeedback')
-    .post(customerController.getCustomerFeedbacks);
+    .post(authenticateToken, customerController.getCustomerFeedbacks);
 
 router.route('/customerFeedbackInfo/:feedBackId')
-    .post(customerController.getFeedbackDetailById);
+    .post(authenticateToken, customerController.getFeedbackDetailById);
 
 router.route('/customerinfo')
-    .post(customerController.fetchAllCustomers);
+    .post(authenticateToken, customerController.fetchAllCustomers);
 
 router.route('/customerinfo/customerorders')
-    .post(orderController.fetchCustomerOrders);
+    .post(authenticateToken, orderController.fetchCustomerOrders);
 
 router.route('/customeraddress')
     .post(customerController.addDelievryAddress);
@@ -51,12 +55,15 @@ router.route('/customeraddress/:addressId')
 router.route('/customeraddressoncart/:customerId')
     .post(customerController.getCustomerAddresses);
 
+router.route('/customerinfo/customercarts')
+    .post(authenticateToken, cartController.fetchCustomerCarts);
+
 router.route('/customerselectedaddresscitywise/:customerId')
     .post(customerController.getCustomerSelectedAddressCityWise);
 
 
 router.route('/customerinfo/:customerId')
-    .get(customerController.getCustomer)
+    .get(authenticateToken, customerController.getCustomer)
     .put(customerController.updateCustomer)
     .delete(customerController.deleteCustomer);
 
@@ -73,6 +80,7 @@ router.route('/subscriptioninfo')
 router.route('/subscriptioninfo/:subscriptionId')
     .post(customerController.getSubscriptionDetailById);
 
+//need to check
 router.route('/sendUserNotificationFromAdminPanel')
     .post(customerController.sendUserNotificationFromAdminPanel);
 

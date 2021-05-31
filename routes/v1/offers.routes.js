@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-var offersController = require("../controllers/offers.controller");
+var offersController = require("../../controllers/v1/offers.controller");
 
 router.route('/customeroffers/:customerId')
     .get(offersController.fetchAllActiveOffers);

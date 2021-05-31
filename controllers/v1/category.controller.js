@@ -1,13 +1,5 @@
-var mysql = require('mysql');
 var _ = require('lodash');
-
-var pool = mysql.createPool({
-    connectionLimit: 10,
-    host: 'grostep-database.c8zeozlsfjcx.ap-south-1.rds.amazonaws.com',
-    user: 'root',
-    password: process.env.dbpassword,
-    database: 'grostep'
-});
+var pool = require('../../utils/manageDB');
 
 
 exports.getSubCategoryInfo = function (req, res) {

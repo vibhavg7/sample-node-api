@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-var mapController = require("../controllers/map.controller");
+var mapController = require("../../controllers/v1/map.controller");
 
 
 router.route('/autosuggest')

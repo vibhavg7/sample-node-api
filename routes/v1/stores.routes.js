@@ -1,8 +1,8 @@
 var express = require('express');
 var router = express.Router();
 
-var storesController = require("../controllers/stores.controller");
-var orderController = require("../controllers/order.controller");
+var storesController = require("../../controllers/v1/stores.controller");
+var orderController = require("../../controllers/v1/order.controller");
 
 router.route('/addnewstore')
     .post(storesController.addNewStore);

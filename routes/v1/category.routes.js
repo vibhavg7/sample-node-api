@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-var categoryController = require("../controllers/category.controller");
+var categoryController = require("../../controllers/v1/category.controller");
 
 router.route('/storesubcategories')
     .post(categoryController.postStoreSubCategories)

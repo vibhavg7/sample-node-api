@@ -1,7 +1,11 @@
 var express = require('express');
 var router = express.Router();
 
-var cartController = require("../controllers/cart.controller");
+var cartController = require("../../controllers/v1/cart.controller");
+var authenticateToken = require('../../services/authenticateToken');
+
+router.route('/fetchallcart')
+    .post(authenticateToken, cartController.fetchAllCartData);
 
 
 router.route('/validateStoreCartProducts')

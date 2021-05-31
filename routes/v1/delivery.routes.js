@@ -1,8 +1,8 @@
 var express = require('express');
 var router = express.Router();
 
-var deliveryController = require("../controllers/delivery.controller");
-var orderController = require("../controllers/order.controller");
+var deliveryController = require("../../controllers/v1/delivery.controller");
+var orderController = require("../../controllers/v1/order.controller");
 
 router.route('/deliveryareasinfo/banners')
     .post(deliveryController.fetchAllDeliveryAreaBannersByAreaId);
