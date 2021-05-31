@@ -16,6 +16,7 @@ const authenticateToken = function (req, res, next) {
         }
         try {
             console.log(user);
+            console.log(app_client);
             switch (app_client) {
                 case "adminpanel":
                     sql = `select * from employee WHERE status = 1 and username = ?`;
