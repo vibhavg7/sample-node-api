@@ -4,7 +4,6 @@ var pool = require('../utils/manageDB');
 const authenticateToken = function (req, res, next) {
     const authHeader = req.headers['authorization'];
     const app_client = req.headers['appclient'];
-    console.log(req.headers['appclient']);
     const token = authHeader && authHeader.split(' ')[1];
     let sql = "";
     if (token == null) {
@@ -16,9 +15,6 @@ const authenticateToken = function (req, res, next) {
             next(createError(403, err));
         }
         try {
-            console.log(user);
-            console.log(req.headers['appclient']);
-            console.log(app_client);
             switch (app_client) {
                 case "adminpanel":
                     sql = `select * from employee WHERE status = 1 and username = ?`;
@@ -29,15 +25,15 @@ const authenticateToken = function (req, res, next) {
                     console.log('customer_mobileapp');
                     break;
             }
-            // const userData = await pool.query(sql, [user.name]);
-            // if (userData.length > 0) {
-            //     req.user = user;
-            //     console.log(req.user);
-            //     console.log('hey');
-            // } else {
-            //     res.sendStatus(403);
-            //     return;
-            // }
+            const userData = await pool.query(sql, [user.name]);
+            if (userData.length > 0) {
+                req.user = user;
+                // console.log(req.user);
+                // console.log('hey');
+            } else {
+                res.sendStatus(403);
+                return;
+            }
         } catch (err) {
             next(createError(401, err));
         }
