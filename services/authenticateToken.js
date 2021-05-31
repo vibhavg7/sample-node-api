@@ -15,23 +15,26 @@ const authenticateToken = function (req, res, next) {
             next(createError(403, err));
         }
         try {
+            console.log(user);
             switch (app_client) {
                 case "adminpanel":
                     sql = `select * from employee WHERE status = 1 and username = ?`;
+                    console.log('adminpanel');
                     break;
                 case "customer_mobileapp":
                     sql = `select * from customer WHERE customer_id = ?`;
+                    console.log('customer_mobileapp');
                     break;
             }
-            const userData = await pool.query(sql, [user.name]);
-            if (userData.length > 0) {
-                req.user = user;
-                console.log(req.user);
-                console.log('hey');
-            } else {
-                res.sendStatus(403);
-                return;
-            }
+            // const userData = await pool.query(sql, [user.name]);
+            // if (userData.length > 0) {
+            //     req.user = user;
+            //     console.log(req.user);
+            //     console.log('hey');
+            // } else {
+            //     res.sendStatus(403);
+            //     return;
+            // }
         } catch (err) {
             next(createError(401, err));
         }

@@ -15,7 +15,6 @@ router.route('/:productId')
 
 
 router.route('/fetchProducts')
-// authenticateToken, 
-    .post(productsController.getProducts);
+    .post(authenticateToken, productsController.getProducts);
 
 module.exports = router;
