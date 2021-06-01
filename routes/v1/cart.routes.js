@@ -4,6 +4,13 @@ var router = express.Router();
 var cartController = require("../../controllers/v1/cart.controller");
 var authenticateToken = require('../../services/authenticateToken');
 
+router.route('/customercarts')
+    .post(authenticateToken, cartController.fetchCustomerCarts);
+
+router.route('/cartproducts/:cartId')
+    .get(authenticateToken, cartController.fetchCartProducts);
+
+
 router.route('/fetchallcart')
     .post(authenticateToken, cartController.fetchAllCartData);
 

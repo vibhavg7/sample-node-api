@@ -18,11 +18,11 @@ const authenticateToken = function (req, res, next) {
             switch (app_client) {
                 case "adminpanel":
                     sql = `select * from employee WHERE status = 1 and username = ?`;
-                    console.log('adminpanel');
+                    // console.log('adminpanel');
                     break;
                 case "customer_mobileapp":
                     sql = `select * from customer WHERE customer_id = ?`;
-                    console.log('customer_mobileapp');
+                    // console.log('customer_mobileapp');
                     break;
             }
             const userData = await pool.query(sql, [user.name]);

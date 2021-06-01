@@ -8,13 +8,40 @@ var createError = require('http-errors');
 
 
 exports.fetchAllCartData = async function(req, res, next) {
-    let sql = `CALL GET_ALL_CARTS(?,?)`;
+    let sql = `CALL GET_ALL_CARTS(?,?,?)`;
     try {
         const cartData = await pool.query(sql, [+req.body.page_number, +req.body.page_size, req.body.filterBy]);
+        let uniqueArr = [];
+        for (let i = 0; i < cartData[0].length; i++) {
+            let customerCartData = cartData[0][i];
+            let newItem = {};
+            newItem.cart_id = customerCartData.cart_id;
+            newItem.customer_id = customerCartData.customer_id;
+            newItem.instructions = customerCartData.instructions;
+            newItem.added_date = new Date(customerCartData.added_date).toISOString();
+            newItem.last_updated = new Date(customerCartData.last_updated).toISOString();
+            newItem.status = customerCartData.status;
+            newItem.order_amount = customerCartData.order_amount ? customerCartData.order_amount: 0;
+            newItem.delivery_cost = customerCartData.delivery_cost ? customerCartData.delivery_cost: 0;
+            newItem.discount_amount = customerCartData.voucher_amount ? customerCartData.voucher_amount: 0;
+            newItem.total = customerCartData.total ? customerCartData.total: newItem.order_amount + newItem.delivery_cost - newItem.discount_amount;
+
+            newItem.voucher_code = customerCartData.voucher_code;
+            newItem.delivery_slot = customerCartData.delivery_slot;
+            newItem.delivery_type = customerCartData.delivery_type;
+
+            newItem.store_id = customerCartData.store_id;
+            newItem.store_name = customerCartData.store_name;
+            newItem.store_phone_number = customerCartData.store_phone_number;
+            newItem.customer_name = customerCartData.customer_name;
+            newItem.customer_phone_number = customerCartData.customer_phone_number;
+            uniqueArr.push(newItem);            
+        }        
+
         res.json({
             status: 200,
             "message": "cart Information",
-            "carts_info": cartData[0],
+            "carts_info": uniqueArr,
             "cart_total_count": cartData[1]
         });
     }
@@ -176,6 +203,24 @@ exports.validateStoreCartProducts = function (req, res) {
     });
 }
 
+exports.fetchCartProducts = async function(req, res, next) {
+    let sql = `CALL GET_CART_PRODUCTS(?)`;
+    try {
+        const cartProducts = await pool.query(sql, [+req.params.cartId]);
+        res.json({
+            "status": 200,
+            "message": "Cart Product list",
+            "cartproducts": cartProducts[0],
+            "cart_products_total_count": cartProducts[1][0]
+        });
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
+}
+
 
 exports.fetchCustomerCarts = async function (req, res, next) {
     let sql = `CALL GET_CUSTOMER_CARTS(?,?)`;
@@ -203,23 +248,26 @@ exports.fetchCustomerCarts = async function (req, res, next) {
                             "store_discount": obj.store_discount
                         }));
                 let newItem = {};
+                // console.log(customerCartData.total);
                 newItem.cart_id = customerCartData.cart_id;
                 newItem.customer_id = customerCartData.customer_id;
                 newItem.instructions = customerCartData.instructions;
                 newItem.store_id = customerCartData.store_id;
                 newItem.store_name = customerCartData.store_name;
                 newItem.store_phone_number = customerCartData.store_phone_number;
-                newItem.added_date = customerCartData.added_date;
-                newItem.last_updated = customerCartData.last_updated;
+                newItem.added_date = new Date(customerCartData.added_date).toISOString();
+                // customerCartData.added_date;
+                newItem.last_updated = new Date(customerCartData.last_updated).toISOString();
+                // customerCartData.last_updated;
                 newItem.customer_name = customerCartData.customer_name;
                 newItem.customer_phone_number = customerCartData.customer_phone_number;
-                newItem.order_amount = customerCartData.order_amount;
+                newItem.order_amount = customerCartData.order_amount ? customerCartData.order_amount: 0;
                 newItem.delivery_slot = customerCartData.delivery_slot;
                 newItem.delivery_type = customerCartData.delivery_type;
-                newItem.discount_amount = customerCartData.voucher_amount;
-                newItem.delivery_cost = customerCartData.delivery_cost;
+                newItem.discount_amount = customerCartData.voucher_amount ? customerCartData.voucher_amount: 0;
+                newItem.delivery_cost = customerCartData.delivery_cost ? customerCartData.delivery_cost: 0;
                 newItem.voucher_code = customerCartData.voucher_code;
-                newItem.total = customerCartData.total;
+                newItem.total = customerCartData.total ? customerCartData.total: newItem.order_amount + newItem.delivery_cost - newItem.discount_amount;
                 newItem.status = customerCartData.status;
                 // newItem.cart_products = [];
                 newItem.cart_products_info = (itemArr);
@@ -230,7 +278,7 @@ exports.fetchCustomerCarts = async function (req, res, next) {
             status: 200,
             "message": "Customer carts Information",
             "customer_carts_info": uniqueArr,
-            "customer_carts_count": customerCarts[1]
+            "customer_carts_count": customerCarts[1][0]
         });
     }
     catch (err) {
