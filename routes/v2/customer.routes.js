@@ -55,9 +55,6 @@ router.route('/customeraddress/:addressId')
 router.route('/customeraddressoncart/:customerId')
     .post(customerController.getCustomerAddresses);
 
-router.route('/customerinfo/customercarts')
-    .post(authenticateToken, cartController.fetchCustomerCarts);
-
 router.route('/customerselectedaddresscitywise/:customerId')
     .post(customerController.getCustomerSelectedAddressCityWise);
 
@@ -75,7 +72,7 @@ router.route('/subscribeUser')
 
 
 router.route('/subscriptioninfo')
-    .post(customerController.getSubcriptions);
+    .post(authenticateToken, customerController.getSubcriptions);
 
 router.route('/subscriptioninfo/:subscriptionId')
     .post(customerController.getSubscriptionDetailById);

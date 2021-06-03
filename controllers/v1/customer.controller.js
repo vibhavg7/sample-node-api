@@ -3,6 +3,7 @@ var rp = require('request-promise');
 var admin = require("firebase-admin");
 var http = require('http');
 var pool = require('../../utils/manageDB');
+var createError = require('http-errors');
 
 exports.fetchAllCustomers = function (req, res) {
 
@@ -396,9 +397,9 @@ exports.addDelievryAddress = function (req, res) {
 
     let sql = `CALL ADD_NEW_DELIVERY_ADDRESS(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [req.body.address, req.body.address2, req.body.city,req.body.state,
-        req.body.country, +req.body.pincode,req.body.latitude, req.body.longitude, 
-        +req.body.address_type,req.body.landmark, req.body.phone, +req.body.customer_id,
+        dbConn.query(sql, [req.body.address, req.body.address2, req.body.city, req.body.state,
+        req.body.country, +req.body.pincode, req.body.latitude, req.body.longitude,
+        +req.body.address_type, req.body.landmark, req.body.phone, +req.body.customer_id,
         req.body.customer_name, req.body.flatNumber, req.body.locality, req.body.stateShortName,
         req.body.countryShortName],
             function (err, address) {
@@ -625,31 +626,23 @@ exports.updateCustomer = function (req, res) {
 }
 
 
-exports.getSubcriptions = function (req, res) {
+exports.getSubcriptions = async function (req, res, next) {
     let sql = `CALL GET_ALL_SUBSCRIPTION(?,?,?)`;
-    pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [+req.body.pageNumber, +req.body.pageSize, req.body.filterBy],
-            function (err, subscriptionsInfo) {
-                if (err) {
-                    console.log("error: ", err);
-                    res.json({
-                        status: 400,
-                        "message": "Subscription Information not found",
-                        "subscriptions_info": [],
-                        "subscriptions_count": []
-                    });
-                }
-                else {
-                    res.json({
-                        status: 200,
-                        "message": "Subscription Information",
-                        "subscriptions_info": subscriptionsInfo[0],
-                        "subscriptions_count": subscriptionsInfo[1]
-                    });
-                }
-                dbConn.release();
-            });
-    });
+
+    try {
+        const subscriptionsInfo = await pool.query(sql, [+req.body.pageNumber, +req.body.pageSize, req.body.filterBy]);
+        res.json({
+            status: 200,
+            "message": "Subscription Information",
+            "subscriptions_info": subscriptionsInfo[0],
+            "subscriptions_count": subscriptionsInfo[1]
+        });
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
 }
 
 exports.getSubscriptionDetailById = function (req, res) {
@@ -665,7 +658,7 @@ exports.sendUserNotificationFromAdminPanel = function (req, res) {
     var queryData = [customerIds];
     pool.getConnection(function (err, dbConn) {
         dbConn.query("select customer_id,customer_name,phone,token from customer where customer_id in  (?);",
-        queryData, function (err, customerInfo) {
+            queryData, function (err, customerInfo) {
                 if (err) {
                     console.log("error: ", err);
                 }
@@ -696,7 +689,7 @@ exports.sendUserNotificationFromAdminPanel = function (req, res) {
                                 str += chunk;
                             });
                             res1.on('end', function () {
-                                console.log(JSON.parse(str)[1]['msgid']);            
+                                console.log(JSON.parse(str)[1]['msgid']);
                                 res.json({
                                     "status": 200,
                                     "message": "message sent"

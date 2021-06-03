@@ -64,6 +64,7 @@ var orderV2Routes = require("./routes/v2/order.routes");
 var productV2Routes = require("./routes/v2/products.routes");
 var imageuploadV2Routes = require("./routes/v2/image.upload.routes");
 var employeeV2Routes = require("./routes/v2/employee.routes");
+var deliveryV2Routes = require("./routes/v2/delivery.routes");
 // Set up the routing.
 var v1 = express.Router();
 var v2 = express.Router();
@@ -104,6 +105,7 @@ v2.use('/ordersapi', limiter, speedLimiter, orderV2Routes);
 v2.use('/productsapi',limiter, speedLimiter, productV2Routes);
 v2.use('/imageuploadapi',limiter, speedLimiter, imageuploadV2Routes);
 v2.use('/employeeapi', limiter, speedLimiter, employeeV2Routes);
+v2.use('/deliveryapi', limiter, speedLimiter, deliveryV2Routes);
 
 app.use('/v1', v1);
 app.use('/v2', v2);
