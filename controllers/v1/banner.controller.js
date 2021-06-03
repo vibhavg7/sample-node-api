@@ -1,29 +1,23 @@
 var pool = require('../../utils/manageDB');
+var createError = require('http-errors');
 
-exports.getAllBannersBasedOnCity = function (req, res) {
+exports.getAllBannersBasedOnCity = async function (req, res, next) {
     const newStoreCategory = req.body;
     let sql = `CALL GET_ALL_BANNERS_CITYWISE(?)`;
-    pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [req.body.filterBy],
-            function (err, banners) {
-                if (err) {
-                    console.log("error: ", err);
-                    res.json({
-                        "message": "banners not found",
-                        "status": 400,
-                        "banners": 0
-                    });
-                }
-                else {
-                    res.json({
-                        "message": "banners city wise",
-                        "status": 200,
-                        "banners": banners[0]
-                    });
-                }
-                dbConn.release();
-            });
-    });
+
+    try {
+        const banners = await pool.query(sql, [req.body.filterBy]);
+        res.json({
+            "message": "banners city wise",
+            "status": 200,
+            "banners": banners[0]
+        });
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
 }
 
 
@@ -47,52 +41,47 @@ exports.fetchAllBanners = function (req, res) {
     });
 }
 
-exports.deleteBanner = function (req, res) {
-    pool.getConnection(function (err, dbConn) {
-        dbConn.query("DELETE FROM banner_info WHERE banner_id = ? ", req.params.bannerId,
-            function (err, bannerData) {
-                if (err) {
-                    console.log("error: ", err);
-                }
-                else {
-                    let deleted = false;
-                    if (bannerData.affectedRows == 1) {
-                        deleted = true;
-                    }
-                    res.json({
-                        "message": (deleted) ? "banner deleted successfully" : "invalid banner id",
-                        "status": (deleted) ? 200 : 400,
-                        "banner_id": req.params.bannerId
-                    });
-                }
-                dbConn.release();
-            });
-    });
-}
+exports.deleteBanner = async function (req, res, next) {
 
-exports.fetchBannerInfoById = function (req, res) {
-    pool.getConnection(function (err, dbConn) {
-        dbConn.query("SELECT * FROM banner_info WHERE banner_id = ? ", req.params.bannerId, function (err, bannerData) {
-            if (err) {
-                res.json({
-                    status: 400,
-                    "message": "Banner Information not found",
-                    "banner": bannerData[0]
-                });
-            }
-            else {
-                res.json({
-                    status: 200,
-                    "message": "Banner Information",
-                    "banner": bannerData[0]
-                });
-            }
-            dbConn.release();
+    let sql = `DELETE FROM banner_info WHERE banner_id = ?`;
+    try {
+        const bannerData = await pool.query(sql, [+req.params.bannerId]);
+        let deleted = false;
+        if (bannerData.affectedRows == 1) {
+            deleted = true;
+        }
+        res.json({
+            "message": (deleted) ? "banner deleted successfully" : "invalid banner id",
+            "status": (deleted) ? 200 : 400,
+            "banner_id": req.params.bannerId
         });
-    });
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
 }
 
-exports.addNewBanner = function (req, res) {
+exports.fetchBannerInfoById = async function (req, res, next) {
+    let sql = `SELECT * FROM banner_info WHERE banner_id = ?`;
+
+    try {
+        const bannerData = await pool.query(sql, [+req.params.bannerId]);
+        res.json({
+            status: 200,
+            "message": "Banner Information",
+            "banner": bannerData[0]
+        });
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
+}
+
+exports.addNewBanner = async function (req, res, next) {
     const newProduct = req.body;
     let sql = `CALL ADD_NEW_BANNER(?,?,?)`;
 
@@ -100,54 +89,37 @@ exports.addNewBanner = function (req, res) {
     let zipCode = req.body.zipCode;
     let status = +req.body.status;
 
-    pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [bannerName, zipCode, status],
-            function (err, banner) {
-                if (err) {
-                    console.log("error: ", err);
-                    res.json({
-                        "message": "banner not added",
-                        "status": 400,
-                        "banner_id": 0
-                    });
-                }
-                else {
-                    console.log(JSON.stringify(banner));
-                    res.json({
-                        "status": 200,
-                        "message": "banner added",
-                        "banner_id": banner[0][0]['banner_id']
-                    });
-                }
-                dbConn.release();
-            });
-    });
+    try {
+        const subscriptionsInfo = await pool.query(sql, [bannerName, zipCode, status]);
+        res.json({
+            "status": 200,
+            "message": "banner added",
+            "banner_id": banner[0][0]['banner_id']
+        });
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
 }
 
-exports.updateBanner = function (req, res) {
+exports.updateBanner = async function (req, res, next) {
     const updateBanner = req.body;
-    pool.getConnection(function (err, dbConn) {
-        dbConn.query("UPDATE grostep.banner_info SET ? WHERE banner_id = ?", [updateBanner, +req.params.bannerId], function (err, banner) {
-            if (err) {
-                console.log("error: ", err);
-                res.json({
-                    status: 400,
-                    "message": "banner Information not updated",
-                    "banner": banner
-                });
-
-            }
-            else {
-                console.log(JSON.stringify(banner));
-                res.json({
-                    status: 200,
-                    "message": "banner Information updated",
-                    "banner": banner
-                });
-            }
-            dbConn.release();
+    let sql = `UPDATE grostep.banner_info SET ? WHERE banner_id = ?`;
+    try {
+        const banner = await pool.query(sql, [updateBanner, +req.params.bannerId]);
+        res.json({
+            status: 200,
+            "message": "banner Information updated",
+            "banner": banner
         });
-    });
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
 }
 
 exports.updateBannerImages = function (banner_id, imageUrl, req, res) {
