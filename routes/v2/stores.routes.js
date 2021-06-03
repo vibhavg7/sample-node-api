@@ -99,7 +99,7 @@ router.route('/storeinfo/:storeId')
     .put(authenticateToken,storesController.updateStore);
 
 router.route('/updatestoreclosingstatus/:storeId')
-    .put(storesController.updatestoreclosingstatus);
+    .put(authenticateToken, storesController.updatestoreclosingstatus);
 
 
 router.route('/:orderId')

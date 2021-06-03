@@ -4,6 +4,7 @@ var rp = require('request-promise');
 var http = require('http');
 var admin = require("firebase-admin");
 var moment = require('moment');
+var createError = require('http-errors');
 
 var pool = require('../../utils/manageDB');
 
@@ -178,28 +179,23 @@ exports.getStoreDeliverySlots = function (req, res) {
     });
 }
 
-exports.updatestoreclosingstatus = function (req, res) {
+exports.updatestoreclosingstatus = async function (req, res) {
     const updateStore = req.body;
-    pool.getConnection(function (err, dbConn) {
-        dbConn.query("UPDATE grostep.stores SET ? WHERE store_id = ?", [updateStore, +req.params.storeId], function (err, storeData) {
-            if (err) {
-                console.log("error: ", err);
-                res.json({
-                    status: 400,
-                    "message": "store Information not updated",
-                    "coupon": couponData
-                });
-            }
-            else {
-                res.json({
-                    status: 200,
-                    "message": "store Information updated",
-                    "storeData": storeData
-                });
-            }
-            dbConn.release();
+    let sql = `UPDATE grostep.stores SET ? WHERE store_id = ?`;
+    try {
+        const storeData = await pool.query(sql, [updateStore, +req.params.storeId]);
+        
+        res.json({
+            status: 200,
+            "message": "store Information updated successfully",
+            "storeData": storeData
         });
-    });
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
 }
 
 // function calcTime(offset) {
