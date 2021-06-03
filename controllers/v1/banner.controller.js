@@ -90,7 +90,7 @@ exports.addNewBanner = async function (req, res, next) {
     let status = +req.body.status;
 
     try {
-        const subscriptionsInfo = await pool.query(sql, [bannerName, zipCode, status]);
+        const banner = await pool.query(sql, [bannerName, zipCode, status]);
         res.json({
             "status": 200,
             "message": "banner added",
