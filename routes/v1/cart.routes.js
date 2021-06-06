@@ -5,14 +5,14 @@ var cartController = require("../../controllers/v1/cart.controller");
 var authenticateToken = require('../../services/authenticateToken');
 
 router.route('/customercarts')
-    .post(authenticateToken, cartController.fetchCustomerCarts);
+    .post(authenticateToken, cartController.fetchcartsinfo);
 
 router.route('/cartproducts/:cartId')
     .get(authenticateToken, cartController.fetchCartProducts);
 
 
-router.route('/fetchallcart')
-    .post(authenticateToken, cartController.fetchAllCartData);
+router.route('/fetchcartsinfo')
+    .post(authenticateToken, cartController.fetchcartsinfo);
 
 
 router.route('/validateStoreCartProducts')
@@ -41,5 +41,11 @@ router.route('/cart')
 
 router.route('/cart/:cart_id')
     .put(cartController.updateCustomerCartById);
+
+
+router.route('/:cartId')
+    .get(cartController.fetchCartDetailsById);
+    // .put(orderController.updateOrder);
+
 
 module.exports = router;

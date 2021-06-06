@@ -7,36 +7,103 @@ var jwt = require('jsonwebtoken');
 var createError = require('http-errors');
 
 
-exports.fetchAllCartData = async function(req, res, next) {
-    let sql = `CALL GET_ALL_CARTS(?,?,?)`;
+exports.fetchCartDetailsById = async function(req, res, next) {
+    let sql = `CALL GET_CART_INFO(?)`;
     try {
-        const cartData = await pool.query(sql, [+req.body.page_number, +req.body.page_size, req.body.filterBy]);
+        const cartData = await pool.query(sql, [+req.params.cartId]);
+        res.json({
+            "message": "order information",
+            "status": 200,
+            "customerInfo": cartData[0],
+            "storeInfo": cartData[1],
+            "cart_id": cartData[2][0].cart_id,
+            "voucher_code": cartData[2][0].voucher_code,
+            "order_amount": cartData[2][0].order_amount,
+            "delivery_cost": cartData[2][0].delivery_cost,
+            "voucher_amount": cartData[2][0].voucher_amount,
+            "last_updated": cartData[2][0].last_updated,
+            "instructions": cartData[2][0].instructions,
+            "status": cartData[2][0].status
+
+        });
+    }  catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
+}
+
+exports.fetchcartsinfo = async function (req, res, next) {
+    let sql = `CALL GET_CUSTOMER_CARTS(?,?,?,?)`;
+    try {
+        const cartData = await pool.query(sql, [+req.body.page_number, +req.body.page_size, +req.body.customerId, req.body.filterBy]);
         let uniqueArr = [];
-        for (let i = 0; i < cartData[0].length; i++) {
-            let customerCartData = cartData[0][i];
-            let newItem = {};
-            newItem.cart_id = customerCartData.cart_id;
-            newItem.customer_id = customerCartData.customer_id;
-            newItem.instructions = customerCartData.instructions;
-            newItem.added_date = new Date(customerCartData.added_date).toISOString();
-            newItem.last_updated = new Date(customerCartData.last_updated).toISOString();
-            newItem.status = customerCartData.status;
-            newItem.order_amount = customerCartData.order_amount ? customerCartData.order_amount: 0;
-            newItem.delivery_cost = customerCartData.delivery_cost ? customerCartData.delivery_cost: 0;
-            newItem.discount_amount = customerCartData.voucher_amount ? customerCartData.voucher_amount: 0;
-            newItem.total = customerCartData.total ? customerCartData.total: newItem.order_amount + newItem.delivery_cost - newItem.discount_amount;
+        let cartData1 = cartData[0];
 
-            newItem.voucher_code = customerCartData.voucher_code;
-            newItem.delivery_slot = customerCartData.delivery_slot;
-            newItem.delivery_type = customerCartData.delivery_type;
+        for (let i = 0; i < cartData1.length; i++) {
+            let cartData = cartData1[i];
+            if (uniqueArr.filter(value => value.cart_id == cartData.cart_id).length == 0) {
+                let itemArr = cartData1.filter(val => val.cart_id == cartData.cart_id)
+                    .map(obj => (
+                        {
+                            "store_product_mapping_id": obj.store_product_mapping_id,
+                            "quantity": obj.quantity,
+                            "image_url": obj.image_url,
+                            "weight_type_id": obj.weight_type_id,
+                            "weight_text": obj.weight_text,
+                            "product_id": obj.product_id,
+                            "product_name": obj.product_name,
+                            "product_weight": obj.product_weight,
+                            "store_selling_price": obj.store_selling_price,
+                            // "buying_date": obj.order_placing_date,
+                        }));
+                let newItem = {};
+                let customer_info = {};
+                let store_info = {};
 
-            newItem.store_id = customerCartData.store_id;
-            newItem.store_name = customerCartData.store_name;
-            newItem.store_phone_number = customerCartData.store_phone_number;
-            newItem.customer_name = customerCartData.customer_name;
-            newItem.customer_phone_number = customerCartData.customer_phone_number;
-            uniqueArr.push(newItem);            
-        }        
+                newItem.cart_id = cartData.cart_id;
+                newItem.instructions = cartData.instructions;
+                newItem.added_date = cartData.added_date;
+                newItem.last_updated = cartData.last_updated;
+                newItem.order_amount = cartData.order_amount;
+                newItem.delivery_cost = cartData.delivery_cost;
+                newItem.voucher_amount = cartData.voucher_amount;
+                newItem.voucher_code = cartData.voucher_code;
+                newItem.delivery_slot = cartData.delivery_slot;
+                newItem.delivery_type = cartData.delivery_type;
+                newItem.total = cartData.total;
+                newItem.status = cartData.status;
+
+
+                newItem.customerInfo = [];
+                newItem.storeInfo = [];
+
+
+                customer_info.customer_id = cartData.customer_id;
+                customer_info.customer_name = cartData.customer_name;
+                customer_info.registered_number = cartData.customer_phone;
+                customer_info.customer_email = cartData.customer_email;
+
+                store_info.store_id = cartData.store_id;
+                store_info.store_name = cartData.store_name;
+                store_info.store_email = cartData.store_email;
+                store_info.phone_number = cartData.store_phone_number;
+                store_info.alternative_number = cartData.store_alternative_number;
+                store_info.country = cartData.country;
+                store_info.state = cartData.state;
+                store_info.city = cartData.city;
+                store_info.pin_code = cartData.store_pin_code;
+                store_info.latitude = cartData.store_latitude;
+                store_info.longitude = cartData.store_longitude;
+                store_info.address = cartData.store_address;
+
+                newItem.cartproducts = (itemArr);
+                newItem.customerInfo.push(customer_info);
+                newItem.storeInfo.push(store_info);
+                uniqueArr.push(newItem);
+
+            }
+        }
 
         res.json({
             status: 200,
@@ -203,7 +270,7 @@ exports.validateStoreCartProducts = function (req, res) {
     });
 }
 
-exports.fetchCartProducts = async function(req, res, next) {
+exports.fetchCartProducts = async function (req, res, next) {
     let sql = `CALL GET_CART_PRODUCTS(?)`;
     try {
         const cartProducts = await pool.query(sql, [+req.params.cartId]);
@@ -261,13 +328,13 @@ exports.fetchCustomerCarts = async function (req, res, next) {
                 // customerCartData.last_updated;
                 newItem.customer_name = customerCartData.customer_name;
                 newItem.customer_phone_number = customerCartData.customer_phone_number;
-                newItem.order_amount = customerCartData.order_amount ? customerCartData.order_amount: 0;
+                newItem.order_amount = customerCartData.order_amount ? customerCartData.order_amount : 0;
                 newItem.delivery_slot = customerCartData.delivery_slot;
                 newItem.delivery_type = customerCartData.delivery_type;
-                newItem.discount_amount = customerCartData.voucher_amount ? customerCartData.voucher_amount: 0;
-                newItem.delivery_cost = customerCartData.delivery_cost ? customerCartData.delivery_cost: 0;
+                newItem.discount_amount = customerCartData.voucher_amount ? customerCartData.voucher_amount : 0;
+                newItem.delivery_cost = customerCartData.delivery_cost ? customerCartData.delivery_cost : 0;
                 newItem.voucher_code = customerCartData.voucher_code;
-                newItem.total = customerCartData.total ? customerCartData.total: newItem.order_amount + newItem.delivery_cost - newItem.discount_amount;
+                newItem.total = customerCartData.total ? customerCartData.total : newItem.order_amount + newItem.delivery_cost - newItem.discount_amount;
                 newItem.status = customerCartData.status;
                 // newItem.cart_products = [];
                 newItem.cart_products_info = (itemArr);

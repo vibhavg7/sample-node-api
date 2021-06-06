@@ -83,11 +83,15 @@ exports.getProduct = async function (req, res, next) {
 }
 
 exports.deleteProduct = async function (req, res, next) {
+    const updateProduct = {
+        status: 0
+    };
+    let sql = `UPDATE grostep.products SET ? WHERE product_id = ?`;
     try {
-        const product = await pool.query("DELETE FROM products WHERE product_id = ? ", req.params.productId);
+        const product = await pool.query(sql, [updateProduct, +req.params.productId]);
         res.json({
-            "status": 200,
-            "message": "Product detail",
+            status: 200,
+            "message": "product Information updated",
             "product": product
         });
     }
@@ -96,6 +100,19 @@ exports.deleteProduct = async function (req, res, next) {
     } finally {
         // pool.end();
     }
+    // try {
+    //     const product = await pool.query("DELETE FROM products WHERE product_id = ? ", req.params.productId);
+    //     res.json({
+    //         "status": 200,
+    //         "message": "Product detail",
+    //         "product": product
+    //     });
+    // }
+    // catch (err) {
+    //     next(createError(401, err));
+    // } finally {
+    //     // pool.end();
+    // }
 }
 
 exports.updateProduct = async function (req, res, next) {

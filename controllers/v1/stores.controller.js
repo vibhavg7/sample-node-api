@@ -459,50 +459,84 @@ exports.fetchStoreProductsCategoryWise = function (req, res) {
     });
 }
 
-exports.deleteStore = function (req, res) {
-    pool.getConnection(function (err, dbConn) {
-        dbConn.query("DELETE FROM stores WHERE store_id = ? ", req.params.storeId,
-            function (err, storeData) {
-                if (err) {
-                    console.log("error: ", err);
-                }
-                else {
-                    let deleted = false;
-                    if (storeData.affectedRows == 1) {
-                        deleted = true;
-                    }
-                    res.json({
-                        "message": (deleted) ? "store sub Category deleted successfully" : "invalid category id",
-                        "status": (deleted) ? 200 : 400,
-                        "category_id": req.params.storeId
-                    });
-                }
-                dbConn.release();
-            });
-    });
+exports.deleteStore = async function (req, res, next) {
+    const updateStore = {
+        status: 0
+    };
+    let sql = `UPDATE grostep.stores SET ? WHERE store_id = ?`;
+    try {
+        const store = await pool.query(sql, [updateStore, +req.params.storeId]);
+        res.json({
+            status: 200,
+            "message": "store Information updated",
+            "store": store
+        });
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
+    // pool.getConnection(function (err, dbConn) {
+    //     dbConn.query("DELETE FROM stores WHERE store_id = ? ", req.params.storeId,
+    //         function (err, storeData) {
+    //             if (err) {
+    //                 console.log("error: ", err);
+    //             }
+    //             else {
+    //                 let deleted = false;
+    //                 if (storeData.affectedRows == 1) {
+    //                     deleted = true;
+    //                 }
+    //                 res.json({
+    //                     "message": (deleted) ? "store sub Category deleted successfully" : "invalid category id",
+    //                     "status": (deleted) ? 200 : 400,
+    //                     "category_id": req.params.storeId
+    //                 });
+    //             }
+    //             dbConn.release();
+    //         });
+    // });
 }
 
-exports.deleteStoreProduct = function (req, res) {
-    pool.getConnection(function (err, dbConn) {
-        dbConn.query("DELETE FROM stores_products_mapping WHERE store_product_mapping_id = ? ", req.params.id,
-            function (err, storeProductData) {
-                if (err) {
-                    console.log("error: ", err);
-                }
-                else {
-                    let deleted = false;
-                    if (storeProductData.affectedRows == 1) {
-                        deleted = true;
-                    }
-                    res.json({
-                        "message": (deleted) ? "store sub Category deleted successfully" : "invalid category id",
-                        "status": (deleted) ? 200 : 400,
-                        "category_id": req.params.id
-                    });
-                }
-                dbConn.release();
-            });
-    });
+exports.deleteStoreProduct = async function (req, res, next) {
+    const updateStoreProduct = {
+        status: 0
+    };
+    let sql = `UPDATE grostep.stores_products_mapping SET ? WHERE store_product_mapping_id = ?`;
+    try {
+        const storeProduct = await pool.query(sql, [updateStoreProduct, +req.params.id]);
+        res.json({
+            status: 200,
+            "message": "store product Information updated",
+            "product": storeProduct
+        });
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
+    // pool.getConnection(function (err, dbConn) {
+    //     dbConn.query("DELETE FROM stores_products_mapping WHERE store_product_mapping_id = ? ", req.params.id,
+    //         function (err, storeProductData) {
+    //             if (err) {
+    //                 console.log("error: ", err);
+    //             }
+    //             else {
+    //                 let deleted = false;
+    //                 if (storeProductData.affectedRows == 1) {
+    //                     deleted = true;
+    //                 }
+    //                 res.json({
+    //                     "message": (deleted) ? "store sub Category deleted successfully" : "invalid category id",
+    //                     "status": (deleted) ? 200 : 400,
+    //                     "category_id": req.params.id
+    //                 });
+    //             }
+    //             dbConn.release();
+    //         });
+    // });
 }
 
 exports.fetchAllPendingBilledOrders = function (req, res) {
@@ -632,16 +666,50 @@ exports.fetchStoreOrdersById = function (req, res) {
                                     "store_selling_price": obj.store_selling_price
                                 }));
                             let newItem = {};
+                            let customer_info = {};
+                            let store_info = {};
                             newItem.order_id = storeOrder.order_id;
-                            newItem.address_type = storeOrder.address_type;
-                            newItem.cust_delivery_address = storeOrder.cust_delivery_address;
-                            newItem.cust_lat = storeOrder.cust_lat;
-                            newItem.cust_location = storeOrder.cust_location;
-                            newItem.cust_long = storeOrder.cust_long;
-                            newItem.cust_pincode = storeOrder.cust_pincode;
-                            newItem.customer_id = storeOrder.customer_id;
-                            newItem.delivery_address_id = storeOrder.delivery_address_id;
-                            newItem.delivery_phone_number = storeOrder.delivery_phone_number;
+                            newItem.customerInfo = [];
+                            newItem.storeInfo = [];
+
+
+                            
+                            
+                            customer_info.customer_id = storeOrder.customer_id;
+                            customer_info.customer_name = storeOrder.customer_name;
+                            customer_info.registered_number = storeOrder.customer_phone;
+                            customer_info.customer_email = storeOrder.customer_email;
+                            customer_info.delivery_address_id = storeOrder.delivery_address_id;
+                            customer_info.address = storeOrder.address;
+                            customer_info.address2 = storeOrder.address2;
+                            customer_info.latitude = storeOrder.cust_lat;
+                            customer_info.longitude = storeOrder.cust_long;
+                            customer_info.country = storeOrder.country;
+                            customer_info.state = storeOrder.state;
+                            customer_info.city = storeOrder.city;
+                            customer_info.pincode = storeOrder.cust_pincode;
+                            customer_info.address_type = storeOrder.address_type;
+                            customer_info.landmark = storeOrder.landmark;
+                            customer_info.delivery_phone_number = storeOrder.delivery_phone_number;
+
+
+
+
+                            store_info.store_id = storeOrder.store_id;
+                            store_info.store_name = storeOrder.store_name;
+                            store_info.store_email = storeOrder.store_email;
+                            store_info.phone_number = storeOrder.store_phone_number;
+                            store_info.alternative_number = storeOrder.store_alternative_number;
+                            store_info.country = storeOrder.country;
+                            store_info.state = storeOrder.state;
+                            store_info.city = storeOrder.city;
+                            store_info.pin_code = storeOrder.store_pin_code;
+                            store_info.latitude = storeOrder.store_latitude;
+                            store_info.longitude = storeOrder.store_longitude;
+                            store_info.address = storeOrder.store_address;
+
+
+
                             newItem.discount_amount = storeOrder.discount_amount;
                             newItem.final_amount = storeOrder.final_amount;
                             newItem.merchant_bill_amount = storeOrder.merchant_bill_amount;
@@ -667,9 +735,9 @@ exports.fetchStoreOrdersById = function (req, res) {
                             newItem.voucher_code = storeOrder.voucher_code;
                             newItem.voucher_type = storeOrder.voucher_type;
 
-                            /*   console.log(itemArr); */
-                            newItem.order_products = [];
                             newItem.order_products_info = (itemArr);
+                            newItem.customerInfo.push(customer_info);
+                            newItem.storeInfo.push(store_info);
                             uniqueArr.push(newItem);
                         }
                     }
