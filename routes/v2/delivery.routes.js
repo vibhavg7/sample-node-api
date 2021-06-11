@@ -55,6 +55,9 @@ router.route('/deliveryareasinfo/:areaId')
 router.route('/logoutDeliveryPerson/:deliveryPersonId')
     .put(deliveryController.updateDeliveryPerson);
 
+router.route('/updateareatiming/:areaId')
+    .put(deliveryController.updateAreaTiming);
+
 router.route('/validate')
     .post(deliveryController.validateDeliveryPerson);
 

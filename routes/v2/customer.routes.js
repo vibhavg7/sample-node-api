@@ -4,7 +4,7 @@ var router = express.Router();
 var customerController = require("../../controllers/v1/customer.controller");
 var orderController = require("../../controllers/v1/order.controller");
 var cartController = require("../../controllers/v1/cart.controller");
-
+var storesController = require("../../controllers/v1/stores.controller");
 var authenticateToken = require('../../services/authenticateToken');
 
 router.route('/register')
@@ -36,6 +36,9 @@ router.route('/customerinfo')
 
 router.route('/customerinfo/customerorders')
     .post(authenticateToken, orderController.fetchCustomerOrders);
+
+router.route('/customerinfo/customerorderproducts')
+    .post(authenticateToken, storesController.fetchOrderProductsById);
 
 router.route('/customeraddress')
     .post(customerController.addDelievryAddress);

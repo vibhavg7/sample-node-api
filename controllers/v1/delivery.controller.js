@@ -274,6 +274,47 @@ exports.addNewDeliveryPerson = async function (req, res, next) {
     }
 }
 
+exports.updateAreaTiming = async function(req, res, next) {
+    const openingTime = req.body.openingtime;
+    const closingtime = req.body.closingtime;
+    const val1 = openingTime.hour + ':' + openingTime.minute;
+    const val2 = closingtime.hour + ':' + closingtime.minute;
+
+    let sql = `CALL Update_Area_Timing(?,?,?)`;
+
+    try {
+        const deliveryareaData = await pool.query(sql, [+req.params.areaId, val1, val2]);
+        res.json({
+            "status": 200,
+            "message": "delivery areas information",
+            "deliveryareaData": deliveryareaData[0]
+        });
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
+    // const updateServicableArea = {
+    //     opening_time: val1,
+    //     closing_time: val2
+    // };
+    // let sql = `UPDATE grostep.serviceable_areas SET ? WHERE serviceable_area_id = ?`;
+    // try {
+    //     const delivery = await pool.query(sql, [updateServicableArea, +req.params.areaId]);
+    //     res.json({
+    //         status: 200,
+    //         "message": "servicable Information updated sucessfully",
+    //         "delivery": delivery
+    //     });
+    // }
+    // catch (err) {
+    //     next(createError(401, err));
+    // } finally {
+    //     // pool.end();
+    // }
+}
+
 exports.updateDeliveryPerson = async function (req, res, next) {
     const updateDeliveryPerson = req.body;
     let sql = `UPDATE grostep.deliveryperson SET ? WHERE delivery_person_id = ?`;

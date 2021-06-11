@@ -561,7 +561,7 @@ exports.fetchAllPendingBilledOrders = function (req, res) {
     });
 }
 
-exports.fetchStoreOrderProductsById = function (req, res) {
+exports.fetchOrderProductsById = function (req, res) {
     let sql = `CALL GET_ORDER_PRODUCTS(?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [+req.params.orderId],

@@ -890,10 +890,108 @@ exports.fetchCustomerOrders = async function (req, res, next) {
     let sql = `CALL GET_CUSTOMER_ORDERS(?,?,?,?)`;
     try {
         const customerOrders = await pool.query(sql, [+req.body.customerId, +req.body.page_number, +req.body.page_size, req.body.filterBy]);
+        let uniqueArr = [];
+
+        let customerOrders1 = customerOrders[0];
+
+        for (let i = 0; i < customerOrders1.length; i++) {
+            let customerOrder = customerOrders1[i];
+            if (uniqueArr.filter(value => value.order_id == customerOrder.order_id).length == 0) {
+                let itemArr = customerOrders1.filter(val => val.order_id == customerOrder.order_id)
+                    .map(obj => (
+                    {   
+                        "store_product_mapping_id": obj.store_product_mapping_id,
+                        "quantity": obj.quantity,
+                        "image_url": obj.image_url,
+                        "weight_type_id": obj.weight_type_id,
+                        "weight_text": obj.weight_text,
+                        "product_id": obj.product_id,
+                        "product_name": obj.product_name,
+                        "product_weight": obj.product_weight,
+                        "buying_date": obj.order_placing_date,
+                        "merchant_bill_amount": obj.merchant_bill_amount,
+                        "store_selling_price": obj.store_selling_price
+                    }));
+                let newItem = {};
+                let customer_info = {};
+                let store_info = {};
+                newItem.order_id = customerOrder.order_id;
+                newItem.customerInfo = [];
+                newItem.storeInfo = [];
+
+
+                
+                
+                customer_info.customer_id = customerOrder.customer_id;
+                customer_info.customer_name = customerOrder.customer_name;
+                customer_info.registered_number = customerOrder.customer_phone;
+                customer_info.customer_email = customerOrder.customer_email;
+                customer_info.delivery_address_id = customerOrder.delivery_address_id;
+                customer_info.address = customerOrder.address;
+                customer_info.address2 = customerOrder.address2;
+                customer_info.latitude = customerOrder.cust_lat;
+                customer_info.longitude = customerOrder.cust_long;
+                customer_info.country = customerOrder.country;
+                customer_info.state = customerOrder.state;
+                customer_info.city = customerOrder.city;
+                customer_info.pincode = customerOrder.cust_pincode;
+                customer_info.address_type = customerOrder.address_type;
+                customer_info.landmark = customerOrder.landmark;
+                customer_info.delivery_phone_number = customerOrder.delivery_phone_number;
+
+
+
+
+                store_info.store_id = customerOrder.store_id;
+                store_info.store_name = customerOrder.store_name;
+                store_info.store_email = customerOrder.store_email;
+                store_info.phone_number = customerOrder.store_phone_number;
+                store_info.alternative_number = customerOrder.store_alternative_number;
+                store_info.country = customerOrder.country;
+                store_info.state = customerOrder.state;
+                store_info.city = customerOrder.city;
+                store_info.pin_code = customerOrder.store_pin_code;
+                store_info.latitude = customerOrder.store_latitude;
+                store_info.longitude = customerOrder.store_longitude;
+                store_info.address = customerOrder.store_address;
+
+
+
+                newItem.discount_amount = customerOrder.discount_amount;
+                newItem.final_amount = customerOrder.final_amount;
+                newItem.merchant_bill_amount = customerOrder.merchant_bill_amount;
+                newItem.order_amount = customerOrder.order_amount;
+                newItem.order_delivery_fee = customerOrder.order_delivery_fee;
+                
+                newItem.order_placing_date = customerOrder.order_placing_date;
+                newItem.order_status = customerOrder.order_status;
+                newItem.payment_mode = customerOrder.payment_mode;
+                newItem.payment_mode_type = customerOrder.payment_mode_type;
+                newItem.registered_phone = customerOrder.registered_phone;
+                newItem.status = customerOrder.status;
+                newItem.store_address = customerOrder.store_address;
+                newItem.store_email = customerOrder.store_email;
+                newItem.store_lat = customerOrder.store_lat;
+                newItem.store_long = customerOrder.store_long;
+                newItem.store_location = customerOrder.store_location;
+                newItem.store_name = customerOrder.store_name;
+                newItem.store_phone_number = customerOrder.store_phone_number;
+                newItem.store_pincode = customerOrder.store_pincode;
+                newItem.total_item_count = customerOrder.total_item_count;
+                newItem.voucher_amount = customerOrder.voucher_amount;
+                newItem.voucher_code = customerOrder.voucher_code;
+                newItem.voucher_type = customerOrder.voucher_type;
+
+                newItem.order_products_info = (itemArr);
+                newItem.customerInfo.push(customer_info);
+                newItem.storeInfo.push(store_info);
+                uniqueArr.push(newItem);
+            }
+        }
         res.json({
             status: 200,
             "message": "Customer orders Information",
-            "customer_orders_info": customerOrders[0],
+            "customer_orders_info": uniqueArr,
             "customer_order_count": customerOrders[1]
         });
     }

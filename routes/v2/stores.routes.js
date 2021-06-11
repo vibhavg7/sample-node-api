@@ -69,7 +69,7 @@ router.route('/storeinfo/storeproducts/updatestock/:id')
 
 //route used in admin panel    
 router.route('/storeinfo/storeorderproducts/:orderId')
-    .get(authenticateToken, storesController.fetchStoreOrderProductsById);
+    .get(authenticateToken, storesController.fetchOrderProductsById);
 
 router.route('/merchantorderscount/:storeId/:offset')
     .get(orderController.fetchMerchantOrderCountById);

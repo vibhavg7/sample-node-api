@@ -64,12 +64,10 @@ router.route('/storeinfo/storeproducts/updatestock/:id')
     .patch(storesController.updateProductStock);
 
 router.route('/storeinfo/storeorderproducts/:orderId')
-    .get(storesController.fetchStoreOrderProductsById);
+    .get(storesController.fetchOrderProductsById);
 
 router.route('/merchantorderscount/:storeId/:offset')
     .get(orderController.fetchMerchantOrderCountById);
-
-
 
 
 router.route('/storeinfo/storenewpickedorders')
