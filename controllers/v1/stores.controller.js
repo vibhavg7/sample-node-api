@@ -853,9 +853,8 @@ exports.fetchStoreById = function (req, res) {
 }
 
 exports.addNewStore = function (req, res) {
-    console.log('Hi');
     const newProduct = req.body;
-    let sql = `CALL ADD_NEW_STORE(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+    let sql = `CALL ADD_NEW_STORE(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
 
     let storeName = req.body.storeName;
     let storeCategoryName = +req.body.storeCategoryName;
@@ -878,20 +877,23 @@ exports.addNewStore = function (req, res) {
     let storeRating = +req.body.storeRating;
     let latitude = req.body.latitude;
     let longitude = req.body.longitude;
-    let openingTime = +req.body.openingTime;
-    let closingTime = +req.body.closingTime;
-    let openingTimeClock = req.body.openingTimeClock;
-    let closingTimeClock = req.body.closingTimeClock;
+    let openingTime = req.body.openingTime;
+    let closingTime = req.body.closingTime;
+    // let openingTimeClock = req.body.openingTimeClock;
+    // let closingTimeClock = req.body.closingTimeClock;
     let status = +req.body.status;
     let password = req.body.password;
 
     // console.log(req.body);
 
+    const val1 = openingTime.hour + ':' + openingTime.minute;
+    const val2 = closingTime.hour + ':' + closingTime.minute;
+
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [storeName, storeEmail, storePhoneNumber, storeAlternateNumber,
             storeLandlineNumber, country, state, city, storeGSTNumber, storePANNumber,
             storeAddress, pinCode, storeDescription, storeRating, latitude, longitude,
-            status, storeCategoryName, openingTime, closingTime, openingTimeClock, closingTimeClock, password],
+            status, storeCategoryName, val1, val2, password],
             function (err, store) {
                 if (err) {
                     console.log("error: ", err);
@@ -965,6 +967,10 @@ exports.updateStore = function (req, res) {
     const updatedStore = req.body;
     // console.log(updatedStore);
     // console.log(req.params.storeId);
+    
+    updatedStore.store_opening_time = req.body.store_opening_time.hour + ':' + req.body.store_opening_time.minute;
+    updatedStore.store_closing_time = req.body.store_closing_time.hour + ':' + req.body.store_closing_time.minute;
+
     pool.getConnection(function (err, dbConn) {
         dbConn.query("UPDATE stores SET ? WHERE store_id = ?", [updatedStore, req.params.storeId], function (err, store) {
             if (err) {
