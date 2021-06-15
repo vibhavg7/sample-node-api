@@ -64,6 +64,9 @@ router.route('/validate')
 router.route('/deliveryinfo')
     .post(authenticateToken, deliveryController.fetchAllDeliveryPersons);
 
+router.route('/deliveryinfo/fetchactiveDeliveryPersons')
+    .get(authenticateToken, deliveryController.fetchActiveDeliveryPersons);
+
 router.route('/deliveryratesandfees/:customerId')
     .post(deliveryController.fetchDeliveryRatesAndFeesCityWise);
 

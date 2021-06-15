@@ -160,6 +160,22 @@ exports.fetchAllDeliveredOrders = function (req, res) {
     });
 }
 
+exports.fetchActiveDeliveryPersons = async function(req, res, next) {
+    let sql = `CALL FETCH_AVAILABLE_DP()`;
+    try {
+        const delivery = await pool.query(sql, []);
+        res.json({
+            "message": "delivery information",
+            "delivery": delivery[0]
+        });
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
+}
+
 exports.fetchAllDeliveryPersons = async function (req, res, next) {
 
     let sql = `CALL GET_ALL_DELIVERYPERSONS(?,?,?)`;

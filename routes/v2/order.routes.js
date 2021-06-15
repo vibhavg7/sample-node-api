@@ -8,6 +8,9 @@ var authenticateToken = require('../../services/authenticateToken');
 router.route('/fetchallOrders')
     .post(authenticateToken, orderController.fetchAllOrders);
 
+router.route('/fetchOrderStatusTypes')
+    .get(authenticateToken, orderController.fetchOrderStatusTypes);
+
 
 router.route('/customerorders')
     .post(orderController.fetchCustomerOrders);

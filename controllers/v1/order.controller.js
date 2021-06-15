@@ -249,44 +249,22 @@ exports.fetchOrderBillInformation = function (req, res) {
     });
 }
 
-exports.updateOrder = function (req, res) {
-    // const updatedOrder = req.body;
-    let updatedOrder = {};
-    updatedOrder.status = req.body.status;
-    updatedOrder.order_merchant_status = req.body.order_merchant_status;
-
-    pool.getConnection(function (err, dbConn) {
-        dbConn.query("UPDATE orders SET ? WHERE order_id = ?", [updatedOrder, req.params.orderId], function (err, order) {
-            if (err) {
-                console.log("error: ", err);
-                res.json({
-                    status: 400,
-                    "message": "order Information not updated",
-                    "order": order
-                });
-            }
-            else {
-                var sql = "INSERT INTO grostep.order_merchant_info (merchant_id,order_id, status) VALUES(?,?,?)";
-                let todo = [+req.body.storeId, +req.params.orderId, +req.body.order_merchant_status];
-                dbConn.query(sql, todo, function (err, inserteddata) {
-                    if (err) {
-                        res.json({
-                            status: 400,
-                            "message": err.message,
-                            "order": 0
-                        });
-                    } else {
-                        res.json({
-                            status: 200,
-                            "message": "order Information updated",
-                            "order": order
-                        });
-                    }
-                });
-            }
-            dbConn.release();
+exports.updateOrder = async function (req, res, next) {
+    const updateOrder = req.body;
+    let sql = `UPDATE grostep.orders SET ? WHERE order_id = ?`;
+    try {
+        const updatedOrder = await pool.query(sql, [updateOrder, +req.params.orderId]);
+        res.json({
+            status: 200,
+            "message": "order Information updated",
+            "order": req.params.orderId
         });
-    });
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
 }
 
 
@@ -856,6 +834,27 @@ exports.fetchOrderDetailsById = function (req, res) {
 
     });
 
+}
+
+exports.fetchOrderStatusTypes = async function(req,res, next) {
+
+    let sql = `CALL FETCH_ORDER_STATUS_TYPES()`;
+
+    try {
+        const orderStatusData = await pool.query(sql, []);
+        res.json({
+            "status": 200,
+            "message": "order status information",
+            "orderStatusTypes": orderStatusData[0],
+            "deliveryStatusTypes": orderStatusData[1],
+            "merchantStatusTypes": orderStatusData[2]
+        });
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
 }
 
 exports.fetchAllOrders = function (req, res) {
