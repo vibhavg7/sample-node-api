@@ -732,7 +732,7 @@ exports.fetchStoreOrdersById = function (req, res) {
                             newItem.store_pincode = storeOrder.store_pincode;
                             newItem.total_item_count = storeOrder.total_item_count;
                             newItem.voucher_amount = storeOrder.voucher_amount;
-                            newItem.voucher_code = storeOrder.voucher_code;
+                            newItem.voucher_code = storeOrder.coupon_code;
                             newItem.voucher_type = storeOrder.voucher_type;
 
                             newItem.order_products_info = (itemArr);

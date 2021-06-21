@@ -1,7 +1,7 @@
 var moment = require('moment');
 var pool = require('../../utils/manageDB');
-
-exports.searchActiveCouponByName = function(req,res) {
+var createError = require('http-errors');
+exports.searchActiveCouponByName = function (req, res) {
 
     let sql = `CALL SEARCH_VOUCHER_BY_NAME(?,?)`;
 
@@ -45,14 +45,14 @@ exports.fetchAllActiveOffers = function (req, res) {
                     res.json({
                         status: 400,
                         "message": "offers not fetched",
-                        "vouchers":[]
+                        "vouchers": []
                     });
                 }
                 else {
                     res.json({
                         "status": 200,
                         "message": "offers sucessfully fetched",
-                        "vouchers":offersData[0]
+                        "vouchers": offersData[0]
                     });
                 }
                 dbConn.release();
@@ -60,26 +60,21 @@ exports.fetchAllActiveOffers = function (req, res) {
     });
 }
 
-exports.fetchCouponInfoById = function (req, res) {
-    pool.getConnection(function (err, dbConn) {
-        dbConn.query("SELECT * FROM vouchers WHERE voucher_id = ? ", +req.params.couponId, function (err, couponData) {
-            if (err) {
-                res.json({
-                    status: 400,
-                    "message": "Coupon Information not found",
-                    "coupon": couponData[0]
-                });
-            }
-            else {
-                res.json({
-                    status: 200,
-                    "message": "coupon Information",
-                    "coupon": couponData[0]
-                });
-            }
-            dbConn.release();
+exports.fetchCouponInfoById = async function (req, res, next) {
+    let sql = `SELECT * FROM coupon WHERE coupon_id = ? `;
+    try {
+        const couponData = await pool.query(sql, [ +req.params.couponId]);
+        res.json({
+            status: 200,
+            "message": "coupon information",
+            "coupon": couponData[0]
         });
-    });
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
 }
 
 exports.deleteCoupon = function (req, res) {
@@ -107,11 +102,11 @@ exports.deleteCoupon = function (req, res) {
 
 exports.updateCoupon = function (req, res) {
     let utcMoment = moment.utc();
-    req.body.voucher_last_updated = new Date(utcMoment);
+    req.body.coupon_last_updated = new Date(utcMoment);
     const updateCoupon = req.body;
     console.log(updateCoupon);
     pool.getConnection(function (err, dbConn) {
-        dbConn.query("UPDATE grostep.vouchers SET ? WHERE voucher_id = ?", [updateCoupon, +req.params.couponId], function (err, couponData) {
+        dbConn.query("UPDATE grostep.coupon SET ? WHERE coupon_id = ?", [updateCoupon, +req.params.couponId], function (err, couponData) {
             if (err) {
                 console.log("error: ", err);
                 res.json({
@@ -135,27 +130,30 @@ exports.updateCoupon = function (req, res) {
 
 exports.addNewCoupon = function (req, res) {
     const newProduct = req.body;
-    let sql = `CALL ADD_NEW_COUPON(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+    let sql = `CALL ADD_NEW_COUPON(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
 
     let calculationType = +req.body.calculationType;
-    let expirydatetime = req.body.expirydatetime;
-    let voucherMaxUsageCount = +req.body.voucherMaxUsageCount;
-    let voucherCode = req.body.voucherCode;
-    let voucherDescription = req.body.voucherDescription;
-    let voucherMaxLimit = +req.body.voucherMaxLimit;
-    let voucherMaxLimitUser = +req.body.voucherMaxLimitUser;
-    let voucherMinCartAmount = +req.body.voucherMinCartAmount;
-    let voucherValue = +req.body.voucherValue;
+    let startdatetime = req.body.startdatetime;
+    let enddatetime = req.body.enddatetime;
+    let couponMaxUsageCount = +req.body.couponMaxUsageCount;
+    let couponCode = req.body.couponCode;
+    let description = req.body.description;
+    let couponMaxLimit = +req.body.couponMaxLimit;
+    let couponMaxLimitUser = +req.body.couponMaxLimitUser;
+    let couponMinCartAmount = +req.body.couponMinCartAmount;
+    let voucherValue = +req.body.couponValue;
     let createdBy = req.body.createdBy;
-    let customerId = req.body.customerId;
-    let city = 4;
-    let voucherType = 0;
+    let customerId = +req.body.customerId;
+    let storeId = +req.body.storeId;
+    // let city = 4;
+    let couponType = +req.body.couponType;
     let status = +req.body.status;
 
     pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [voucherCode, voucherValue, expirydatetime, 
-            voucherMinCartAmount, voucherType, voucherDescription, status,createdBy, customerId, city,
-            voucherMaxUsageCount, voucherMaxLimit, voucherMaxLimitUser, calculationType],
+        dbConn.query(sql, [couponCode, voucherValue, startdatetime, enddatetime,
+            couponMinCartAmount, description, status, createdBy,
+            couponMaxUsageCount, couponMaxLimit, couponMaxLimitUser, calculationType,
+            customerId, storeId, couponType],
             function (err, coupon) {
                 if (err) {
                     console.log("error: ", err);
@@ -177,22 +175,19 @@ exports.addNewCoupon = function (req, res) {
     });
 }
 
-exports.fetchAllOffers = function (req, res) {
-    let sql = `CALL GET_ALL_VOUCHER_INFO(?,?,?)`;
-    pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [+req.body.page_number, +req.body.page_size, req.body.filterBy],
-            function (err, vouchers) {
-                if (err) {
-                    console.log("error: ", err);
-                }
-                else {
-                    res.json({
-                        "message": "voucher information",
-                        "vouchers": vouchers[0],
-                        "voucher_total_count": vouchers[1][0]
-                    });
-                }
-                dbConn.release();
-            });
-    });
+exports.fetchAllCoupons = async function (req, res, next) {
+    let sql = `CALL GET_ALL_COUPONS(?,?,?)`;
+    try {
+        const coupon = await pool.query(sql, [+req.body.page_number, +req.body.page_size, req.body.filterBy]);
+        res.json({
+            "message": "coupon information",
+            "coupons": coupon[0],
+            "coupon_total_count": coupon[1][0]
+        });
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
 }

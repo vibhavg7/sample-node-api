@@ -17,10 +17,10 @@ exports.fetchCartDetailsById = async function(req, res, next) {
             "customerInfo": cartData[0],
             "storeInfo": cartData[1],
             "cart_id": cartData[2][0].cart_id,
-            "voucher_code": cartData[2][0].voucher_code,
+            "coupon_code": cartData[2][0].coupon_code,
             "order_amount": cartData[2][0].order_amount,
             "delivery_cost": cartData[2][0].delivery_cost,
-            "voucher_amount": cartData[2][0].voucher_amount,
+            "discount_amount": cartData[2][0].voucher_amount,
             "last_updated": cartData[2][0].last_updated,
             "instructions": cartData[2][0].instructions,
             "status": cartData[2][0].status
@@ -67,13 +67,14 @@ exports.fetchcartsinfo = async function (req, res, next) {
                 newItem.last_updated = cartData.last_updated;
                 newItem.order_amount = cartData.order_amount;
                 newItem.delivery_cost = cartData.delivery_cost;
-                newItem.voucher_amount = cartData.voucher_amount;
-                newItem.voucher_code = cartData.voucher_code;
+                newItem.discount_amount = cartData.voucher_amount;
+                newItem.coupon_code = cartData.coupon_code;
                 newItem.delivery_slot = cartData.delivery_slot;
                 newItem.delivery_type = cartData.delivery_type;
-                newItem.total = cartData.total;
+                newItem.total = newItem.order_amount + newItem.delivery_cost - newItem.discount_amount;
                 newItem.status = cartData.status;
-
+                newItem.store_id = cartData.store_id;
+                newItem.store_name = cartData.store_name;
 
                 newItem.customerInfo = [];
                 newItem.storeInfo = [];

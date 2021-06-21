@@ -978,7 +978,7 @@ exports.fetchCustomerOrders = async function (req, res, next) {
                 newItem.store_pincode = customerOrder.store_pincode;
                 newItem.total_item_count = customerOrder.total_item_count;
                 newItem.voucher_amount = customerOrder.voucher_amount;
-                newItem.voucher_code = customerOrder.voucher_code;
+                newItem.voucher_code = customerOrder.coupon_code;
                 newItem.voucher_type = customerOrder.voucher_type;
 
                 newItem.order_products_info = (itemArr);
