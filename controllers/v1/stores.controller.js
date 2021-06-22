@@ -854,7 +854,7 @@ exports.fetchStoreById = function (req, res) {
 
 exports.addNewStore = function (req, res) {
     const newProduct = req.body;
-    let sql = `CALL ADD_NEW_STORE(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+    let sql = `CALL ADD_NEW_STORE(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
 
     let storeName = req.body.storeName;
     let storeCategoryName = +req.body.storeCategoryName;
@@ -882,6 +882,7 @@ exports.addNewStore = function (req, res) {
     // let openingTimeClock = req.body.openingTimeClock;
     // let closingTimeClock = req.body.closingTimeClock;
     let status = +req.body.status;
+    let storeMargin = req.body.storeMargin;
     let password = req.body.password;
 
     // console.log(req.body);
@@ -893,7 +894,7 @@ exports.addNewStore = function (req, res) {
         dbConn.query(sql, [storeName, storeEmail, storePhoneNumber, storeAlternateNumber,
             storeLandlineNumber, country, state, city, storeGSTNumber, storePANNumber,
             storeAddress, pinCode, storeDescription, storeRating, latitude, longitude,
-            status, storeCategoryName, val1, val2, password],
+            status, storeCategoryName, val1, val2, password, storeMargin],
             function (err, store) {
                 if (err) {
                     console.log("error: ", err);

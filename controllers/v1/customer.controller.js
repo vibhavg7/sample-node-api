@@ -283,7 +283,7 @@ exports.authenticateservicelocation = function (req, res) {
     let sql = `CALL CHECK_SERVICE_LOCATION(?,?,?,?)`;
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql, [req.body.zipcode, req.body.city, req.body.state, req.body.country],
-            function (err, servicableareacount) {
+            function (err, servicableareainfo) {
                 if (err) {
                     console.log("error: ", err);
                     res.json({
@@ -293,17 +293,17 @@ exports.authenticateservicelocation = function (req, res) {
                     });
                 }
                 else {
-                    if (servicableareacount[0][0]['servicable_area_check'] == 0) {
+                    if (servicableareainfo[0][0]['servicable_area_check'] == 0) {
                         res.json({
                             "status": 200,
                             "message": "area not servicable",
-                            "locationresponse": servicableareacount[0][0]
+                            "locationresponse": servicableareainfo[0][0]
                         });
                     } else {
                         res.json({
                             "status": 200,
                             "message": "area servicable",
-                            "locationresponse": servicableareacount[0][0]
+                            "locationresponse": servicableareainfo[0][0]
                         });
                     }
 

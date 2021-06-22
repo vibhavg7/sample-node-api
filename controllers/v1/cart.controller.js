@@ -236,6 +236,7 @@ exports.validateStoreCartProducts = function (req, res) {
     // let customer_id = +req.body.customer_id;
     let storeId = +req.body.storeId;
     let sql = `CALL VALIDATE_CUSTOMER_CART_ITEMS(?,?)`;
+    console.log(cartData.toString());
     pool.getConnection(function (err, dbConn) {
         dbConn.query(sql,
             [cartData.toString(), storeId], function (err, customerCartItems) {
@@ -253,12 +254,12 @@ exports.validateStoreCartProducts = function (req, res) {
                     let current_mins = utcMoment.minutes();
                     let store_opening_time = storeInfo[0].store_opening_time;
                     let store_closing_time = storeInfo[0].store_closing_time;
-                    if ((store_opening_time <= current_hour) && (store_closing_time > current_hour)) {
-                        storeInfo[0].closed = 0;
-                    } else {
-                        storeInfo[0].closed = 1;
-                    }
-                    console.log(current_hour);
+                    // if ((store_opening_time <= current_hour) && (store_closing_time > current_hour)) {
+                    //     storeInfo[0].closed = 0;
+                    // } else {
+                    //     storeInfo[0].closed = 1;
+                    // }
+                    // console.log(current_hour);
                     res.json({
                         status: 200,
                         "message": "cart products",
