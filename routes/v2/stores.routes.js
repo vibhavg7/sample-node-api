@@ -87,7 +87,8 @@ router.route('/storeinfo/storenewpickedorders')
 router.route('/fetchAllRunningOrders')
     .post(storesController.fetchAllRunningOrders);
 
-
+router.route('/uploadStoreCategoryProducts')
+    .post(storesController.uploadStoreCategoryProducts);
 
 
 router.route('/fetchAllPickedOrders/:storeId')

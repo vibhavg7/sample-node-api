@@ -240,6 +240,21 @@ exports.fetchAllStoresBasedOnZipCode = function (req, res) {
 }
 
 
+exports.uploadStoreCategoryProducts = async function(req,res, next) {
+    let sql = `CALL Upload_Store_Category_Products(?,?,?)`;
+    try {
+        const products = await pool.query(sql, [+req.body.storeId, req.body.margin, +req.body.store_parent_category]);
+        res.json({
+            "message": "store category and products sucessfully added",
+            "status" :  200
+        });
+    } catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }   
+}
+
 
 exports.fetchAllRunningOrders = function (req, res) {
     let sql = `CALL GET_STORE_PENDINGORDERS(?,?,?,?)`;
@@ -844,7 +859,8 @@ exports.fetchStoreById = function (req, res) {
                     status: 200,
                     "message": "store Information",
                     "store": store[0],
-                    "store_categories": store[1]
+                    "store_categories": store[1],
+                    "store_products_count": store[2][0]['store_products_count']
                 });
             }
             dbConn.release();
