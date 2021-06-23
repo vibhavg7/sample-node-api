@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-var storesController = require("../../controllers/v1/stores.controller");
+var storesController = require("../../controllers/v2/stores.controller");
 var orderController = require("../../controllers/v1/order.controller");
 var authenticateToken = require('../../services/authenticateToken');
 
@@ -33,7 +33,11 @@ router.route('/storeinfo/storedeliveryslots')
     .post(storesController.getStoreDeliverySlots);
 
 router.route('/storeinfo/categories/:storeId')
-    .get(storesController.fetchStoreSubCategoriesInfoById);
+    .post(storesController.fetchStoreSubCategoriesInfoById);
+
+router.route('/storeinfo/categories/updateStatus/:storeCategoryMappingId')
+    .patch(storesController.updatestoreCategoryStatus);
+
 
 router.route('/storeinfo/zipCode')
     .post(storesController.fetchAllStoresBasedOnZipCode);
@@ -94,9 +98,9 @@ router.route('/fetchAllPendingBilledOrders/:storeId')
 
 //routes used by admin panel
 router.route('/storeinfo/:storeId')
-    .get(authenticateToken,storesController.fetchStoreById)
-    .delete(authenticateToken,storesController.deleteStore)
-    .put(authenticateToken,storesController.updateStore);
+    .get(authenticateToken, storesController.fetchStoreById)
+    .delete(authenticateToken, storesController.deleteStore)
+    .put(authenticateToken, storesController.updateStore);
 
 router.route('/updatestoreclosingstatus/:storeId')
     .put(authenticateToken, storesController.updatestoreclosingstatus);
