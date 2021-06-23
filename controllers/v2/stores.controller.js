@@ -988,9 +988,12 @@ exports.updateStore = function (req, res) {
     const updatedStore = req.body;
     // console.log(updatedStore);
     // console.log(req.params.storeId);
-    
-    updatedStore.store_opening_time = req.body.store_opening_time.hour + ':' + req.body.store_opening_time.minute;
-    updatedStore.store_closing_time = req.body.store_closing_time.hour + ':' + req.body.store_closing_time.minute;
+    if (req.body.store_opening_time) {
+        updatedStore.store_opening_time = req.body.store_opening_time.hour + ':' + req.body.store_opening_time.minute;
+    }
+    if (req.body.store_closing_time) {
+        updatedStore.store_closing_time = req.body.store_closing_time.hour + ':' + req.body.store_closing_time.minute;
+    }
 
     pool.getConnection(function (err, dbConn) {
         dbConn.query("UPDATE stores SET ? WHERE store_id = ?", [updatedStore, req.params.storeId], function (err, store) {
