@@ -11,6 +11,7 @@ const authenticateToken = function (req, res, next) {
         return;
     }
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
+        console.log(user.name);
         if (err) {
             next(createError(403, err));
         }
@@ -25,7 +26,9 @@ const authenticateToken = function (req, res, next) {
                     // console.log('customer_mobileapp');
                     break;
             }
+            console.log(sql);
             const userData = await pool.query(sql, [user.name]);
+            console.log(userData);
             if (userData.length > 0) {
                 req.user = user;
                 // console.log(req.user);

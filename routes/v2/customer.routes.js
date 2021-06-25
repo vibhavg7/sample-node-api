@@ -64,7 +64,7 @@ router.route('/customerselectedaddresscitywise/:customerId')
 
 router.route('/customerinfo/:customerId')
     .get(authenticateToken, customerController.getCustomer)
-    .put(customerController.updateCustomer)
+    .put(authenticateToken,customerController.updateCustomer)
     .delete(customerController.deleteCustomer);
 
 router.route('/updateOrder/:orderId')

@@ -447,42 +447,39 @@ exports.deleteAddress = function (req, res) {
     });
 }
 
-exports.validateCustomer = function (req, res) {
+exports.validateCustomer = async function (req, res, next) {
+
+    const newStoreCategory = req.body;
     let sql = `CALL validateCustomer(?,?)`;
-    pool.getConnection(function (err, dbConn) {
-        dbConn.query(sql, [req.body.phone_number, req.body.otp_number], function (err, customerData) {
-            console.log(customerData);
-            if (err) {
-                res.json({
-                    "status": 400,
-                    "message": "customer Details not found",
-                    "token": "",
-                    "customerData": []
-                });
-            }
-            else {
-                if (customerData[0][0].status == 1) {
-                    sendToken(customerData[0][0], res);
-                } else {
-                    res.json({
-                        "status": 400,
-                        "message": "OTP not valid",
-                        "token": "",
-                        "customerData": []
-                    });
-                }
-            }
-            dbConn.release();
-        });
-    });
+
+    try {
+        const customerData = await pool.query(sql, [req.body.phone_number, req.body.otp_number]);
+        if (customerData[0][0].status == 1) {
+            sendToken(customerData[0][0], res);
+        } else {
+            res.json({
+                "status": 400,
+                "message": "OTP not valid",
+                "token": "",
+                "customerData": []
+            });
+        }
+    }
+    catch (err) {
+        next(createError(401, err));
+    } finally {
+        // pool.end();
+    }
 }
 
 function sendToken(item, res) {
-    var token = jwt.sign(item.customer_id, "123");
+    const user = {name: item.customer_id};
+    var acesssToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
+    // var token = jwt.sign(item.customer_id, "123");
     res.json({
         "status": 200,
         "message": "customer Details",
-        "token": token,
+        "token": acesssToken,
         "customerData": item
     });
 }
